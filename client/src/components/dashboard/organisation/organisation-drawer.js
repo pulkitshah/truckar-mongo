@@ -1,4 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import PropTypes from "prop-types";
 import { format } from "date-fns";
 import { Storage } from "aws-amplify";
@@ -239,6 +245,15 @@ const OrganisationForm = (props) => {
   const dispatch = useDispatch();
   const [file, setFile] = useState();
   const [croppedImage, setCroppedImage] = useState();
+
+  const isDrawerOpen = useRef(true);
+  useLayoutEffect(() => {
+    if (isDrawerOpen.current) {
+      isDrawerOpen.current = false;
+      return;
+    }
+    onCancel();
+  }, [organisation]);
 
   const formik = useFormik({
     initialValues: {

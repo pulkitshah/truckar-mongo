@@ -51,7 +51,7 @@ router.get("/:id", auth, async (req, res) => {
       query.name = { $regex: value, $options: "i" };
       // query.name = new RegExp(`.*${value}*.`, "i");
     }
-    const vehicles = await Vehicle.find(query);
+    const vehicles = await Vehicle.find(query).populate("organisation");
     res.json(vehicles);
   } catch (error) {
     console.log(error.message);

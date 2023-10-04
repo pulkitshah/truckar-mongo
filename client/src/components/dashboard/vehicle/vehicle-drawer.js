@@ -19,9 +19,10 @@ import { useDispatch } from "../../../store";
 import { X as XIcon } from "../../../icons/x";
 import { PropertyList } from "../../property-list";
 import { PropertyListItem } from "../../property-list-item";
+import { useAuth } from "../../../hooks/use-auth";
 import { vehicleApi } from "../../../api/vehicle-api";
 import { vehicleNumberFormatter } from "../../../utils/customFormatters";
-import { useAuth } from "../../../hooks/use-auth";
+import OrganisationAutocomplete from "../autocompletes/organisation-autcomplete/organisation-autocomplete";
 
 const VehiclePreview = (props) => {
   const { lgUp, onEdit, vehicle } = props;
@@ -72,7 +73,12 @@ const VehiclePreview = (props) => {
           label="Vehicle Number"
           value={vehicle.vehicleNumber.toUpperCase()}
         />
-
+        <PropertyListItem
+          align={align}
+          disableGutters
+          label="Organisation"
+          value={vehicle.organisation.name}
+        />
         <PropertyListItem
           align={align}
           disableGutters
@@ -110,6 +116,7 @@ const VehicleForm = (props) => {
       vehicleNumber: vehicle.vehicleNumber,
       make: vehicle.make,
       model: vehicle.model,
+      organisation: vehicle.organisation,
     },
     validationSchema: Yup.object({
       vehicleNumber: Yup.string()
@@ -226,6 +233,7 @@ const VehicleForm = (props) => {
             inputComponent: vehicleNumberFormatter,
           }}
         />
+        <OrganisationAutocomplete sx={{ pt: 2 }} formik={formik} />
 
         <TextField
           margin="normal"
