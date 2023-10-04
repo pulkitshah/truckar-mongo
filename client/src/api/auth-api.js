@@ -33,7 +33,6 @@ class AuthApi {
         email,
         name,
         password,
-        on,
       });
 
       return {
@@ -43,10 +42,10 @@ class AuthApi {
       };
     } catch (err) {
       console.error("[Auth Api]: ", err);
-      if (err.email) {
+      if (err.errors) {
         return {
-          status: err.status,
-          data: err,
+          status: 400,
+          data: err.errors[0],
           error:
             "This email id is already registered. Please try a different email.",
         };

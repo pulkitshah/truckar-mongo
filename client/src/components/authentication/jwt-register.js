@@ -49,7 +49,9 @@ export const JWTRegister = (props) => {
           values.password
         );
 
-        if (response.status === 201) {
+        console.log(response);
+
+        if (response.status === 200) {
           if (isMounted()) {
             const returnUrl = router.query.returnUrl || "/dashboard";
             router.push(returnUrl);

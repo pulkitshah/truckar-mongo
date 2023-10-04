@@ -45,25 +45,27 @@ const VehicleList = () => {
   const { t } = useTranslation();
   const isMounted = useMounted();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const rootRef = useRef(null);
   const { vehicles } = useSelector((state) => state.vehicles);
-
   const [drawer, setDrawer] = useState({
     isOpen: false,
-    vehicleId: null,
+    vehicle: null,
   });
 
   const handleOpenDrawer = (params) => {
     setDrawer({
       isOpen: true,
-      vehicleId: params.row.id,
+      vehicle: params.row,
     });
   };
 
-  const getVehiclesByUser = useCallback(async () => {
+  const getVehiclesByAccount = useCallback(async () => {
     try {
-      let data = await vehicleApi.getVehiclesByUser(user, dispatch);
+      let { data } = await vehicleApi.getVehiclesByAccount(
+        dispatch,
+        account._id
+      );
     } catch (err) {
       console.error(err);
     }
@@ -71,7 +73,7 @@ const VehicleList = () => {
 
   useEffect(() => {
     try {
-      getVehiclesByUser();
+      getVehiclesByAccount();
     } catch (error) {
       console.log(error);
     }
@@ -125,9 +127,10 @@ const VehicleList = () => {
         </VehicleListInner>
         <VehicleDrawer
           containerRef={rootRef}
+          onOpen={handleOpenDrawer}
           onClose={handleCloseDrawer}
           open={drawer.isOpen}
-          vehicle={vehicles.find((vehicle) => vehicle.id === drawer.vehicleId)}
+          vehicle={drawer.vehicle}
         />
       </Box>
     </>

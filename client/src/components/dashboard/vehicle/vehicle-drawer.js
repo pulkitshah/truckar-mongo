@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useRef, useState, useLayoutEffect } from "react";
 import PropTypes from "prop-types";
-import { Storage } from "aws-amplify";
 import { useFormik } from "formik";
 import toast from "react-hot-toast";
+import * as Yup from "yup";
 import {
   Box,
   Button,
@@ -21,9 +21,9 @@ import { PropertyList } from "../../property-list";
 import { PropertyListItem } from "../../property-list-item";
 import { vehicleApi } from "../../../api/vehicle-api";
 import { vehicleNumberFormatter } from "../../../utils/customFormatters";
+import { useAuth } from "../../../hooks/use-auth";
 
 const VehiclePreview = (props) => {
-  const dispatch = useDispatch();
   const { lgUp, onEdit, vehicle } = props;
   const align = lgUp ? "horizontal" : "vertical";
 
@@ -91,52 +91,58 @@ const VehiclePreview = (props) => {
 };
 
 const VehicleForm = (props) => {
-  const { onCancel, vehicle } = props;
   const dispatch = useDispatch();
-  const [file, setFile] = useState();
-  const [croppedImage, setCroppedImage] = useState();
+  const { account } = useAuth();
+  const { onOpen, onCancel, vehicle } = props;
+
+  const isDrawerOpen = useRef(true);
+  useLayoutEffect(() => {
+    if (isDrawerOpen.current) {
+      isDrawerOpen.current = false;
+      return;
+    }
+    onCancel();
+  }, [vehicle]);
 
   const formik = useFormik({
     initialValues: {
-      id: vehicle.id,
+      _id: vehicle._id,
       vehicleNumber: vehicle.vehicleNumber,
       make: vehicle.make,
       model: vehicle.model,
-      _version: vehicle._version,
     },
-    // validationSchema: Yup.object({
-    //   name: Yup.string().max(255).required("Name is required"),
-    //   initials: Yup.string().max(255).required("Required"),
-    //   addressLine1: Yup.string()
-    //     .max(255)
-    //     .required("Address Line 1 is required"),
-    //   city: Yup.string().max(255).required("City is required"),
-    //   pincode: Yup.string().max(255).required("Pincode is required"),
-    //   gstin: Yup.string()
-    //     .trim()
-    //     .matches(
-    //       /^([0-9]){2}([a-zA-Z]){5}([0-9]){4}([a-zA-Z]){1}([0-9]){1}([a-zA-Z]){1}([0-9]){1}?$/,
-    //       "Invalid GST Number"
-    //     ),
-    //   pan: Yup.string().max(255).required("PAN is required"),
-    //   jurisdiction: Yup.string().max(255).required("Jurisdiction is required"),
-    // }),
+    validationSchema: Yup.object({
+      vehicleNumber: Yup.string()
+        .max(255)
+        .required("Vehicle Number is required")
+        .test(
+          "Unique Name",
+          "Vehicle with this vehicle number exists", // <- key, message
+          async function (value) {
+            try {
+              if (value === vehicle.vehicleNumber) {
+                return true;
+              }
+              const response = await vehicleApi.validateDuplicateVehicleNumber(
+                account._id,
+                value
+              );
+              return response.data;
+            } catch (error) {
+              console.log(error);
+            }
+          }
+        ),
+      make: Yup.string().max(255).required("Make is required"),
+      model: Yup.string().max(255).required("Model is required"),
+    }),
     onSubmit: async (values, helpers) => {
       try {
         // NOTE: Make API request
-        const filename = `${vehicle.user}_vehicleLogo_${vehicle.id}`;
-        let logoBase64;
-        let logo;
-        if (values.logo) {
-          logoBase64 = await fetch(values.logo);
-          logo = await logoBase64.blob();
-          values.logo = filename;
-          await Storage.put(filename, logo);
-        }
-
-        await vehicleApi.updateVehicle(values, dispatch);
+        let { data } = await vehicleApi.updateVehicle(dispatch, values);
 
         toast.success("Vehicle updated!");
+        onOpen({ row: data });
         onCancel();
       } catch (err) {
         console.error(err);
@@ -147,25 +153,6 @@ const VehicleForm = (props) => {
       }
     },
   });
-
-  const handleDrop = (newFile) => {
-    newFile.length > 0 &&
-      setFile(
-        Object.assign(newFile[0], {
-          preview: URL.createObjectURL(newFile[0]),
-        })
-      );
-  };
-
-  const handleRemove = (file) => {
-    setFile();
-    setCroppedImage("");
-  };
-
-  const handleSaveCroppedImage = (cropper) => {
-    setCroppedImage(cropper.getCroppedCanvas().toDataURL());
-    formik.setFieldValue(`logo`, cropper.getCroppedCanvas().toDataURL());
-  };
 
   return (
     <>
@@ -264,10 +251,6 @@ const VehicleForm = (props) => {
           value={formik.values.model}
           variant="outlined"
         />
-
-        <Button color="error" sx={{ mt: 3 }}>
-          Delete vehicle
-        </Button>
       </form>
     </>
   );
@@ -296,7 +279,7 @@ const VehicleDrawerMobile = styled(Drawer)({
 });
 
 export const VehicleDrawer = (props) => {
-  const { containerRef, onClose, open, vehicle, ...other } = props;
+  const { containerRef, onOpen, onClose, open, vehicle, ...other } = props;
   const [isEditing, setIsEditing] = useState(false);
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up("lg"));
 
@@ -345,7 +328,11 @@ export const VehicleDrawer = (props) => {
             lgUp={lgUp}
           />
         ) : (
-          <VehicleForm onCancel={handleCancel} vehicle={vehicle} />
+          <VehicleForm
+            onOpen={onOpen}
+            onCancel={handleCancel}
+            vehicle={vehicle}
+          />
         )}
       </Box>
     </>
@@ -383,6 +370,7 @@ export const VehicleDrawer = (props) => {
 VehicleDrawer.propTypes = {
   containerRef: PropTypes.any,
   onClose: PropTypes.func,
+  onOpen: PropTypes.func,
   open: PropTypes.bool,
   vehicle: PropTypes.object,
 };

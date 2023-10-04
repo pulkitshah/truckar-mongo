@@ -19,7 +19,6 @@ class VehicleApi {
         })}`
       );
       let vehicle = response.data;
-      console.log(vehicle);
 
       return {
         status: response.status,
@@ -64,13 +63,13 @@ class VehicleApi {
     }
   }
 
-  async getVehiclesByAccount(account, value) {
+  async getVehiclesByAccount(dispatch, account, value) {
     try {
       const response = await axios.get(
         `/api/vehicle/${JSON.stringify({ account, value })}`
       );
       let vehicles = response.data;
-
+      dispatch(slice.actions.getVehicles(vehicles));
       return {
         status: response.status,
         data: vehicles,
@@ -89,6 +88,29 @@ class VehicleApi {
     }
   }
 
+  async updateVehicle(dispatch, editedVehicle) {
+    try {
+      const response = await axios.patch(`/api/vehicle/`, editedVehicle);
+
+      dispatch(slice.actions.updateVehicle({ vehicle: response.data }));
+      return {
+        status: response.status,
+        data: response.data,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Vehicle Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Vehicle not updated, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
   /// API Modified
 
   async getVehiclesByUser(user, dispatch) {
@@ -97,7 +119,7 @@ class VehicleApi {
 
       const response = await API.graphql({
         query: vehiclesByUser,
-        variables: { user: user.id.toString() },
+        variables: { user: user._id.toString() },
       });
       const vehicles = response.data.vehiclesByUser.items;
 
@@ -106,7 +128,7 @@ class VehicleApi {
       //////////////////////// DataStore API ////////////////////////
 
       // const vehicles = await DataStore.query(Vehicle, (c) =>
-      //   c.user("eq", user.id)
+      //   c.user("eq", user._id)
       // );
 
       //////////////////////// DataStore API ////////////////////////
@@ -121,28 +143,6 @@ class VehicleApi {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async updateVehicle(editedVehicle, dispatch) {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: updateVehicle,
-      variables: { input: editedVehicle },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const vehicle = response.data.updateVehicle;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    // console.log(vehicle);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateVehicle({ vehicle }));
-
-    return response;
   }
 }
 

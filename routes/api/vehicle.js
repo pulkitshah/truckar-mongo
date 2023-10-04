@@ -37,7 +37,7 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// @route   GET api/vehicles/
+// @route   GET api/vehicle/
 // @desc    Get Vehicles created from account that matches input
 // @access  Private
 
@@ -45,7 +45,7 @@ router.get("/:id", auth, async (req, res) => {
   const { account, value } = JSON.parse(req.params.id);
   try {
     const query = {
-      account: account.id,
+      account: account,
     };
     if (value) {
       query.name = { $regex: value, $options: "i" };
@@ -59,7 +59,7 @@ router.get("/:id", auth, async (req, res) => {
   }
 });
 
-// @route   GET api/vehicles/
+// @route   GET api/vehicle/
 // @desc    Get Vehicles with Duplicate Valid Number
 // @access  Private
 
@@ -67,7 +67,7 @@ router.get("/validateDuplicateVehicleNumber/:id", auth, async (req, res) => {
   const { account, vehicleNumber } = JSON.parse(req.params.id);
   try {
     const query = {
-      account: account.id,
+      account: account,
     };
     if (vehicleNumber) {
       query.vehicleNumber = { $regex: `^${vehicleNumber}$`, $options: "i" };
@@ -78,6 +78,28 @@ router.get("/validateDuplicateVehicleNumber/:id", auth, async (req, res) => {
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");
+  }
+});
+
+// @route   PATCH api/vehicle/
+// @desc    Update Vehicle
+// @access  Private
+router.patch("/", auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+
+  try {
+    const vehicle = await Vehicle.findOne({
+      _id: req.body._id,
+    });
+
+    updates.forEach((update) => (vehicle[update] = req.body[update]));
+
+    await vehicle.save();
+
+    res.send(vehicle);
+  } catch (error) {
+    console.log(error);
+    // res.status(400).send(error);
   }
 });
 

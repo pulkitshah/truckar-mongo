@@ -39,17 +39,6 @@ const tabs = [
   },
 ];
 
-const sortOptions = [
-  {
-    label: "Newest",
-    value: "desc",
-  },
-  {
-    label: "Oldest",
-    value: "asc",
-  },
-];
-
 const OrderListInner = styled("div", {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
