@@ -62,7 +62,7 @@ router.get("/:id", auth, async (req, res) => {
     startRow,
     endRow,
     filter = {},
-    sort = false,
+    sort = { saleDate: -1, orderNo: -1 },
   } = JSON.parse(req.params.id);
 
   // if (!(accountId instanceof mongoose.Types.ObjectId)) {
@@ -110,7 +110,9 @@ router.get("/:id", auth, async (req, res) => {
           {
             $project: {
               name: 1,
-              transporter: 1,
+              city: 1,
+              mobile: 1,
+              isTransporter: 1,
               _id: 1,
             },
           },
@@ -119,6 +121,85 @@ router.get("/:id", auth, async (req, res) => {
       },
     },
     { $unwind: "$customer" },
+    {
+      $lookup: {
+        from: "parties",
+        let: {
+          id: "$transporter",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$_id", "$$id"],
+              },
+            },
+          },
+          {
+            $project: {
+              name: 1,
+              city: 1,
+              mobile: 1,
+              isTransporter: 1,
+              _id: 1,
+            },
+          },
+        ],
+        as: "transporter",
+      },
+    },
+    { $unwind: "$transporter" },
+    {
+      $lookup: {
+        from: "drivers",
+        let: {
+          id: "$driver",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$_id", "$$id"],
+              },
+            },
+          },
+          {
+            $project: {
+              name: 1,
+              mobile: 1,
+              _id: 1,
+            },
+          },
+        ],
+        as: "driver",
+      },
+    },
+    { $unwind: "$transporter" },
+    {
+      $lookup: {
+        from: "vehicles",
+        let: {
+          id: "$vehicle",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$_id", "$$id"],
+              },
+            },
+          },
+          {
+            $project: {
+              vehicleNumber: 1,
+              _id: 1,
+            },
+          },
+        ],
+        as: "vehicle",
+      },
+    },
+    { $unwind: "$vehicle" },
     {
       $lookup: {
         from: "deliveries",
@@ -199,77 +280,39 @@ router.get("/:id", auth, async (req, res) => {
   res.json(orders);
 });
 
-// router.get("/:id", auth, async (req, res) => {
-//   const page = parseInt(req.query.page);
-//   const limit = parseInt(req.query.limit);
+// @route   PATCH api/order
+// @desc    Create Order
+// @access  Private
+router.patch(
+  "/",
+  [auth, [check("orderNo", "Please enter Order No.").not().isEmpty()]],
+  async (req, res) => {
+    const updates = Object.keys(req.body);
+    try {
+      const order = await Order.findOne({
+        _id: req.body._id,
+      })
+        .populate("customer")
+        .populate("transporter")
+        .populate("driver")
+        .populate("vehicle");
 
-//   try {
-//     const orders = await Order.aggregate([
-//       {
-//         $match: { account: new mongoose.Types.ObjectId(req.params.id) },
-//       },
-//       { $sort: { saleDate: -1, createdDate: -1 } },
-// {
-//   $lookup: {
-//     from: "parties",
-//     let: {
-//       id: "$customer",
-//     },
-//     pipeline: [
-//       {
-//         $match: {
-//           $expr: {
-//             $eq: ["$_id", "$$id"],
-//           },
-//         },
-//       },
-//       {
-//         $project: {
-//           name: 1,
-//           transporter: 1,
-//           _id: 1,
-//         },
-//       },
-//     ],
-//     as: "customer",
-//   },
-// },
-// { $unwind: "$customer" },
-//       {
-//         $lookup: {
-//           from: "deliveries",
-//           let: {
-//             id: "$_id",
-//           },
-//           pipeline: [
-//             {
-//               $match: {
-//                 $expr: {
-//                   $eq: ["$order", "$$id"],
-//                 },
-//               },
-//             },
-//             {
-//               $project: {
-//                 loading: { structured_formatting: { main_text: 1 } },
-//                 unloading: { structured_formatting: { main_text: 1 } },
-//                 lrNo: 1,
-//                 billWeight: 1,
-//                 unloadingWeight: 1,
-//                 status: 1,
-//               },
-//             },
-//           ],
-//           as: "deliveries",
-//         },
-//       },
-//     ]);
-//     res.json(orders);
-//   } catch (error) {
-//     console.log(error.message);
-//     res.status(500).send("Server Error");
-//   }
-// });
+      console.log(req.body);
+
+      if (!order) {
+        return res.status(404).send("No order to update");
+      }
+
+      updates.forEach((update) => (order[update] = req.body[update]));
+      await order.save();
+
+      res.send(order);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Server Error");
+    }
+  }
+);
 
 // @route   GET api/orders/
 // @desc    Get Orders with Duplicate Valid Number

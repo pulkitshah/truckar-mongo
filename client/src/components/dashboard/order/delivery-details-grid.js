@@ -4,8 +4,10 @@ import { useDispatch } from "../../../store";
 import { deliveryDetailsTableForOrderDrawer } from "../../grids/grid-columns";
 import { deliveryApi } from "../../../api/delivery-api";
 import { useMounted } from "../../../hooks/use-mounted";
+import { useAuth } from "../../../hooks/use-auth";
 
 const Table = ({ order, gridApi }) => {
+  const { account } = useAuth();
   const isMounted = useMounted();
   const dispatch = useDispatch();
   const [deliveries, setDeliveries] = useState();
@@ -29,8 +31,12 @@ const Table = ({ order, gridApi }) => {
 
   const getDeliveriesByOrder = useCallback(async () => {
     try {
-      let data = await deliveryApi.getDeliveriesByOrder(order, dispatch);
+      let { data } = await deliveryApi.getDeliveriesByOrder(
+        account._id,
+        order._id
+      );
       if (isMounted()) {
+        console.log(data);
         setDeliveries(data);
       }
     } catch (err) {

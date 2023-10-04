@@ -45,8 +45,6 @@ const Table = ({ onOpenDrawer, open, toggleDrawer }) => {
         let filter = params.filterModel;
         const sort = params.sortModel;
 
-        console.log(filter);
-
         if (filter.customer) {
           let filteredCustomers = filter.customer.values.map((c) => {
             if (checkJsonString(c)) {

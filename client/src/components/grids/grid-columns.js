@@ -500,6 +500,7 @@ export const deliveryDetailsTableForOrderDrawer = [
     width: 90,
     valueFormatter: (params) => {
       if (params.value) {
+        console.log(params);
         return `${params.value} ${
           params.api.getRow(params.id).order.saleType.unit
         }`;
@@ -509,8 +510,8 @@ export const deliveryDetailsTableForOrderDrawer = [
     },
   },
   {
-    field: "billQuantity",
-    headerName: "Bill Wt",
+    field: "unloadingQuantity",
+    headerName: "Unloading Wt",
     width: 90,
     valueFormatter: (params) => {
       if (params.value) {

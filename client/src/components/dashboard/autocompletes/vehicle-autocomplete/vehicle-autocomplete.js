@@ -33,7 +33,6 @@ const VehicleAutocomplete = ({
     try {
       const { data } = await vehicleApi.getVehiclesByAccount(account);
       if (isMounted()) {
-        console.log(data);
         setVehicles(data);
       }
     } catch (err) {

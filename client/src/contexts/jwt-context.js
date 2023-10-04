@@ -96,7 +96,7 @@ export const AuthProvider = (props) => {
       setSession(accessToken);
       const response = await authApi.me();
 
-      if (response.status === 200) {
+      if (response.status === 200 && response.data !== null) {
         const user = response.data;
 
         const response2 = await accountApi.getAccountsByUser(user);

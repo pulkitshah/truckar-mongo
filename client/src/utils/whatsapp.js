@@ -28,7 +28,7 @@ export const sendOrderConfirmationMessageToOwner = async (order, user) => {
   switch (template) {
     case "owner_order_conf_self":
       options.data = {
-        to: user.phone_number.replace("+", ""),
+        to: user.mobile.replace("+", ""),
         type: "template",
         template: {
           name: template,
@@ -64,7 +64,7 @@ export const sendOrderConfirmationMessageToOwner = async (order, user) => {
 
     case "owner_order_conf_trade":
       options.data = {
-        to: user.phone_number.replace("+", ""),
+        to: user.mobile.replace("+", ""),
         type: "template",
         template: {
           name: template,

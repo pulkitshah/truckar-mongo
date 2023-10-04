@@ -69,20 +69,20 @@ const statusOptions = [
 
 const OrderPreview = (props) => {
   const { lgUp, onEdit, order, gridApi } = props;
-  const { user } = useAuth();
+  const { account } = useAuth();
   const align = lgUp ? "horizontal" : "vertical";
   const dispatch = useDispatch();
-  console.log(order);
+
   const getOrderUnit = (order) => {
-    switch (JSON.parse(order.saleType).value) {
+    switch (order.saleType.value) {
       case "quantity":
-        return `${JSON.parse(order.saleType).unit}`;
+        return `${order.saleType.unit}`;
         break;
       case "fixed":
         return `(Fixed)`;
         break;
       case "time":
-        return `${JSON.parse(order.saleType).unit}`;
+        return `${order.saleType.unit}`;
         break;
       default:
         break;
@@ -91,16 +91,16 @@ const OrderPreview = (props) => {
 
   const formik = useFormik({
     initialValues: {
-      id: order.id,
-      orderExpenses: order.orderExpenses ? JSON.parse(order.orderExpenses) : [],
+      _id: order._id,
+      orderExpenses: order.orderExpenses ? order.orderExpenses : [],
     },
     onSubmit: async (values, helpers) => {
       try {
         console.log(values);
         const editedOrder = {
-          id: values.id,
-          orderExpenses: JSON.stringify(values.orderExpenses),
-          user: user.id,
+          _id: values._id,
+          orderExpenses: values.orderExpenses,
+          account: account._id,
           _version: order._version,
         };
         console.log(editedOrder);
@@ -154,7 +154,7 @@ const OrderPreview = (props) => {
           </Button>
           <Button
             onClick={() => {
-              sendOrderConfirmationMessageToOwner(order, user);
+              sendOrderConfirmationMessageToOwner(order, account);
             }}
             size="small"
             sx={{ pt: 3 }}
@@ -193,13 +193,13 @@ const OrderPreview = (props) => {
               {order.customer.mobile}
             </Typography>
             <Typography color="textSecondary" variant="body2">
-              {JSON.parse(order.customer.city).description}
+              {order.customer.city.description}
             </Typography>
           </PropertyListItem>
           <Button
             disabled={true}
             onClick={() => {
-              sendOrderConfirmationMessageToOwner(order, user);
+              sendOrderConfirmationMessageToOwner(order, account);
             }}
             size="small"
             sx={{ pt: 3 }}
@@ -244,13 +244,13 @@ const OrderPreview = (props) => {
                     {order.transporter.mobile}
                   </Typography>
                   <Typography color="textSecondary" variant="body2">
-                    {JSON.parse(order.transporter.city).description}
+                    {order.transporter.city.description}
                   </Typography>
                 </PropertyListItem>
                 <Button
                   disabled={true}
                   onClick={() => {
-                    sendOrderConfirmationMessageToOwner(order, user);
+                    sendOrderConfirmationMessageToOwner(order, account);
                   }}
                   size="small"
                   sx={{ pt: 3 }}
@@ -260,7 +260,7 @@ const OrderPreview = (props) => {
               </Box>
             </>
           ))}
-        {order.driver !== null && (
+        {order.driver && (
           <>
             <Divider sx={{ my: 3 }} />
 
@@ -282,7 +282,7 @@ const OrderPreview = (props) => {
               <Button
                 disabled={true}
                 onClick={() => {
-                  sendOrderConfirmationMessageToOwner(order, user);
+                  sendOrderConfirmationMessageToOwner(order, account);
                 }}
                 size="small"
                 sx={{ pt: 3 }}
@@ -311,9 +311,7 @@ const OrderPreview = (props) => {
             align={align}
             disableGutters
             label="Min Sale Guarantee"
-            value={`${order.minimumSaleGuarantee} ${
-              JSON.parse(order.saleType).unit
-            }`}
+            value={`${order.minimumSaleGuarantee} ${order.saleType.unit}`}
           />
         ) : null}
         {order.saleAdvance && (
@@ -345,9 +343,7 @@ const OrderPreview = (props) => {
                   align={align}
                   disableGutters
                   label="Min Purchase Guarantee"
-                  value={`${order.minimumPurchaseGuarantee} ${
-                    JSON.parse(order.saleType).unit
-                  }`}
+                  value={`${order.minimumPurchaseGuarantee} ${order.saleType.unit}`}
                 />
               )}
               {order.purchaseAdvance && (
@@ -376,14 +372,14 @@ const OrderPreview = (props) => {
                     <Grid item xs={12}>
                       {formik.values.orderExpenses.length > 0 &&
                         formik.values.orderExpenses.map((delivery, index) => {
-                          const orderExpensesName = `orderExpenses[${index}]`;
-                          const touchedOrderExpensesName = getIn(
+                          const orderExpenseName = `orderExpenses[${index}]`;
+                          const touchedOrderExpenseName = getIn(
                             formik.touched,
-                            orderExpensesName
+                            orderExpenseName
                           );
-                          const errorOrderExpensesName = getIn(
+                          const errorOrderExpenseName = getIn(
                             formik.errors,
-                            orderExpensesName
+                            orderExpenseName
                           );
 
                           const orderExpenseAmount = `orderExpenses[${index}].orderExpenseAmount`;
@@ -408,30 +404,30 @@ const OrderPreview = (props) => {
                                 >
                                   <TextField
                                     helperText={
-                                      touchedOrderExpensesName &&
-                                      errorOrderExpensesName
-                                        ? errorOrderExpensesName
+                                      touchedOrderExpenseName &&
+                                      errorOrderExpenseName
+                                        ? errorOrderExpenseName
                                         : ""
                                     }
                                     error={Boolean(
-                                      touchedOrderExpensesName &&
-                                        errorOrderExpensesName
+                                      touchedOrderExpenseName &&
+                                        errorOrderExpenseName
                                     )}
                                     variant="outlined"
                                     onChange={(event) => {
                                       formik.setFieldValue(
-                                        `orderExpenses[${index}].orderExpensesName`,
+                                        `orderExpenses[${index}].orderExpenseName`,
                                         event.target.value
                                       );
                                     }}
                                     onBlur={formik.handleBlur}
-                                    id="orderExpensesName"
-                                    name="orderExpensesName"
+                                    _id="orderExpenseName"
+                                    name="orderExpenseName"
                                     label="Expense Name"
                                     fullWidth
                                     value={
                                       formik.values.orderExpenses[index]
-                                        .orderExpensesName
+                                        .orderExpenseName
                                     }
                                   />
                                 </Grid>
@@ -452,7 +448,7 @@ const OrderPreview = (props) => {
                                     variant="outlined"
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                    id={orderExpenseAmount}
+                                    _id={orderExpenseAmount}
                                     name={orderExpenseAmount}
                                     helperText={
                                       touchedOrderExpenseAmount &&
@@ -497,7 +493,7 @@ const OrderPreview = (props) => {
                           startIcon={<PlusIcon fontSize="small" />}
                           onClick={() => {
                             push({
-                              id: uuidv4(),
+                              _id: uuidv4(),
                               orderExpenseName: "",
                               orderExpenseAmount: 0,
                               isActive: true,
@@ -529,7 +525,7 @@ const OrderPreview = (props) => {
 const OrderForm = (props) => {
   const { onOpen, onCancel, order, gridApi } = props;
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const [selectedVehicle, setSelectedVehicle] = useState(
     order.vehicle ? order.vehicle : order.vehicleNumber
   );
@@ -537,7 +533,7 @@ const OrderForm = (props) => {
   const [addresses, setAddresses] = useState({ waypoints: [] });
 
   const [purchaseType, setPurchaseType] = React.useState(
-    order.purchaseType ? order.purchaseType : JSON.parse(order.saleType).value
+    order.purchaseType ? order.purchaseType : order.saleType.value
   );
 
   const purchaseTypes = [
@@ -567,7 +563,7 @@ const OrderForm = (props) => {
             const response = await orderApi.validateDuplicateOrderNo(
               value,
               this.parent.saleDate,
-              user
+              account
             );
             // console.log(response);
             return response;
@@ -616,7 +612,6 @@ const OrderForm = (props) => {
           message: "Loading is Required",
           test: function (value) {
             try {
-              console.log(!(Object.keys(value).length === 0));
               return !(Object.keys(value).length === 0);
             } catch (error) {
               console.log(error);
@@ -632,7 +627,6 @@ const OrderForm = (props) => {
           message: "Unloading is Required",
           test: function (value) {
             try {
-              console.log(!(Object.keys(value).length === 0));
               return !(Object.keys(value).length === 0);
             } catch (error) {
               console.log(error);
@@ -644,7 +638,7 @@ const OrderForm = (props) => {
 
   const formik = useFormik({
     initialValues: {
-      id: order.id,
+      _id: order._id,
       orderNo: order.orderNo || "",
       saleDate: moment(order.saleDate) || moment(),
       customer: order.customer || null,
@@ -652,7 +646,7 @@ const OrderForm = (props) => {
       driver: order.driver || null,
       transporter: order.transporter || "",
       saleType: order.saleType
-        ? JSON.parse(order.saleType)
+        ? order.saleType
         : {
             value: "quantity",
             unit: "MT",
@@ -667,7 +661,7 @@ const OrderForm = (props) => {
       minimumPurchaseGuarantee: order.minimumPurchaseGuarantee || null,
       deliveryDetails: order.deliveries || [
         {
-          id: uuidv4(),
+          _id: uuidv4(),
           loading: "",
           unloading: "",
           billQuantity: "",
@@ -679,34 +673,33 @@ const OrderForm = (props) => {
     validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
-        console.log(values);
         const editedOrder = {
-          id: values.id,
+          _id: values._id,
           orderNo: parseInt(values.orderNo),
           saleDate: values.saleDate.format(),
-          customerId: values.customer.id,
+          customerId: values.customer._id,
           saleRate: parseFloat(values.saleRate),
-          saleType: JSON.stringify(values.saleType),
-          user: user.id,
-          // deliveries: JSON.stringify(values.deliveryDetails),
+          saleType: values.saleType,
+          account: account._id,
+          // deliveries: (values.deliveryDetails),
           _version: values._version,
         };
 
         if (typeof selectedVehicle === "object" && selectedVehicle !== null) {
           // editedOrder.vehicle = values.vehicle;
-          editedOrder.vehicleId = values.vehicle.id;
+          editedOrder.vehicleId = values.vehicle._id;
           editedOrder.vehicleNumber =
             values.vehicle.vehicleNumber.toUpperCase();
           if (values.driver) {
             // editedOrder.driver = values.driver;
-            editedOrder.driverId = values.driver.id;
+            editedOrder.driverId = values.driver._id;
           }
         } else {
           editedOrder.vehicleId = null;
           editedOrder.driverId = null;
           editedOrder.vehicleNumber = values.vehicle.toUpperCase();
           // editedOrder.transporter = values.transporter;
-          editedOrder.transporterId = values.transporter.id;
+          editedOrder.transporterId = values.transporter._id;
           editedOrder.purchaseRate = parseFloat(values.purchaseRate);
           editedOrder.purchaseType = values.purchaseType;
           if (values.minimumPurchaseGuarantee)
@@ -725,15 +718,16 @@ const OrderForm = (props) => {
         if (values.purchaseAdvance)
           editedOrder.purchaseAdvance = parseFloat(values.purchaseAdvance);
 
-        let order = await orderApi.updateOrder(editedOrder, dispatch);
+        let { data } = await orderApi.updateOrder(editedOrder, dispatch);
+        data.deliveries = [];
 
         values.deliveryDetails.map(async (del) => {
-          if (del.id) {
+          if (del._id) {
             let editedDelivery = {
-              id: del.id,
+              _id: del._id,
               loading: del.loading,
               unloading: del.unloading,
-              orderId: order.id,
+              orderId: data._id,
               _version: del._version,
             };
 
@@ -743,13 +737,15 @@ const OrderForm = (props) => {
             if (del.unloadingQuantity) {
               editedDelivery.unloadingQuantity = del.unloadingQuantity;
             }
-            await deliveryApi.updateDelivery(editedDelivery, dispatch);
+
+            let response = await deliveryApi.updateDelivery(editedDelivery);
+            data.deliveries.push(response.data);
           } else {
             let newDelivery = {
               loading: del.loading,
               unloading: del.unloading,
-              orderId: order.id,
-              user: user.id,
+              orderId: data._id,
+              account: account._id,
             };
 
             if (del.billQuantity) {
@@ -758,10 +754,15 @@ const OrderForm = (props) => {
             if (del.unloadingQuantity) {
               newDelivery.unloadingQuantity = del.unloadingQuantity;
             }
-            await deliveryApi.createDelivery(newDelivery, dispatch);
+
+            let response = await deliveryApi.createDelivery(newDelivery).data;
+
+            data.deliveries.push(response.data);
           }
         });
-        onOpen(order, gridApi);
+
+        console.log(data);
+        onOpen(data, gridApi);
         gridApi.refreshInfiniteCache();
         toast.success("Order updated!");
         onCancel();
@@ -782,26 +783,22 @@ const OrderForm = (props) => {
     setAddresses((addresses) => ({
       ...addresses,
       ...{
-        origin: JSON.parse(formik.values.deliveryDetails[0].loading)
-          .description,
+        origin: formik.values.deliveryDetails[0].loading.description,
       },
     }));
 
     // Setting Destination
     if (
-      JSON.parse(
-        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading
-      ).description
+      formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
+        .unloading.description
     ) {
       setAddresses((addresses) => ({
         ...addresses,
         ...{
-          destination: JSON.parse(
+          destination:
             formik.values.deliveryDetails[
               formik.values.deliveryDetails.length - 1
-            ].unloading
-          ).description,
+            ].unloading.description,
         },
       }));
     }
@@ -811,15 +808,15 @@ const OrderForm = (props) => {
     let waypoints = [];
 
     formik.values.deliveryDetails.map((delivery) => {
-      if (JSON.parse(delivery.loading).description) {
+      if (delivery.loading.description) {
         waypoints.push({
-          location: JSON.parse(delivery.loading).description,
+          location: delivery.loading.description,
         });
       }
 
-      if (JSON.parse(delivery.unloading).description) {
+      if (delivery.unloading.description) {
         waypoints.push({
-          location: JSON.parse(delivery.unloading).description,
+          location: delivery.unloading.description,
         });
       }
     });
@@ -827,16 +824,13 @@ const OrderForm = (props) => {
     waypoints = waypoints.filter(
       (waypoint) =>
         waypoint.location !==
-        JSON.parse(formik.values.deliveryDetails[0].loading).description
+        formik.values.deliveryDetails[0].loading.description
     );
     waypoints = waypoints.filter(
       (waypoint) =>
         waypoint.location !==
-        JSON.parse(
-          formik.values.deliveryDetails[
-            formik.values.deliveryDetails.length - 1
-          ].unloading
-        ).description
+        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
+          .unloading.description
     );
 
     waypoints = [
@@ -844,11 +838,10 @@ const OrderForm = (props) => {
     ];
 
     setAddresses({
-      origin: JSON.parse(formik.values.deliveryDetails[0].loading).description,
-      destination: JSON.parse(
+      origin: formik.values.deliveryDetails[0].loading.description,
+      destination:
         formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading
-      ).description,
+          .unloading.description,
       waypoints: waypoints,
     });
   }, [formik.values.deliveryDetails]);
@@ -914,7 +907,7 @@ const OrderForm = (props) => {
         />
         <DatePicker
           sx={{ my: 2 }}
-          id="saleDate"
+          _id="saleDate"
           name="saleDate"
           label="Sale date"
           showTodayButton={true}
@@ -933,7 +926,7 @@ const OrderForm = (props) => {
         <PartyAutocomplete
           sx={{ my: 2 }}
           type="customer"
-          user={user}
+          account={account}
           formik={formik}
         />
         <Divider sx={{ my: 3 }} />
@@ -957,7 +950,7 @@ const OrderForm = (props) => {
           handleBlur={formik.handleBlur}
           setSelectedVehicle={setSelectedVehicle}
           setDriver={setDriver}
-          user={user}
+          account={account}
         />
         {typeof selectedVehicle === "object" && selectedVehicle !== null ? (
           <DriverAutocomplete
@@ -967,7 +960,7 @@ const OrderForm = (props) => {
             handleBlur={formik.handleBlur}
             setSelectedVehicle={setSelectedVehicle}
             setDriver={setDriver}
-            user={user}
+            account={account}
             values={formik.values}
           />
         ) : (
@@ -978,7 +971,7 @@ const OrderForm = (props) => {
               setFieldValue={formik.setFieldValue}
               handleBlur={formik.handleBlur}
               type="transporter"
-              user={user}
+              account={account}
               formik={formik}
             />
           )
@@ -1007,7 +1000,7 @@ const OrderForm = (props) => {
               </InputAdornment>
             ),
           }}
-          id="saleRate"
+          _id="saleRate"
           name="saleRate"
           label="Sale Rate"
           fullWidth
@@ -1027,7 +1020,7 @@ const OrderForm = (props) => {
               formik.touched.minimumSaleGuarantee &&
               formik.errors.minimumSaleGuarantee
             }
-            id="minimumSaleGuarantee"
+            _id="minimumSaleGuarantee"
             name="minimumSaleGuarantee"
             label="Min. Guarantee"
             InputProps={{
@@ -1055,7 +1048,7 @@ const OrderForm = (props) => {
               <InputAdornment position="start">{`Rs`}</InputAdornment>
             ),
           }}
-          id="saleAdvance"
+          _id="saleAdvance"
           name="saleAdvance"
           label="Sale Advance"
           fullWidth
@@ -1080,7 +1073,7 @@ const OrderForm = (props) => {
                 shrink: true,
               }}
               fullWidth
-              id="purchaseType"
+              _id="purchaseType"
               select
               value={purchaseType}
               onChange={(event) => {
@@ -1113,7 +1106,7 @@ const OrderForm = (props) => {
               helperText={
                 formik.touched.purchaseRate && formik.errors.purchaseRate
               }
-              id="purchaseRate"
+              _id="purchaseRate"
               name="purchaseRate"
               label="Purchase Rate"
               fullWidth
@@ -1146,7 +1139,7 @@ const OrderForm = (props) => {
                   formik.touched.minimumPurchaseGuarantee &&
                   formik.errors.minimumPurchaseGuarantee
                 }
-                id="minimumPurchaseGuarantee"
+                _id="minimumPurchaseGuarantee"
                 name="minimumPurchaseGuarantee"
                 label="Min. Load Guarantee"
                 fullWidth
@@ -1168,7 +1161,7 @@ const OrderForm = (props) => {
                   <InputAdornment position="start">{`Rs`}</InputAdornment>
                 ),
               }}
-              id="purchaseAdvance"
+              _id="purchaseAdvance"
               name="purchaseAdvance"
               label="Purchase Advance"
               fullWidth

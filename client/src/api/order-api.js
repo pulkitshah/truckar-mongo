@@ -83,6 +83,30 @@ class OrderApi {
     return Boolean(!order);
   }
 
+  async updateOrder(editedOrder) {
+    try {
+      const response = await axios.patch(`/api/order/`, editedOrder);
+      let order = response.data;
+      console.log(order);
+
+      return {
+        status: response.status,
+        data: order,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Order Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Account not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
   /// ALL APIS ABOVE THIS LINE ARE CONVERTED TO EXPRESS
   async getOrdersByUser(user, token) {
     try {
@@ -244,28 +268,6 @@ class OrderApi {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async updateOrder(editedOrder, dispatch) {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: updateOrder,
-      variables: { input: editedOrder },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const order = response.data.updateOrder;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    console.log(order);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateOrder({ order }));
-
-    return order;
   }
 }
 

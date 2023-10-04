@@ -37,44 +37,44 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// @route   GET api/deliveries/
-// @desc    Get Deliveries created from account that matches input
+// @route   PATCH api/delivery
+// @desc    Update Delivery
 // @access  Private
-
-router.get("/:id", auth, async (req, res) => {
-  const { account, value } = JSON.parse(req.params.id);
+router.patch("/", auth, async (req, res) => {
+  const updates = Object.keys(req.body);
   try {
-    const query = {
-      account: account.id,
-    };
-    if (value) {
-      query.name = { $regex: value, $options: "i" };
-      // query.name = new RegExp(`.*${value}*.`, "i");
+    const delivery = await Delivery.findOne({
+      _id: req.body._id,
+    }).populate("order");
+
+    if (!delivery) {
+      return res.status(404).send("No order to update");
     }
-    const deliveries = await Delivery.find(query);
-    res.json(deliveries);
+
+    updates.forEach((update) => (delivery[update] = req.body[update]));
+    await delivery.save();
+
+    res.send(delivery);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");
   }
 });
 
-// @route   GET api/deliveries/
-// @desc    Get Deliveries with Duplicate Valid Number
+// @route   GET api/delivery/deliveriesbyorder
+// @desc    Get Deliveries created from account for an order
 // @access  Private
 
-router.get("/validateDuplicateDeliveryNumber/:id", auth, async (req, res) => {
-  const { account, deliveryNumber } = JSON.parse(req.params.id);
+router.get("/deliveriesbyorder/:id", auth, async (req, res) => {
+  const { account, order } = JSON.parse(req.params.id);
   try {
     const query = {
-      account: account.id,
+      account,
+      order,
     };
-    if (deliveryNumber) {
-      query.deliveryNumber = { $regex: `^${deliveryNumber}$`, $options: "i" };
-    }
+    const deliveries = await Delivery.find(query).populate("order");
     console.log(query);
-    const delivery = await Delivery.findOne(query);
-    res.json(delivery);
+    res.json(deliveries);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");

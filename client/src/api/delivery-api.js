@@ -9,7 +9,6 @@ class DeliveryApi {
     try {
       const response = await axios.post(`/api/delivery/`, createdDelivery);
       let delivery = response.data;
-      console.log(delivery);
 
       return {
         status: response.status,
@@ -24,6 +23,56 @@ class DeliveryApi {
           data: err,
           error:
             "Account not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async getDeliveriesByOrder(account, order) {
+    try {
+      const params = { account, order };
+      const response = await axios.get(
+        `/api/delivery/deliveriesbyorder/${JSON.stringify(params)}`
+      );
+
+      let deliveries = response.data;
+      return {
+        status: response.status,
+        data: deliveries,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Delivery Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Account not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async updateDelivery(editedDelivery) {
+    try {
+      const response = await axios.patch(`/api/delivery/`, editedDelivery);
+      let delivery = response.data;
+      console.log(delivery);
+
+      return {
+        status: response.status,
+        data: delivery,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Delivery Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Delivery not updated, please try again or contact customer support.",
         };
       }
     }
@@ -100,37 +149,6 @@ class DeliveryApi {
     }
   }
 
-  async getDeliveriesByOrder(order, dispatch) {
-    try {
-      //////////////////////// GraphQL API ////////////////////////
-      const response = await API.graphql({
-        query: deliveriesByOrder,
-        variables: { orderId: order.id.toString() },
-      });
-      const deliveries = response.data.deliveriesByOrder.items;
-
-      //////////////////////// GraphQL API ////////////////////////
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // const deliveries = await DataStore.query(Delivery, (c) =>
-      //   c.user("eq", user.id)
-      // );
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // console.log(deliveries);
-
-      // Dispatch - Reducer
-
-      dispatch(slice.actions.getDeliveries(deliveries));
-
-      return deliveries;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   async getDeliveriesByCustomer(customer) {
     try {
       //////////////////////// GraphQL API ////////////////////////
@@ -164,28 +182,6 @@ class DeliveryApi {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async updateDelivery(editedDelivery, dispatch) {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: updateDelivery,
-      variables: { input: editedDelivery },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const delivery = response.data.updateDelivery;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    // console.log(delivery);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateDelivery({ delivery }));
-
-    return delivery;
   }
 
   async subscribeForNewDeliveries(order, deliveries, dispatch) {

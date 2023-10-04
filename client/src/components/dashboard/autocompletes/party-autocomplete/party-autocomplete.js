@@ -68,7 +68,6 @@ const PartyAutocomplete = ({ sx, formik, type, user }) => {
       console.log(error);
     }
   }, [value, inputValue]);
-  console.log(inputValue);
 
   return (
     <React.Fragment>

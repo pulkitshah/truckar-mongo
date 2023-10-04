@@ -69,7 +69,6 @@ class VehicleApi {
       const response = await axios.get(
         `/api/vehicle/${JSON.stringify({ account, value })}`
       );
-      console.log(response);
       let vehicles = response.data;
 
       return {
