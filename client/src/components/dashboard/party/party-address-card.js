@@ -90,7 +90,7 @@ export const AddressCard = (props) => {
           align={align}
           disableGutters
           label="City"
-          value={JSON.parse(address.city).description}
+          value={address.city.description}
         />
       </PropertyList>
     </React.Fragment>

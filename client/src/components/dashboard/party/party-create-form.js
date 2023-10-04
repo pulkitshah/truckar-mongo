@@ -23,7 +23,7 @@ import GoogleMaps from "./google-places-autocomplete";
 export const PartyCreateForm = (props) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const [mobile, setMobile] = useState("");
 
   const formik = useFormik({
@@ -31,6 +31,7 @@ export const PartyCreateForm = (props) => {
       name: "",
       mobile: "",
       city: "",
+      account: account,
       isTransporter: false,
     },
     validationSchema: Yup.object().shape({
@@ -42,11 +43,11 @@ export const PartyCreateForm = (props) => {
           "A party already exists with this name", // <- key, message
           async function (value) {
             try {
-              const response = await partyApi.validateDuplicateName(
+              const response = await partyApi.validateDuplicateName({
+                account,
                 value,
-                user
-              );
-              return response;
+              });
+              return response.data;
             } catch (error) {}
           }
         ),
@@ -58,27 +59,18 @@ export const PartyCreateForm = (props) => {
           "Mobile already in use", // <- key, message
           async function (value) {
             try {
-              const response = await partyApi.validateDuplicateMobile(
+              const response = await partyApi.validateDuplicateMobile({
+                account,
                 value,
-                user
-              );
-              return response;
+              });
+              return response.data;
             } catch (error) {}
           }
         ),
     }),
-    validateOnChange: false,
     onSubmit: async (values, helpers) => {
       try {
-        const newParty = {
-          id: uuid(),
-          name: values.name,
-          mobile: values.mobile,
-          city: JSON.stringify(values.city),
-          user: user.id,
-          isTransporter: values.isTransporter,
-        };
-        await partyApi.createParty(newParty, dispatch);
+        await partyApi.createParty({ values, dispatch });
         toast.success("Party created!");
         router.push("/dashboard/parties");
       } catch (err) {

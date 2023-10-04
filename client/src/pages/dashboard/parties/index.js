@@ -45,25 +45,25 @@ const PartyList = () => {
   const { t } = useTranslation();
   const isMounted = useMounted();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const rootRef = useRef(null);
   const { parties } = useSelector((state) => state.parties);
 
   const [drawer, setDrawer] = useState({
     isOpen: false,
-    partyId: null,
+    party: null,
   });
 
   const handleOpenDrawer = (params) => {
     setDrawer({
       isOpen: true,
-      partyId: params.row.id,
+      party: params.row,
     });
   };
 
-  const getPartiesByUser = useCallback(async () => {
+  const getPartiesByAccount = useCallback(async () => {
     try {
-      await partyApi.getPartiesByUser(user, dispatch);
+      await partyApi.getPartiesByAccount({ dispatch, account: account._id });
     } catch (err) {
       console.error(err);
     }
@@ -71,7 +71,7 @@ const PartyList = () => {
 
   useEffect(() => {
     try {
-      getPartiesByUser();
+      getPartiesByAccount();
     } catch (error) {
       console.log(error);
     }
@@ -80,7 +80,7 @@ const PartyList = () => {
   const handleCloseDrawer = () => {
     setDrawer({
       isOpen: false,
-      partyId: null,
+      party: null,
     });
   };
 
@@ -124,10 +124,11 @@ const PartyList = () => {
           </Box>
         </PartyListInner>
         <PartyDrawer
+          onOpen={handleOpenDrawer}
           containerRef={rootRef}
           onClose={handleCloseDrawer}
           open={drawer.isOpen}
-          party={parties.find((party) => party.id === drawer.partyId)}
+          party={drawer.party}
         />
       </Box>
     </>

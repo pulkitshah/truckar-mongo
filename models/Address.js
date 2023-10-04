@@ -2,23 +2,29 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 // Create Schema
-const partySchema = new Schema({
+const addressSchema = new Schema({
   name: {
     type: String,
     max: 100,
   },
+  gstin: {
+    type: String,
+  },
+  pan: {
+    type: String,
+  },
+  billingAddressLine1: {
+    type: String,
+  },
+  billingAddressLine2: {
+    type: String,
+  },
   city: {
     type: Object,
   },
-  mobile: {
-    type: String,
-  },
-  waId: {
-    type: String,
-    required: false,
-  },
-  isTransporter: {
-    type: Boolean,
+  party: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "party",
   },
   account: {
     type: mongoose.Schema.Types.ObjectId,
@@ -30,14 +36,14 @@ const partySchema = new Schema({
   },
 });
 
-partySchema.get(function () {
+addressSchema.get(function () {
   return this._id.toHexString();
 });
 
-partySchema.set("toJSON", {
+addressSchema.set("toJSON", {
   virtuals: true,
 });
 
-Party = mongoose.model("party", partySchema);
+Address = mongoose.model("address", addressSchema);
 
-module.exports = Party;
+module.exports = Address;

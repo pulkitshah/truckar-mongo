@@ -13,6 +13,7 @@ app.use(express.json({ extended: false }));
 app.use(cors());
 
 // Define Routes
+app.use("/api/address", require("./routes/api/address"));
 app.use("/api/auth", require("./routes/api/auth"));
 app.use("/api/account", require("./routes/api/account"));
 app.use("/api/delivery", require("./routes/api/delivery"));

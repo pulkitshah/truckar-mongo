@@ -13,7 +13,7 @@ export const PartyAddressForm = (props) => {
   const { party, address, toggleStatus, type } = props;
   const router = useRouter();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const { account } = useAuth();
 
   const formik = useFormik({
     initialValues: {
@@ -22,24 +22,17 @@ export const PartyAddressForm = (props) => {
       pan: address.pan || "",
       billingAddressLine1: address.billingAddressLine1 || "",
       billingAddressLine2: address.billingAddressLine2 || "",
-      city: address.city ? JSON.parse(address.city) : "",
-      partyId: party.id,
-      user: user.id,
-      _version: type === "new" ? 0 : address._version,
+      city: address.city ? address.city : "",
+      party: party,
+      account: account._id,
     },
     onSubmit: async (values, helpers) => {
       try {
         // NOTE: Make API request
-        values.city = JSON.stringify(values.city);
-        const id = uuid();
-        if (type === "new") {
-          values.id = id;
-        } else {
-          values.id = address.id;
-        }
+        if (type !== "new") values._id = address._id;
         type === "new"
-          ? await addressApi.createAddress(values, dispatch)
-          : await addressApi.updateAddress(values, dispatch);
+          ? await addressApi.createAddress({ values, dispatch })
+          : await addressApi.updateAddress({ values, dispatch });
         toggleStatus();
         toast.success("Party updated!");
       } catch (err) {
@@ -70,7 +63,7 @@ export const PartyAddressForm = (props) => {
           }}
         >
           <Typography variant="overline" sx={{ mr: 2 }} color="textSecondary">
-            Party Address
+            {type === "new" ? "Create Address" : "Update Address"}
           </Typography>
           <Box
             sx={{
@@ -189,7 +182,7 @@ export const PartyAddressForm = (props) => {
           handleBlur={formik.handleBlur}
           values={formik.values}
         />
-        <Box mt={2}>
+        <Box mt={2} mb={5}>
           <Button
             style={{ marginRight: 10 }}
             variant="contained"

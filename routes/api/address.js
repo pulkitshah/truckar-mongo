@@ -1,13 +1,13 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { check, validationResult } = require("express-validator/check");
-const Party = require("../../models/Party");
+const Address = require("../../models/Address");
 const auth = require("../../middlleware/auth");
 
 const router = express.Router();
 
-// @route   POST api/party
-// @desc    Create Party
+// @route   POST api/address
+// @desc    Create Address
 // @access  Private
 router.post("/", auth, async (req, res) => {
   try {
@@ -18,15 +18,16 @@ router.post("/", auth, async (req, res) => {
 
     // Get fields
     const updates = Object.keys(req.body);
-    const partyFields = {};
-    partyFields.createdBy = req.user.id;
-    updates.forEach((update) => (partyFields[update] = req.body[update]));
+    const addressFields = {};
+    addressFields.createdBy = req.user.id;
+    updates.forEach((update) => (addressFields[update] = req.body[update]));
 
     try {
       // Create
-      party = new Party(partyFields);
-      await party.save();
-      res.send(party);
+      address = new Address(addressFields);
+      await address.save();
+      await address.populate("party");
+      res.send(address);
     } catch (error) {
       console.log(error.message);
       res.status(500).send("Server Error");
@@ -51,7 +52,7 @@ router.get("/:id", auth, async (req, res) => {
       query.name = { $regex: value, $options: "i" };
       // query.name = new RegExp(`.*${value}*.`, "i");
     }
-    const parties = await Party.find(query);
+    const parties = await Address.find(query).populate("party");
     console.log(query);
     res.json(parties);
   } catch (error) {
@@ -74,8 +75,8 @@ router.get("/validateDuplicateMobile/:id", auth, async (req, res) => {
       query.mobile = value;
     }
     console.log(query);
-    const party = await Party.findOne(query);
-    res.json(party);
+    const address = await Address.findOne(query);
+    res.json(address);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");
@@ -95,30 +96,31 @@ router.get("/validateDuplicateName/:id", auth, async (req, res) => {
     if (value) {
       query.name = { $regex: `^${value}$`, $options: "i" };
     }
-    const party = await Party.findOne(query);
-    res.json(party);
+    const address = await Address.findOne(query);
+    res.json(address);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");
   }
 });
 
-// @route   PATCH api/party/
-// @desc    Update Party
+// @route   PATCH api/address/
+// @desc    Update Address
 // @access  Private
 router.patch("/", auth, async (req, res) => {
   const updates = Object.keys(req.body);
 
   try {
-    const party = await Party.findOne({
+    const address = await Address.findOne({
       _id: req.body._id,
     });
 
-    updates.forEach((update) => (party[update] = req.body[update]));
+    updates.forEach((update) => (address[update] = req.body[update]));
 
-    await party.save();
+    await address.save();
+    await address.populate("party");
 
-    res.send(party);
+    res.send(address);
   } catch (error) {
     console.log(error);
     // res.status(400).send(error);

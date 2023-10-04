@@ -1,3 +1,5 @@
+import axios from "../utils/axios";
+
 import { API } from "aws-amplify";
 import { addressesByParty, addressesByUser } from "../graphql/queries";
 import { createAddress, updateAddress } from "../graphql/mutations";
@@ -9,13 +11,97 @@ import { slice } from "../slices/addresses";
 const now = new Date();
 
 class AddressApi {
+  async createAddress({ values, dispatch }) {
+    try {
+      const response = await axios.post(`/api/address/`, values);
+      let address = response.data;
+      dispatch(slice.actions.createAddress({ address: response.data }));
+      return {
+        status: response.status,
+        data: address,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Address Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Address not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async updateAddress({ values, dispatch }) {
+    try {
+      const response = await axios.patch(`/api/address/`, values);
+
+      let address = response.data;
+      console.log({ address: response.data });
+      dispatch(slice.actions.updateAddress({ address: response.data }));
+      return {
+        status: response.status,
+        data: response.data,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Address Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Address not updated, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async getAddressesByAccount({ dispatch, account, value }) {
+    let params = { account };
+
+    if (value) {
+      params.value = value;
+    }
+
+    try {
+      const response = await axios.get(
+        `/api/address/${JSON.stringify({ account, value })}`
+      );
+      let addresses = response.data;
+
+      dispatch(slice.actions.getAddresses(response.data));
+
+      console.log(response);
+      return {
+        status: response.status,
+        data: addresses,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Address Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Addresses not fetched, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  // API Modified
+
   async getAddressesByUser(user, dispatch) {
     try {
       //////////////////////// GraphQL API ////////////////////////
 
       const response = await API.graphql({
         query: addressesByUser,
-        variables: { user: user.id.toString() },
+        variables: { user: user._id.toString() },
       });
       const addresses = response.data.addressesByUser.items;
 
@@ -24,7 +110,7 @@ class AddressApi {
       //////////////////////// DataStore API ////////////////////////
 
       // const addresses = await DataStore.query(Address, (c) =>
-      //   c.user("eq", user.id)
+      //   c.user("eq", user._id)
       // );
 
       //////////////////////// DataStore API ////////////////////////
@@ -44,10 +130,10 @@ class AddressApi {
   async getAddressesByParty(party, dispatch) {
     try {
       //////////////////////// GraphQL API ////////////////////////
-      console.log(party.id.toString());
+      console.log(party._id.toString());
       const response = await API.graphql({
         query: addressesByParty,
-        variables: { partyId: party.id.toString() },
+        variables: { partyId: party._id.toString() },
       });
       const addresses = response.data.addressesByParty.items;
 
@@ -56,7 +142,7 @@ class AddressApi {
       //////////////////////// DataStore API ////////////////////////
 
       // const addresses = await DataStore.query(Address, (c) =>
-      //   c.user("eq", user.id)
+      //   c.user("eq", user._id)
       // );
 
       //////////////////////// DataStore API ////////////////////////
@@ -71,85 +157,6 @@ class AddressApi {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async createAddress(createdAddress, dispatch) {
-    const createdAt = moment().toISOString();
-    let newAddress = { ...createdAddress };
-    newAddress.createdAt = createdAt;
-
-    // console.log(newAddress);
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: createAddress,
-      variables: { input: newAddress },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const address = response.data.createAddress;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    //////////////////////// DataStore API ////////////////////////
-
-    // const address = await DataStore.save(new Address(newAddress));
-
-    //////////////////////// DataStore API ////////////////////////
-
-    // console.log(address);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.createAddress({ address }));
-
-    return address;
-  }
-
-  async updateAddress(editedAddress, dispatch) {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: updateAddress,
-      variables: { input: editedAddress },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const address = response.data.updateAddress;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    // console.log(address);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateAddress({ address }));
-
-    return response;
-  }
-
-  async subscribeForNewAddresses(party, addresses, dispatch) {
-    DataStore.observe(Address).subscribe((add) => {
-      const address = addresses.find((address) => {
-        return address.id === add.element.id;
-      });
-
-      if (add.opType === "INSERT") {
-        if (!address) {
-          if (add.element.partyId === party.id) {
-            console.log(add);
-            let newAddress = {
-              ...add.element,
-              party: party,
-            };
-            console.log(newAddress);
-
-            dispatch(slice.actions.createAddress({ newAddress }));
-          }
-        }
-      }
-    });
   }
 }
 

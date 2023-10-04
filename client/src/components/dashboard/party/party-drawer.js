@@ -1,8 +1,15 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import PropTypes from "prop-types";
-import { API, DataStore, graphqlOperation, Storage } from "aws-amplify";
 import { useFormik } from "formik";
 import toast from "react-hot-toast";
+import * as Yup from "yup";
+
 import {
   Box,
   Button,
@@ -27,11 +34,12 @@ import { addressApi } from "../../../api/address-api";
 import { useAuth } from "../../../hooks/use-auth";
 import { useSelector } from "react-redux";
 import { useMounted } from "../../../hooks/use-mounted";
+import GoogleMaps from "./google-places-autocomplete";
 
 const PartyPreview = (props) => {
   const dispatch = useDispatch();
   const isMounted = useMounted();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const { lgUp, onEdit, party } = props;
 
   const align = lgUp ? "horizontal" : "vertical";
@@ -43,9 +51,9 @@ const PartyPreview = (props) => {
 
   console.log(addresses);
 
-  const getAddressesByUser = useCallback(async () => {
+  const getAddressesByAccount = useCallback(async () => {
     try {
-      await addressApi.getAddressesByUser(user, dispatch);
+      await addressApi.getAddressesByAccount({ account, dispatch });
     } catch (err) {
       console.error(err);
     }
@@ -53,7 +61,7 @@ const PartyPreview = (props) => {
 
   useEffect(() => {
     try {
-      getAddressesByUser();
+      getAddressesByAccount();
     } catch (error) {
       console.log(error);
     }
@@ -109,7 +117,7 @@ const PartyPreview = (props) => {
           align={align}
           disableGutters
           label="City"
-          value={JSON.parse(party.city).description}
+          value={party.city.description}
         />
         <PropertyListItem
           align={align}
@@ -164,7 +172,7 @@ const PartyPreview = (props) => {
       )}
       {!status &&
         addresses.map((address) => {
-          if (address.party && address.party.id === party.id) {
+          if (address.party && address.party._id === party._id) {
             return (
               <AddressCard party={party} address={address} key={address._id} />
             );
@@ -175,52 +183,76 @@ const PartyPreview = (props) => {
 };
 
 const PartyForm = (props) => {
-  const { onCancel, party } = props;
+  const { onOpen, onCancel, party } = props;
   const dispatch = useDispatch();
-  const [file, setFile] = useState();
-  const [croppedImage, setCroppedImage] = useState();
+  const { account } = useAuth();
+
+  const isDrawerOpen = useRef(true);
+  useLayoutEffect(() => {
+    if (isDrawerOpen.current) {
+      isDrawerOpen.current = false;
+      return;
+    }
+    onCancel();
+  }, [party]);
 
   const formik = useFormik({
     initialValues: {
-      id: party.id,
-      name: party.name,
-      make: party.make,
-      model: party.model,
-      _version: party._version,
+      _id: party._id,
+      name: party.name || "",
+      mobile: party.mobile || "",
+      city: party.city || "",
+      account: party.account,
+      isTransporter: party.isTransporter || false,
     },
-    // validationSchema: Yup.object({
-    //   name: Yup.string().max(255).required("Name is required"),
-    //   initials: Yup.string().max(255).required("Required"),
-    //   addressLine1: Yup.string()
-    //     .max(255)
-    //     .required("Address Line 1 is required"),
-    //   city: Yup.string().max(255).required("City is required"),
-    //   pincode: Yup.string().max(255).required("Pincode is required"),
-    //   gstin: Yup.string()
-    //     .trim()
-    //     .matches(
-    //       /^([0-9]){2}([a-zA-Z]){5}([0-9]){4}([a-zA-Z]){1}([0-9]){1}([a-zA-Z]){1}([0-9]){1}?$/,
-    //       "Invalid GST Number"
-    //     ),
-    //   pan: Yup.string().max(255).required("PAN is required"),
-    //   jurisdiction: Yup.string().max(255).required("Jurisdiction is required"),
-    // }),
+    validationSchema: Yup.object().shape({
+      name: Yup.string()
+        .max(255)
+        .required("Name is required")
+        .test(
+          "Unique Name",
+          "A party already exists with this name", // <- key, message
+          async function (value) {
+            if (value === party.name) {
+              return true;
+            }
+            try {
+              const response = await partyApi.validateDuplicateName({
+                account,
+                value,
+              });
+              return response.data;
+            } catch (error) {}
+          }
+        ),
+      mobile: Yup.string()
+        .matches(/^[6-9]\d{9}$/, "Mobile is not valid")
+        .required("Mobile is required")
+        .test(
+          "Unique Mobile",
+          "Mobile already in use", // <- key, message
+          async function (value) {
+            if (value === party.mobile) {
+              return true;
+            }
+            try {
+              const response = await partyApi.validateDuplicateMobile({
+                account,
+                value,
+              });
+              return response.data;
+            } catch (error) {}
+          }
+        ),
+    }),
     onSubmit: async (values, helpers) => {
       try {
         // NOTE: Make API request
-        const filename = `${party.user}_partyLogo_${party.id}`;
-        let logoBase64;
-        let logo;
-        if (values.logo) {
-          logoBase64 = await fetch(values.logo);
-          logo = await logoBase64.blob();
-          values.logo = filename;
-          await Storage.put(filename, logo);
-        }
 
-        await partyApi.updateParty(values, dispatch);
+        let { data } = await partyApi.updateParty(values, dispatch);
 
         toast.success("Party updated!");
+        onOpen({ row: data });
         onCancel();
       } catch (err) {
         console.error(err);
@@ -296,27 +328,30 @@ const PartyForm = (props) => {
 
         <TextField
           margin="normal"
-          error={Boolean(formik.touched.make && formik.errors.make)}
+          error={Boolean(formik.touched.mobile && formik.errors.mobile)}
           fullWidth
-          helperText={formik.touched.make && formik.errors.make}
-          label="Make"
-          name="make"
+          helperText={formik.touched.mobile && formik.errors.mobile}
+          label="Mobile"
+          name="mobile"
           onBlur={formik.handleBlur}
-          onChange={formik.handleChange}
-          value={formik.values.make}
+          onChange={async (event) => {
+            formik.setFieldValue(
+              "mobile",
+              event.target.value.replace(/ /g, "")
+            );
+          }}
+          value={formik.values.mobile}
           variant="outlined"
         />
-        <TextField
-          margin="normal"
-          error={Boolean(formik.touched.model && formik.errors.model)}
-          fullWidth
-          helperText={formik.touched.model && formik.errors.model}
-          label="Model"
-          name="model"
-          onBlur={formik.handleBlur}
-          onChange={formik.handleChange}
-          value={formik.values.model}
-          variant="outlined"
+        <GoogleMaps
+          sx={{ pt: 2 }}
+          formik={formik}
+          error={Boolean(formik.touched.city && formik.errors.city)}
+          label={"City"}
+          field={"city"}
+          setFieldValue={formik.setFieldValue}
+          handleBlur={formik.handleBlur}
+          values={formik.values}
         />
 
         <Button color="error" sx={{ mt: 3 }}>
@@ -350,7 +385,7 @@ const PartyDrawerMobile = styled(Drawer)({
 });
 
 export const PartyDrawer = (props) => {
-  const { containerRef, onClose, open, party, ...other } = props;
+  const { containerRef, onOpen, onClose, open, party, ...other } = props;
   const [isEditing, setIsEditing] = useState(false);
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up("lg"));
 
@@ -401,7 +436,7 @@ export const PartyDrawer = (props) => {
             />
           </React.Fragment>
         ) : (
-          <PartyForm onCancel={handleCancel} party={party} />
+          <PartyForm onOpen={onOpen} onCancel={handleCancel} party={party} />
         )}
       </Box>
     </>

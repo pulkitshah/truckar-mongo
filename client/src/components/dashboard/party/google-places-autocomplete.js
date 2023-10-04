@@ -11,6 +11,7 @@ import throttle from "lodash/throttle";
 const autocompleteService = { current: null };
 
 export default function GoogleMaps({
+  sx,
   label,
   handleBlur,
   formik,
@@ -78,6 +79,7 @@ export default function GoogleMaps({
 
   return (
     <Autocomplete
+      sx={sx}
       id="google-map-demo"
       autoSelect={true}
       onBlur={handleBlur}

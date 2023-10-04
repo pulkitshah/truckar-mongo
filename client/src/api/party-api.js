@@ -4,12 +4,12 @@ import { slice } from "../slices/parties";
 const now = new Date();
 
 class PartyApi {
-  async validateDuplicateMobile(account, mobile) {
+  async validateDuplicateMobile({ account, value }) {
     try {
       const response = await axios.get(
         `/api/party/validateDuplicateMobile/${JSON.stringify({
-          account,
-          mobile,
+          account: account._id,
+          value,
         })}`
       );
       let party = response.data;
@@ -33,16 +33,15 @@ class PartyApi {
     return Boolean(!party);
   }
 
-  async validateDuplicateName(account, name) {
+  async validateDuplicateName({ account, value }) {
     try {
       const response = await axios.get(
         `/api/party/validateDuplicateName/${JSON.stringify({
-          account,
-          name,
+          account: account._id,
+          value,
         })}`
       );
       let party = response.data;
-      console.log(party);
 
       return {
         status: response.status,
@@ -63,12 +62,12 @@ class PartyApi {
     return Boolean(!party);
   }
 
-  async createParty(createdParty, dispatch) {
+  async createParty({ values, dispatch }) {
     try {
-      const response = await axios.post(`/api/party/`, createdParty);
+      const response = await axios.post(`/api/party/`, values);
       let party = response.data;
       console.log(party);
-
+      dispatch(slice.actions.createParty(party));
       return {
         status: response.status,
         data: party,
@@ -87,7 +86,7 @@ class PartyApi {
     }
   }
 
-  async getPartiesByAccount(account, value) {
+  async getPartiesByAccount({ dispatch, account, value }) {
     let params = { account };
 
     if (value) {
@@ -95,9 +94,14 @@ class PartyApi {
     }
 
     try {
-      const response = await axios.get(`/api/party/${JSON.stringify(params)}`);
+      const response = await axios.get(
+        `/api/party/${JSON.stringify({ account, value })}`
+      );
       let parties = response.data;
 
+      dispatch(slice.actions.getParties(response.data));
+
+      console.log(response);
       return {
         status: response.status,
         data: parties,
@@ -111,6 +115,29 @@ class PartyApi {
           data: err,
           error:
             "Parties not fetched, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async updateParty(editedParty, dispatch) {
+    try {
+      const response = await axios.patch(`/api/party/`, editedParty);
+
+      dispatch(slice.actions.updateParty({ party: response.data }));
+      return {
+        status: response.status,
+        data: response.data,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Party Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Party not updated, please try again or contact customer support.",
         };
       }
     }
@@ -157,28 +184,6 @@ class PartyApi {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async updateParty(editedParty, dispatch) {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: updateParty,
-      variables: { input: editedParty },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const party = response.data.updateParty;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    // console.log(party);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateParty({ party }));
-
-    return response;
   }
 }
 
