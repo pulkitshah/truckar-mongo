@@ -27,7 +27,10 @@ const PartyAutocomplete = ({ sx, formik, type, user }) => {
 
   const getPartiesByUser = useCallback(async () => {
     try {
-      const { data } = await partyApi.getPartiesByAccount(account, inputValue);
+      const { data } = await partyApi.getPartiesByAccount(
+        account._id,
+        inputValue
+      );
       console.log(data);
       if (isMounted()) {
         let newOptions = [];

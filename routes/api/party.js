@@ -58,7 +58,7 @@ router.get("/:id", auth, async (req, res) => {
   const { account, value } = JSON.parse(req.params.id);
   try {
     const query = {
-      account: account.id,
+      account: account,
     };
     if (value) {
       query.name = { $regex: value, $options: "i" };

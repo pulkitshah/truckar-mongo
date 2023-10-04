@@ -5,6 +5,12 @@ import {
   calculateAmountForOrder,
   dataFormatter,
 } from "../../utils/amount-calculation";
+import { partyApi } from "../../api/party-api";
+
+const getPartiesByAccount = async (params, account) => {
+  const { data } = await partyApi.getPartiesByAccount(account);
+  params.success(data.map((d) => JSON.stringify(d)));
+};
 
 export const organisationTable = [
   {
@@ -126,125 +132,153 @@ export const driverTable = [
   },
 ];
 
-export const orderTable = [
-  {
-    field: "orderNo",
-    headerName: "Order No",
-    width: 100,
-  },
-  {
-    field: "saleDate",
-    headerName: "Date",
-    width: 120,
-    valueGetter: (params) => {
-      if (params.data) {
-        return moment(params.data.saleDate).format("DD-MM-YY");
-      }
+export const orderTable = (account) => {
+  return [
+    {
+      field: "orderNo",
+      headerName: "Order No",
+      width: 100,
+      filter: "agNumberColumnFilter",
+      filterParams: {
+        buttons: ["reset"],
+        filterOptions: ["equals", "lessThan", "greaterThan"],
+        debounceMs: 1000,
+        maxNumConditions: 1,
+      },
     },
-  },
-  {
-    field: "customer",
-    headerName: "Customer",
-    width: 250,
-    filter: PartyFilter,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.customer.name;
-      }
+    {
+      field: "saleDate",
+      headerName: "Date",
+      width: 120,
+      valueGetter: (params) => {
+        if (params.data) {
+          return moment(params.data.saleDate).format("DD-MM-YY");
+        }
+      },
     },
-  },
-  {
-    field: "route",
-    headerName: "Route",
-    width: 250,
-    valueGetter: (params) => {
-      if (params.data) {
-        let deliveries = params.data.deliveries;
-        let route = [];
-        let waypoints = [];
+    {
+      field: "customer",
+      headerName: "Customer",
+      width: 250,
+      filter: "agSetColumnFilter",
+      filterParams: {
+        values: (params) => getPartiesByAccount(params, account),
+        keyCreator: (params) => {
+          const v = JSON.parse(params.value);
+          console.log(v);
+          return v.id;
+        },
+        valueFormatter: (params) => {
+          const v = JSON.parse(params.value);
+          return `${v.name} - ${v.mobile} - ${v.city.structured_formatting.main_text}`;
+        },
+      },
+      valueGetter: (params) => {
+        if (params.data && params.data.customer) {
+          return params.data.customer.name;
+        }
+      },
+    },
+    {
+      field: "route",
+      headerName: "Route",
+      width: 250,
+      valueGetter: (params) => {
+        if (params.data) {
+          let deliveries = params.data.deliveries;
+          let route = [];
+          let waypoints = [];
 
-        deliveries.map((delivery, index) => {
-          if (index === 0)
-            route[0] = delivery.loading.structured_formatting.main_text;
-          if (index === deliveries.length - 1)
-            route[-1] = delivery.unloading.structured_formatting.main_text;
-          waypoints.push(delivery.loading.structured_formatting.main_text);
-          waypoints.push(delivery.unloading.structured_formatting.main_text);
-        });
+          deliveries.map((delivery, index) => {
+            if (index === 0)
+              route[0] = delivery.loading.structured_formatting.main_text;
+            if (index === deliveries.length - 1)
+              route[-1] = delivery.unloading.structured_formatting.main_text;
+            waypoints.push(delivery.loading.structured_formatting.main_text);
+            waypoints.push(delivery.unloading.structured_formatting.main_text);
+          });
 
-        waypoints = waypoints.filter(
-          (waypoint) =>
-            waypoint !== deliveries[0].loading.structured_formatting.main_text
-        );
-        waypoints = waypoints.filter(
-          (waypoint) =>
-            waypoint !==
-            deliveries[deliveries.length - 1].unloading.structured_formatting
-              .main_text
-        );
+          waypoints = waypoints.filter(
+            (waypoint) =>
+              waypoint !== deliveries[0].loading.structured_formatting.main_text
+          );
+          waypoints = waypoints.filter(
+            (waypoint) =>
+              waypoint !==
+              deliveries[deliveries.length - 1].unloading.structured_formatting
+                .main_text
+          );
 
-        waypoints = [
-          ...new Map(waypoints.map((item) => [item, item])).values(),
-        ];
+          waypoints = [
+            ...new Map(waypoints.map((item) => [item, item])).values(),
+          ];
 
-        return [route[0], ...waypoints, route[-1]].join("-");
-      }
+          return [route[0], ...waypoints, route[-1]].join("-");
+        }
+      },
     },
-  },
-  {
-    field: "vehicleNumber",
-    headerName: "Vehicle Number",
-    width: 150,
-  },
-  {
-    field: "sales",
-    headerName: "Sales",
-    width: 100,
-    valueGetter: (params) => {
-      if (params.data) {
-        return calculateAmountForOrder(params.data, "sale", false);
-      }
+    {
+      field: "vehicleNumber",
+      headerName: "Vehicle Number",
+      width: 150,
+      filter: "agTextColumnFilter",
+      filterParams: {
+        buttons: ["reset"],
+        filterOptions: ["contains", "equals"],
+        debounceMs: 1000,
+        maxNumConditions: 1,
+      },
     },
-    valueFormatter: (params) => {
-      if (params.value) {
-        return dataFormatter(params.value, "currency");
-      }
+    {
+      field: "sales",
+      headerName: "Sales",
+      width: 100,
+      valueGetter: (params) => {
+        if (params.data) {
+          return calculateAmountForOrder(params.data, "sale", false);
+        }
+      },
+      valueFormatter: (params) => {
+        if (params.value) {
+          return dataFormatter(params.value, "currency");
+        }
+      },
     },
-  },
-  {
-    field: "expenses",
-    headerName: "Expenses",
-    width: 100,
-    valueGetter: (params) => {
-      if (params.data) {
-        return calculateAmountForOrder(params.data, "outflow", false);
-      }
+    {
+      field: "expenses",
+      headerName: "Expenses",
+      width: 100,
+      valueGetter: (params) => {
+        if (params.data) {
+          return calculateAmountForOrder(params.data, "outflow", false);
+        }
+      },
+      valueFormatter: (params) => {
+        if (params.value) {
+          return dataFormatter(params.value, "currency");
+        }
+      },
     },
-    valueFormatter: (params) => {
-      if (params.value) {
-        return dataFormatter(params.value, "currency");
-      }
+    {
+      field: "profit",
+      headerName: "Profit",
+      width: 100,
+      valueGetter: (params) => {
+        if (params.data) {
+          return (
+            calculateAmountForOrder(params.data, "sale", false) -
+            calculateAmountForOrder(params.data, "outflow", false)
+          );
+        }
+      },
+      valueFormatter: (params) => {
+        if (params.value) {
+          return dataFormatter(params.value, "currency");
+        }
+      },
     },
-  },
-  {
-    field: "profit",
-    headerName: "Profit",
-    width: 100,
-    valueGetter: (params) => {
-      if (params.data) {
-        return (
-          calculateAmountForOrder(params.data, "sale", false) -
-          calculateAmountForOrder(params.data, "outflow", false)
-        );
-      }
-    },
-    valueFormatter: (params) => {
-      if (params.value) {
-        return dataFormatter(params.value, "currency");
-      }
-    },
-  },
-];
+  ];
+};
 
 export const deliveriesTable = [
   {

@@ -88,11 +88,14 @@ class PartyApi {
   }
 
   async getPartiesByAccount(account, value) {
+    let params = { account };
+
+    if (value) {
+      params.value = value;
+    }
+
     try {
-      const response = await axios.get(
-        `/api/party/${JSON.stringify({ account, value })}`
-      );
-      console.log(response);
+      const response = await axios.get(`/api/party/${JSON.stringify(params)}`);
       let parties = response.data;
 
       return {

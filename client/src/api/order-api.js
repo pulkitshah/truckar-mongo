@@ -4,14 +4,16 @@ import { slice } from "../slices/orders";
 import { getFiscalYearTimestamps } from "../utils/get-fiscal-year";
 
 class OrderApi {
-  async getOrdersByAccount(account, token) {
+  async getOrdersByAccount(params) {
     try {
-      const response = await axios.get(`/api/order/${account.id}`);
-      let orders = response.data;
-
+      const response = await axios.get(`/api/order/${params}`);
+      // console.log(response);
+      let orders = response.data[0].rows;
+      let count = response.data[0].count;
       return {
         status: response.status,
         data: orders,
+        count,
         error: false,
       };
     } catch (err) {

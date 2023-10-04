@@ -6,75 +6,69 @@ import React, {
   useMemo,
 } from "react";
 import { AgGridReact } from "ag-grid-react";
+import "ag-grid-enterprise";
 import "ag-grid-community/dist/styles/ag-grid.css";
 import "ag-grid-community/dist/styles/ag-theme-balham.css";
 import { useAuth } from "../../../hooks/use-auth";
 import { orderApi } from "../../../api/order-api";
 import { orderTable } from "../../grids/grid-columns";
+import {
+  Avatar,
+  Box,
+  Button,
+  Divider,
+  Drawer,
+  Grid,
+  IconButton,
+  InputAdornment,
+  Link,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
+import { FilterDrawer } from "./filter-drawer";
+import { checkJsonString } from "../../../utils/check-json-string";
 
-const Table = ({ onOpenDrawer }) => {
+const Table = ({ onOpenDrawer, open, toggleDrawer }) => {
   const { account } = useAuth();
-
   const [gridApi, setGridApi] = useState(null);
-  const [pageTokens, setPageTokens] = useState([
-    {
-      startRow: 0,
-      endRow: 100,
-      nextToken: null,
-    },
-  ]);
-  const [noOfRows, setNoOfRows] = useState(0);
-  const pageTokensRef = useRef(null);
-  const noOfRowsRef = useRef(null);
-
-  useEffect(() => {
-    pageTokensRef.current = pageTokens;
-    noOfRowsRef.current = noOfRows;
-  }, [pageTokens, noOfRows]);
+  const [filters, setFilters] = useState({});
 
   const onGridReady = useCallback((params) => {
     const dataSource = {
       rowCount: undefined,
       getRows: async (params) => {
-        let currentPageToken = pageTokensRef.current.find(
-          (pageToken) => pageToken.startRow === params.startRow
+        let filter = params.filterModel;
+        const sort = params.sortModel;
+
+        console.log(filter);
+
+        if (filter.customer) {
+          let filteredCustomers = filter.customer.values.map((c) => {
+            if (checkJsonString(c)) {
+              return JSON.parse(c)._id;
+            } else {
+              return c;
+            }
+          });
+
+          filter.customer = { filterType: "set", values: filteredCustomers };
+        }
+
+        let { data, count } = await orderApi.getOrdersByAccount(
+          JSON.stringify({
+            account: account.id,
+            startRow: params.startRow,
+            endRow: params.endRow,
+            filter,
+          })
         );
-        let { data } = await orderApi.getOrdersByAccount(account);
-        console.log(data);
-        // setPageTokens((previousPageTokens) => {
-        //   let currentPageToken = previousPageTokens.find(
-        //     (pageToken) => pageToken.startRow === params.endRow
-        //   );
 
-        //   if (currentPageToken) {
-        //     return previousPageTokens;
-        //   } else {
-        //     setNoOfRows(noOfRowsRef.current + data.orders.length);
-        //     noOfRowsRef.current = noOfRowsRef.current + data.orders.length;
-        //     pageTokensRef.current = [
-        //       ...previousPageTokens,
-        //       {
-        //         startRow: params.endRow,
-        //         endRow: params.endRow + 100,
-        //         nextToken: data.nextOrderToken,
-        //       },
-        //     ];
-        //     return [
-        //       ...previousPageTokens,
-        //       {
-        //         startRow: params.endRow,
-        //         endRow: params.endRow + 100,
-        //         nextToken: data.nextOrderToken,
-        //       },
-        //     ];
-        //   }
-        // });
-        let lastRow = -1;
-        // if (data.orders.length < params.endRow - params.startRow) {
-        //   lastRow = noOfRowsRef.current;
-        // }
-
-        params.successCallback(data, lastRow);
+        params.successCallback(data, count);
       },
     };
     params.api.setDatasource(dataSource);
@@ -84,17 +78,25 @@ const Table = ({ onOpenDrawer }) => {
   const defaultColDef = useMemo(() => {
     return {
       resizable: true,
+      filter: true,
+      menuTabs: ["filterMenuTab"],
     };
   }, []);
 
   return (
     <div style={{ width: "100%", height: "100%" }}>
+      <FilterDrawer
+        onClose={toggleDrawer}
+        onOpen={toggleDrawer}
+        open={open}
+        gridApi={gridApi}
+      />
       <div
         style={{ width: "100%", height: "100%" }}
         className="ag-theme-balham"
       >
         <AgGridReact
-          columnDefs={orderTable}
+          columnDefs={orderTable(account)}
           defaultColDef={defaultColDef}
           rowModelType={"infinite"}
           onGridReady={onGridReady}
@@ -104,7 +106,7 @@ const Table = ({ onOpenDrawer }) => {
               .getSelectedNodes()
               .map((node) => onOpenDrawer(node.data, gridApi));
           }}
-          infiniteInitialRowCount={150}
+          // infiniteInitialRowCount={150}
         />
       </div>
     </div>

@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const { check, validationResult } = require("express-validator/check");
 const Order = require("../../models/Order");
 const auth = require("../../middlleware/auth");
+const createFilterAggPipeline = require("../../utils/getAggregationPipeline");
 
 const router = express.Router();
 
@@ -25,19 +26,6 @@ router.post(
       orderFields.createdBy = req.user.id;
       updates.forEach((update) => (orderFields[update] = req.body[update]));
 
-      //   if (req.body.orderNo) orderFields.orderNo = req.body.orderNo;
-      //   if (req.body.saleDate) orderFields.saleDate = req.body.saleDate;
-      //   if (req.body.createdDate) orderFields.createdDate = req.body.createdDate;
-      //   if (req.body.customer) orderFields.customer = req.body.customer;
-      //   if (req.body.deliveries) orderFields.deliveries = req.body.deliveries;
-      //   if (req.body.vehicleNumber) orderFields.vehicleNumber = req.body.vehicleNumber;
-      //   if (req.body.vehicle) orderFields.vehicle = req.body.vehicle;
-      //   if (req.body.driver) orderFields.driver = req.body.driver;
-      //   if (req.body.orderExpenses) orderFields.orderExpenses = req.body.orderExpenses;
-      //   if (req.body.transporter) orderFields.transporter = req.body.transporter;
-      //   if (req.body.saleType) orderFields.saleType = req.body.saleType;
-      //   if (req.body.saleRate) orderFields.saleRate = req.body.saleRate;
-
       try {
         // Create
         order = new Order(orderFields);
@@ -58,77 +46,230 @@ router.post(
 // @desc    Get Orders created by user
 // @access  Private
 
-router.get("/:id", auth, async (req, res) => {
-  const page = parseInt(req.query.page);
-  const limit = parseInt(req.query.limit);
+/**
+ * Query blog posts by user -> paginated results and a total count.
+ * @param accountId {ObjectId} ID of user to retrieve blog posts for
+ * @param startRow {Number} First row to return in results
+ * @param endRow {Number} Last row to return in results
+ * @param [filter] {Object} Optional extra matching query object
+ * @param [sort] {Object} Optional sort query object
+ * @returns {Object} Object -> `{ rows, count }`
+ */
 
-  try {
-    const orders = await Order.aggregate([
-      {
-        $match: { account: new mongoose.Types.ObjectId(req.params.id) },
+router.get("/:id", auth, async (req, res) => {
+  const {
+    account,
+    startRow,
+    endRow,
+    filter = {},
+    sort = false,
+  } = JSON.parse(req.params.id);
+
+  // if (!(accountId instanceof mongoose.Types.ObjectId)) {
+  //   throw new Error("accountId must be ObjectId");
+  // } else if (typeof startRow !== "number") {
+  //   throw new Error("startRow must be number");
+  // } else if (typeof endRow !== "number") {
+  //   throw new Error("endRow must be number");
+  // }
+
+  let matches = { account: new mongoose.Types.ObjectId(account) };
+
+  const query = [
+    // filter the results by our accountId
+    {
+      $match: Object.assign(matches),
+    },
+
+    // more lookups go here if you need them
+    // we have a many-to-one from blogPost -> user
+    {
+      $lookup: {
+        from: "accounts",
+        localField: "account",
+        foreignField: "_id",
+        as: "account",
       },
-      { $sort: { saleDate: -1, createdDate: -1 } },
-      {
-        $lookup: {
-          from: "parties",
-          let: {
-            id: "$customer",
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$_id", "$$id"],
-                },
-              },
-            },
-            {
-              $project: {
-                name: 1,
-                transporter: 1,
-                _id: 1,
-              },
-            },
-          ],
-          as: "customer",
+    },
+    // each blog has a single user (author) so flatten it using $unwind
+    { $unwind: "$account" },
+    {
+      $lookup: {
+        from: "parties",
+        let: {
+          id: "$customer",
         },
-      },
-      { $unwind: "$customer" },
-      {
-        $lookup: {
-          from: "deliveries",
-          let: {
-            id: "$_id",
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$_id", "$$id"],
+              },
+            },
           },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$order", "$$id"],
-                },
-              },
+          {
+            $project: {
+              name: 1,
+              transporter: 1,
+              _id: 1,
             },
-            {
-              $project: {
-                loading: { structured_formatting: { main_text: 1 } },
-                unloading: { structured_formatting: { main_text: 1 } },
-                lrNo: 1,
-                billWeight: 1,
-                unloadingWeight: 1,
-                status: 1,
-              },
-            },
-          ],
-          as: "deliveries",
-        },
+          },
+        ],
+        as: "customer",
       },
-    ]);
-    res.json(orders);
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send("Server Error");
+    },
+    { $unwind: "$customer" },
+    {
+      $lookup: {
+        from: "deliveries",
+        let: {
+          id: "$_id",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$order", "$$id"],
+              },
+            },
+          },
+          {
+            $project: {
+              loading: { structured_formatting: { main_text: 1 } },
+              unloading: { structured_formatting: { main_text: 1 } },
+              lrNo: 1,
+              billQuantity: 1,
+              unloadingQuantity: 1,
+              status: 1,
+            },
+          },
+        ],
+        as: "deliveries",
+      },
+    },
+  ];
+
+  // filter according to filterModel object
+  if (filter.orderNo) {
+    const orderNoQuery = createFilterAggPipeline({ orderNo: filter.orderNo });
+    query.push(orderNoQuery[0]);
   }
+
+  if (filter.customer) {
+    const customerQuery = createFilterAggPipeline({
+      customer: filter.customer,
+    });
+    query.push(customerQuery[0]);
+  }
+
+  if (filter.vehicleNumber) {
+    const vehicleNumberQuery = createFilterAggPipeline({
+      vehicleNumber: filter.vehicleNumber,
+    });
+    query.push(vehicleNumberQuery[0]);
+  }
+
+  // console.log(query);
+
+  if (sort) {
+    // maybe we want to sort by blog title or something
+    query.push({ $sort: sort });
+  }
+
+  query.push(
+    {
+      $group: {
+        _id: null,
+        // get a count of every result that matches until now
+        count: { $sum: 1 },
+        // keep our results for the next operation
+        results: { $push: "$$ROOT" },
+      },
+    },
+    // and finally trim the results to within the range given by start/endRow
+    {
+      $project: {
+        count: 1,
+        rows: { $slice: ["$results", startRow, endRow] },
+      },
+    }
+  );
+
+  const orders = await Order.aggregate(query);
+  res.json(orders);
 });
+
+// router.get("/:id", auth, async (req, res) => {
+//   const page = parseInt(req.query.page);
+//   const limit = parseInt(req.query.limit);
+
+//   try {
+//     const orders = await Order.aggregate([
+//       {
+//         $match: { account: new mongoose.Types.ObjectId(req.params.id) },
+//       },
+//       { $sort: { saleDate: -1, createdDate: -1 } },
+// {
+//   $lookup: {
+//     from: "parties",
+//     let: {
+//       id: "$customer",
+//     },
+//     pipeline: [
+//       {
+//         $match: {
+//           $expr: {
+//             $eq: ["$_id", "$$id"],
+//           },
+//         },
+//       },
+//       {
+//         $project: {
+//           name: 1,
+//           transporter: 1,
+//           _id: 1,
+//         },
+//       },
+//     ],
+//     as: "customer",
+//   },
+// },
+// { $unwind: "$customer" },
+//       {
+//         $lookup: {
+//           from: "deliveries",
+//           let: {
+//             id: "$_id",
+//           },
+//           pipeline: [
+//             {
+//               $match: {
+//                 $expr: {
+//                   $eq: ["$order", "$$id"],
+//                 },
+//               },
+//             },
+//             {
+//               $project: {
+//                 loading: { structured_formatting: { main_text: 1 } },
+//                 unloading: { structured_formatting: { main_text: 1 } },
+//                 lrNo: 1,
+//                 billWeight: 1,
+//                 unloadingWeight: 1,
+//                 status: 1,
+//               },
+//             },
+//           ],
+//           as: "deliveries",
+//         },
+//       },
+//     ]);
+//     res.json(orders);
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).send("Server Error");
+//   }
+// });
 
 // @route   GET api/orders/
 // @desc    Get Orders with Duplicate Valid Number
