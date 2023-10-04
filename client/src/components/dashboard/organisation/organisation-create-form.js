@@ -26,7 +26,7 @@ export const OrganisationCreateForm = (props) => {
   const dispatch = useDispatch();
   const [croppedImage, setCroppedImage] = useState();
   const [file, setFile] = useState();
-  const { user } = useAuth();
+  const { user, account } = useAuth();
   const formik = useFormik({
     initialValues: {
       name: "",
@@ -45,25 +45,26 @@ export const OrganisationCreateForm = (props) => {
       bankBranchName: "",
       bankIFSC: "",
       contact: "",
+      account: account._id,
     },
     validationSchema: Yup.object({
       name: Yup.string().max(255).required("Name is required"),
-      initials: Yup.string()
-        .max(255)
-        .required("Required")
-        .test(
-          "Unique Name",
-          "Initials already taken", // <- key, message
-          async function (value) {
-            try {
-              const response = await organisationApi.validateDuplicateInitials(
-                value,
-                user
-              );
-              return response;
-            } catch (error) {}
-          }
-        ),
+      // initials: Yup.string()
+      //   .max(255)
+      //   .required("Required")
+      //   .test(
+      //     "Unique Name",
+      //     "Initials already taken", // <- key, message
+      //     async function (value) {
+      //       try {
+      //         const response = await organisationApi.validateDuplicateInitials(
+      //           value,
+      //           user
+      //         );
+      //         return response;
+      //       } catch (error) {}
+      //     }
+      //   ),
       addressLine1: Yup.string()
         .max(255)
         .required("Address Line 1 is required"),

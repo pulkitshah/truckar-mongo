@@ -13,10 +13,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuth } from "../../../hooks/use-auth";
-import { v4 as uuid } from "uuid";
 import { vehicleApi } from "../../../api/vehicle-api";
 import { useDispatch } from "../../../store";
 import { vehicleNumberFormatter } from "../../../utils/customFormatters";
+import OrganisationAutocomplete from "../autocompletes/organisation-autcomplete/organisation-autocomplete";
 
 export const VehicleCreateForm = (props) => {
   const router = useRouter();
@@ -27,6 +27,7 @@ export const VehicleCreateForm = (props) => {
       vehicleNumber: "",
       make: "",
       model: "",
+      organisation: "",
       account: account.id,
     },
     validationSchema: Yup.object({
@@ -79,7 +80,7 @@ export const VehicleCreateForm = (props) => {
             </Grid>
             <Grid item md={8} xs={12}>
               <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid item md={6} xs={12}>
                   <TextField
                     error={Boolean(
                       formik.touched.vehicleNumber &&
@@ -106,11 +107,9 @@ export const VehicleCreateForm = (props) => {
                       inputComponent: vehicleNumberFormatter,
                     }}
                   />
-
-                  {/*
-                    onChange={event => {
-                      handleChange(event);
-                    }} */}
+                </Grid>
+                <Grid item md={6} xs={12}>
+                  <OrganisationAutocomplete formik={formik} />
                 </Grid>
                 <Grid item md={6} xs={12}>
                   <TextField

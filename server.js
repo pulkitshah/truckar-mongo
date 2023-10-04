@@ -15,11 +15,12 @@ app.use(cors());
 // Define Routes
 app.use("/api/auth", require("./routes/api/auth"));
 app.use("/api/account", require("./routes/api/account"));
-app.use("/api/order", require("./routes/api/order"));
 app.use("/api/delivery", require("./routes/api/delivery"));
+app.use("/api/driver", require("./routes/api/driver"));
+app.use("/api/order", require("./routes/api/order"));
+app.use("/api/organisation", require("./routes/api/organisation"));
 app.use("/api/party", require("./routes/api/party"));
 app.use("/api/vehicle", require("./routes/api/vehicle"));
-app.use("/api/driver", require("./routes/api/driver"));
 
 //Serve static assets in production
 if (process.env.NODE_ENV === "production") {

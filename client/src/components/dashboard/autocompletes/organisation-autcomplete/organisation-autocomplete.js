@@ -4,17 +4,18 @@ import { Autocomplete, CircularProgress, TextField } from "@mui/material";
 import { useMounted } from "../../../../hooks/use-mounted";
 import { useDispatch } from "../../../../store";
 import { organisationApi } from "../../../../api/organisation-api";
+import { useAuth } from "../../../../hooks/use-auth";
 
 const OrganisationAutocomplete = ({
   sx,
   formik,
-  user,
   organisation,
   setOrganisation,
   ...rest
 }) => {
   const dispatch = useDispatch();
   const isMounted = useMounted();
+  const { account } = useAuth();
   const { touched, setFieldValue, errors, handleBlur, values } = formik;
   const [open, setOpen] = useState(false);
   const [organisations, setOrganisations] = useState([]);
@@ -25,12 +26,13 @@ const OrganisationAutocomplete = ({
 
   const getOrganisations = useCallback(async () => {
     try {
-      const organisationsDB = await organisationApi.getOrganisationsByUser(
-        user,
-        dispatch
+      const response = await organisationApi.getOrganisationsByAccount(
+        dispatch,
+        account._id
       );
       if (isMounted()) {
-        setOrganisations(organisationsDB);
+        console.log(response.data);
+        setOrganisations(response.data);
       }
     } catch (err) {
       console.error(err);
@@ -53,20 +55,12 @@ const OrganisationAutocomplete = ({
   }, [organisation, setFieldValue, value]);
 
   const handleOnChange = async (event, newValue) => {
-    // const response = await axios.post(
-    //   `/api/lrs/lrnumber/${newValue._id}`,
-    //   values
-    // );
-    // console.log(response.data);
-    // setFieldValue("lrNo", response.data);
     setValue(newValue);
-    console.log(newValue);
     setFieldValue("organisation", newValue);
   };
 
   const handleInputChange = (event, newInputValue) => {
     setInputValue(newInputValue);
-    // setFieldValue('organisation', newInputValue);
   };
 
   return (

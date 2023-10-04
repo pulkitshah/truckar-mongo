@@ -1,14 +1,62 @@
-import { API } from "aws-amplify";
-import { organisationsByUser } from "../graphql/queries";
-import { createOrganisation, updateOrganisation } from "../graphql/mutations";
-import { Organisation } from "../models";
-import { DataStore, Predicates } from "@aws-amplify/datastore";
+import axios from "../utils/axios";
 import moment from "moment";
 import { slice } from "../slices/organisations";
 
 const now = new Date();
 
 class OrganisationApi {
+  async createOrganisation(newOrganisation, dispatch) {
+    try {
+      const response = await axios.post(`/api/organisation/`, newOrganisation);
+      let organisation = response.data;
+      console.log(organisation);
+      dispatch(slice.actions.createOrganisation({ organisation }));
+      return {
+        status: response.status,
+        data: organisation,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Organisation Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Organisation not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async getOrganisationsByAccount(dispatch, account, value) {
+    try {
+      const response = await axios.get(
+        `/api/organisation/${JSON.stringify({ account, value })}`
+      );
+      let organisations = response.data;
+      console.log(response.data);
+      dispatch(slice.actions.getOrganisations(organisations));
+      return {
+        status: response.status,
+        data: organisations,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Organisation Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Organisations not fetched, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  /// API Modified
+
   async getOrganisationsByUser(user, dispatch) {
     try {
       //////////////////////// GraphQL API ////////////////////////
@@ -39,38 +87,6 @@ class OrganisationApi {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async createOrganisation(newOrganisation, dispatch) {
-    const createdAt = moment().toISOString();
-    let newOrg = newOrganisation;
-    newOrg.createdAt = createdAt;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: createOrganisation,
-      variables: { input: newOrg },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const organisation = response.data.createOrganisation;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    //////////////////////// DataStore API ////////////////////////
-
-    // const organisation = await DataStore.save(new Organisation(newOrg));
-
-    //////////////////////// DataStore API ////////////////////////
-
-    // console.log(organisation);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.createOrganisation({ organisation }));
-
-    return organisation;
   }
 
   async updateOrganisation(editedOrganisation, dispatch) {

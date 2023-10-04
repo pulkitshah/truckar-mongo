@@ -45,7 +45,7 @@ const OrganisationList = () => {
   const { t } = useTranslation();
   const isMounted = useMounted();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const rootRef = useRef(null);
   // const [organisations, setOrganisations] = useState([]);
   const { organisations } = useSelector((state) => state.organisations);
@@ -62,9 +62,12 @@ const OrganisationList = () => {
     });
   };
 
-  const getOrganisationsByUser = useCallback(async () => {
+  const getOrganisationsByAccount = useCallback(async () => {
     try {
-      let data = await organisationApi.getOrganisationsByUser(user, dispatch);
+      let data = await organisationApi.getOrganisationsByAccount(
+        dispatch,
+        account._id
+      );
     } catch (err) {
       console.error(err);
     }
@@ -72,7 +75,7 @@ const OrganisationList = () => {
 
   useEffect(() => {
     try {
-      getOrganisationsByUser();
+      getOrganisationsByAccount();
     } catch (error) {
       console.log(error);
     }
