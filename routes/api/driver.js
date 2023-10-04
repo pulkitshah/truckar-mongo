@@ -45,13 +45,13 @@ router.get("/:id", auth, async (req, res) => {
   const { account, value } = JSON.parse(req.params.id);
   try {
     const query = {
-      account: account.id,
+      account,
     };
     if (value) {
       query.name = { $regex: value, $options: "i" };
       // query.name = new RegExp(`.*${value}*.`, "i");
     }
-    const drivers = await Driver.find(query);
+    const drivers = await Driver.find(query).populate("vehicle");
     res.json(drivers);
   } catch (error) {
     console.log(error.message);
@@ -67,7 +67,7 @@ router.get("/validateDuplicateName/:id", auth, async (req, res) => {
   const { account, name } = JSON.parse(req.params.id);
   try {
     const query = {
-      account: account.id,
+      account,
     };
     if (name) {
       query.name = { $regex: `^${name}$`, $options: "i" };
@@ -89,7 +89,7 @@ router.get("/validateDuplicateMobile/:id", auth, async (req, res) => {
   const { account, mobile } = JSON.parse(req.params.id);
   try {
     const query = {
-      account: account.id,
+      account,
     };
     if (mobile) {
       query.mobile = mobile;
@@ -99,6 +99,28 @@ router.get("/validateDuplicateMobile/:id", auth, async (req, res) => {
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");
+  }
+});
+
+// @route   PATCH api/driver/
+// @desc    Update Driver
+// @access  Private
+router.patch("/", auth, async (req, res) => {
+  const updates = Object.keys(req.body);
+
+  try {
+    const driver = await Driver.findOne({
+      _id: req.body._id,
+    }).populate("vehicle");
+
+    updates.forEach((update) => (driver[update] = req.body[update]));
+
+    await driver.save();
+
+    res.send(driver);
+  } catch (error) {
+    console.log(error);
+    // res.status(400).send(error);
   }
 });
 

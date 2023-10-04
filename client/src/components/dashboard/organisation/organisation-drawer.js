@@ -55,7 +55,7 @@ const OrganisationPreview = (props) => {
   };
 
   const handleSaveCroppedImage = async (cropper) => {
-    const filename = `${organisation.user}_organisationLogo_${organisation.id}`;
+    const filename = `${organisation.user}_organisationLogo_${organisation._id}`;
     let logoBase64;
     let logo;
     logoBase64 = await fetch(cropper.getCroppedCanvas().toDataURL());
@@ -63,7 +63,7 @@ const OrganisationPreview = (props) => {
     await Storage.put(filename, logo);
 
     let editedOrganisation = {
-      id: organisation.id,
+      _id: organisation._id,
       _version: organisation._version,
       logo: filename,
     };
@@ -257,7 +257,7 @@ const OrganisationForm = (props) => {
 
   const formik = useFormik({
     initialValues: {
-      id: organisation.id,
+      _id: organisation._id,
       name: organisation.name,
       initials: organisation.initials,
       addressLine1: organisation.addressLine1,
@@ -278,7 +278,7 @@ const OrganisationForm = (props) => {
     onSubmit: async (values, helpers) => {
       try {
         // NOTE: Make API request
-        const filename = `${organisation.user}_organisationLogo_${organisation.id}`;
+        const filename = `${organisation.user}_organisationLogo_${organisation._id}`;
         let logoBase64;
         let logo;
         if (values.logo) {

@@ -19,7 +19,8 @@ import { X as XIcon } from "../../../icons/x";
 import { PropertyList } from "../../property-list";
 import { PropertyListItem } from "../../property-list-item";
 import { driverApi } from "../../../api/driver-api";
-import GoogleMaps from "./google-places-autocomplete";
+import VehicleAutocomplete from "../autocompletes/vehicle-autocomplete/vehicle-autocomplete";
+import { useAuth } from "../../../hooks/use-auth";
 
 const DriverPreview = (props) => {
   const { lgUp, onEdit, driver } = props;
@@ -85,12 +86,15 @@ const DriverPreview = (props) => {
 const DriverForm = (props) => {
   const { onCancel, driver } = props;
   const dispatch = useDispatch();
+  const { account } = useAuth();
 
   const formik = useFormik({
     initialValues: {
-      id: driver.id,
-      name: driver.name,
-      mobile: driver.mobile,
+      _id: driver._id,
+      name: driver.name || "",
+      vehicle: driver.vehicle || "",
+      mobile: driver.mobile || "",
+      account: driver.account,
       _version: driver._version,
     },
     // validationSchema: Yup.object({
@@ -113,14 +117,7 @@ const DriverForm = (props) => {
     onSubmit: async (values, helpers) => {
       try {
         // NOTE: Make API request
-        const updatedDriver = {
-          id: driver.id,
-          name: values.name,
-          mobile: values.mobile,
-          user: driver.user,
-          _version: driver._version,
-        };
-        await driverApi.updateDriver(updatedDriver, dispatch);
+        await driverApi.updateDriver(values, dispatch);
 
         toast.success("Driver updated!");
 
@@ -204,6 +201,15 @@ const DriverForm = (props) => {
           onBlur={formik.handleBlur}
           onChange={formik.handleChange}
           value={formik.values.mobile}
+        />
+        <VehicleAutocomplete
+          sx={{ mt: 2 }}
+          errors={formik.errors}
+          touched={formik.touched}
+          setFieldValue={formik.setFieldValue}
+          handleBlur={formik.handleBlur}
+          account={account}
+          currentValue={formik.values.vehicle}
         />
         <Button color="error" sx={{ mt: 3 }}>
           Delete driver

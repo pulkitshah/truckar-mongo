@@ -43,7 +43,6 @@ class DriverApi {
         })}`
       );
       let driver = response.data;
-      console.log(driver);
 
       return {
         status: response.status,
@@ -88,13 +87,14 @@ class DriverApi {
     }
   }
 
-  async getDriversByAccount(account, value) {
+  async getDriversByAccount(dispatch, account, value) {
     try {
       const response = await axios.get(
         `/api/driver/${JSON.stringify({ account, value })}`
       );
       console.log(response);
       let drivers = response.data;
+      dispatch(slice.actions.getDrivers(response.data));
 
       return {
         status: response.status,
@@ -109,6 +109,29 @@ class DriverApi {
           data: err,
           error:
             "Drivers not fetched, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async updateDriver(editedDriver, dispatch) {
+    try {
+      const response = await axios.patch(`/api/driver/`, editedDriver);
+
+      dispatch(slice.actions.updateDriver({ driver: response.data }));
+      return {
+        status: response.status,
+        data: response.data,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Driver Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Driver not updated, please try again or contact customer support.",
         };
       }
     }
@@ -146,28 +169,6 @@ class DriverApi {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async updateDriver(editedDriver, dispatch) {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: updateDriver,
-      variables: { input: editedDriver },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const driver = response.data.updateDriver;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    // console.log(driver);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateDriver({ driver }));
-
-    return response;
   }
 }
 

@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { v4 as uuid } from "uuid";
 import {
   Box,
   Button,
@@ -14,14 +13,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import GoogleMaps from "../driver/google-places-autocomplete";
 import { useAuth } from "../../../hooks/use-auth";
 import { useDispatch } from "../../../store";
 import { driverApi } from "../../../api/driver-api";
-import { userApi } from "../../../api/user-api";
+import VehicleAutocomplete from "../autocompletes/vehicle-autocomplete/vehicle-autocomplete";
 
 export const DriverCreateForm = forwardRef(({ handleNext, ...props }, ref) => {
-  const { user } = useAuth();
+  const { account } = useAuth();
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -34,8 +32,11 @@ export const DriverCreateForm = forwardRef(({ handleNext, ...props }, ref) => {
   const formik = useFormik({
     initialValues: {
       driverName: "",
+      vehicle: "",
+      mobile: "",
       city: "",
       driverType: "main",
+      account: account._id,
       submit: null,
     },
     validationSchema: Yup.object({
@@ -44,14 +45,14 @@ export const DriverCreateForm = forwardRef(({ handleNext, ...props }, ref) => {
         .required("Name is required")
         .test(
           "Unique Name",
-          "A party already exists with this name", // <- key, message
+          "A driver already exists with this name", // <- key, message
           async function (value) {
             try {
               const response = await driverApi.validateDuplicateName(
-                value,
-                user
+                account._id,
+                value
               );
-              return response;
+              return response.data;
             } catch (error) {}
           }
         ),
@@ -64,24 +65,17 @@ export const DriverCreateForm = forwardRef(({ handleNext, ...props }, ref) => {
           async function (value) {
             try {
               const response = await driverApi.validateDuplicateMobile(
-                value,
-                user
+                account._id,
+                value
               );
-              return response;
+              return response.data;
             } catch (error) {}
           }
         ),
     }),
     onSubmit: async (values, helpers) => {
       try {
-        const id = uuid();
-        const newDriver = {
-          id: id,
-          name: values.name,
-          mobile: values.mobile,
-          user: user.id,
-        };
-        await driverApi.createDriver(newDriver, dispatch);
+        await driverApi.createDriver(values, dispatch);
 
         toast.success("Driver created!");
         router.push("/dashboard/drivers");
@@ -105,7 +99,7 @@ export const DriverCreateForm = forwardRef(({ handleNext, ...props }, ref) => {
             </Grid>
             <Grid item md={8} xs={12}>
               <Grid container spacing={3}>
-                <Grid item md={6} xs={12}>
+                <Grid item md={4} xs={12}>
                   <TextField
                     error={Boolean(formik.touched.name && formik.errors.name)}
                     helperText={formik.touched.name && formik.errors.name}
@@ -127,7 +121,7 @@ export const DriverCreateForm = forwardRef(({ handleNext, ...props }, ref) => {
                     value={formik.values.name}
                   />
                 </Grid>
-                <Grid item md={6} xs={12}>
+                <Grid item md={4} xs={12}>
                   <TextField
                     error={Boolean(
                       formik.touched.mobile && formik.errors.mobile
@@ -147,6 +141,15 @@ export const DriverCreateForm = forwardRef(({ handleNext, ...props }, ref) => {
                     variant="outlined"
                   />
                 </Grid>
+                <Grid item md={4} xs={12}>
+                  <VehicleAutocomplete
+                    errors={formik.errors}
+                    touched={formik.touched}
+                    setFieldValue={formik.setFieldValue}
+                    handleBlur={formik.handleBlur}
+                    account={account}
+                  />
+                </Grid>
               </Grid>
             </Grid>
           </Grid>
@@ -163,7 +166,7 @@ export const DriverCreateForm = forwardRef(({ handleNext, ...props }, ref) => {
           mt: 3,
         }}
       >
-        <Button sx={{ m: 1 }} variant="outlined">
+        <Button sx={{ m: 1 }} onClick={() => router.back()} variant="outlined">
           Cancel
         </Button>
         <Button sx={{ m: 1 }} type="submit" variant="contained">

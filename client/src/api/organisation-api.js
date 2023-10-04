@@ -55,6 +55,34 @@ class OrganisationApi {
     }
   }
 
+  async updateOrganisation(editedOrganisation, dispatch) {
+    try {
+      const response = await axios.patch(
+        `/api/organisation/`,
+        editedOrganisation
+      );
+
+      dispatch(
+        slice.actions.updateOrganisation({ organisation: response.data })
+      );
+      return {
+        status: response.status,
+        data: response.data,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Organisation Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Organisation not updated, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
   /// API Modified
 
   async getOrganisationsByUser(user, dispatch) {
@@ -87,28 +115,6 @@ class OrganisationApi {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async updateOrganisation(editedOrganisation, dispatch) {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: updateOrganisation,
-      variables: { input: editedOrganisation },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const organisation = response.data.updateOrganisation;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    // console.log(organisation);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateOrganisation({ organisation }));
-
-    return response;
   }
 
   async validateDuplicateInitials(initials, user) {

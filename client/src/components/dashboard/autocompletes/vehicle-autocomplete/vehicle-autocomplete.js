@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
-import { useDispatch } from "../../../../store";
+import { useDispatch, useSelector } from "../../../../store";
 import { vehicleNumberFormatter } from "../../../../utils/customFormatters";
 import { Autocomplete, Divider, Grid, TextField } from "@mui/material";
 import { useMounted } from "../../../../hooks/use-mounted";
@@ -18,10 +18,12 @@ const VehicleAutocomplete = ({
   currentValue,
   user,
 }) => {
+  const dispatch = useDispatch();
   const isMounted = useMounted();
   const { account } = useAuth();
   const [open, setOpen] = useState(false);
-  const [vehicles, setVehicles] = useState([]);
+  const { vehicles } = useSelector((state) => state.vehicles);
+
   const [value, setValue] = React.useState(currentValue);
   const [inputValue, setInputValue] = React.useState(
     typeof currentValue === "object"
@@ -31,10 +33,7 @@ const VehicleAutocomplete = ({
 
   const getVehiclesByAccount = useCallback(async () => {
     try {
-      const { data } = await vehicleApi.getVehiclesByAccount(account);
-      if (isMounted()) {
-        setVehicles(data);
-      }
+      const { data } = await vehicleApi.getVehiclesByAccount(dispatch, account);
     } catch (err) {
       console.error(err);
     }
@@ -50,7 +49,7 @@ const VehicleAutocomplete = ({
 
   const handleOnChange = async (event, newValue) => {
     setValue(newValue);
-    setSelectedVehicle(newValue);
+    setSelectedVehicle && setSelectedVehicle(newValue);
     setFieldValue("vehicle", newValue);
     try {
       if (
@@ -62,7 +61,7 @@ const VehicleAutocomplete = ({
           "await axios.get(`/api/drivers/vehicle/${newValue._id}`);";
         setDriver(response.data);
       } else {
-        setSelectedVehicle("");
+        setSelectedVehicle && setSelectedVehicle("");
         setFieldValue("driver", "");
       }
     } catch (error) {
@@ -73,7 +72,7 @@ const VehicleAutocomplete = ({
 
   const handleInputChange = (event, newInputValue) => {
     setInputValue(newInputValue);
-    setSelectedVehicle(newInputValue);
+    setSelectedVehicle && setSelectedVehicle(newInputValue);
     setFieldValue("vehicle", newInputValue);
     try {
       if (
@@ -87,7 +86,7 @@ const VehicleAutocomplete = ({
         //     setDriver(data);
         //   });
       } else {
-        setSelectedVehicle("");
+        setSelectedVehicle && setSelectedVehicle("");
       }
     } catch (error) {
       setFieldValue("driver", "");

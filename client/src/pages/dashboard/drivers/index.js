@@ -45,7 +45,7 @@ const DriverList = () => {
   const { t } = useTranslation();
   const isMounted = useMounted();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const rootRef = useRef(null);
   const { drivers } = useSelector((state) => state.drivers);
 
@@ -57,13 +57,13 @@ const DriverList = () => {
   const handleOpenDrawer = (params) => {
     setDrawer({
       isOpen: true,
-      driverId: params.row.id,
+      driverId: params.row._id,
     });
   };
 
-  const getDriversByUser = useCallback(async () => {
+  const getDriversByAccount = useCallback(async () => {
     try {
-      await driverApi.getDriversByUser(user, dispatch);
+      await driverApi.getDriversByAccount(dispatch, account._id);
     } catch (err) {
       console.error(err);
     }
@@ -71,7 +71,7 @@ const DriverList = () => {
 
   useEffect(() => {
     try {
-      getDriversByUser();
+      getDriversByAccount();
     } catch (error) {
       console.log(error);
     }
@@ -126,7 +126,7 @@ const DriverList = () => {
           containerRef={rootRef}
           onClose={handleCloseDrawer}
           open={drawer.isOpen}
-          driver={drivers.find((driver) => driver.id === drawer.driverId)}
+          driver={drivers.find((driver) => driver._id === drawer.driverId)}
         />
       </Box>
     </>
