@@ -63,7 +63,7 @@ const DriverList = () => {
 
   const getDriversByAccount = useCallback(async () => {
     try {
-      await driverApi.getDriversByAccount(dispatch, account._id);
+      await driverApi.getDriversByAccount({ dispatch, account: account._id });
     } catch (err) {
       console.error(err);
     }

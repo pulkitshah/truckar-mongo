@@ -87,14 +87,14 @@ class DriverApi {
     }
   }
 
-  async getDriversByAccount(dispatch, account, value) {
+  async getDriversByAccount({ dispatch, account, value }) {
     try {
       const response = await axios.get(
         `/api/driver/${JSON.stringify({ account, value })}`
       );
       console.log(response);
       let drivers = response.data;
-      dispatch(slice.actions.getDrivers(response.data));
+      dispatch && dispatch(slice.actions.getDrivers(response.data));
 
       return {
         status: response.status,

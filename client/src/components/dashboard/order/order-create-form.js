@@ -62,13 +62,13 @@ export const OrderCreateForm = (props) => {
         message: "Order No cannot be repeated in the fiscal year of sale date",
         test: async function (value) {
           try {
-            const response = await orderApi.validateDuplicateOrderNo(
-              value,
-              this.parent.saleDate,
-              account
-            );
+            const response = await orderApi.validateDuplicateOrderNo({
+              orderNo: value,
+              saleDate: this.parent.saleDate,
+              account: account._id,
+            });
             // console.log(response);
-            return response;
+            return response.data;
           } catch (error) {
             console.log(error);
           }
@@ -236,7 +236,7 @@ export const OrderCreateForm = (props) => {
         });
         // sendOrderConfirmationMessageToOwner(order, account);
         toast.success("Order created!");
-        // router.push("/dashboard/orders");
+        router.push("/dashboard/orders");
       } catch (err) {
         console.error(err);
         toast.error("Something went wrong!");

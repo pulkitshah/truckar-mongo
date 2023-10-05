@@ -27,10 +27,10 @@ const PartyAutocomplete = ({ sx, formik, type, user }) => {
 
   const getPartiesByUser = useCallback(async () => {
     try {
-      const { data } = await partyApi.getPartiesByAccount(
-        account._id,
-        inputValue
-      );
+      const { data } = await partyApi.getPartiesByAccount({
+        account: account._id,
+        value: inputValue,
+      });
       console.log(data);
       if (isMounted()) {
         let newOptions = [];
@@ -86,6 +86,7 @@ const PartyAutocomplete = ({ sx, formik, type, user }) => {
           return filtered;
         }}
         onChange={(event, newValue) => {
+          console.log(newValue);
           if (typeof newValue === "string") {
             toggleOpen(true);
             setDialogValue({
@@ -113,7 +114,9 @@ const PartyAutocomplete = ({ sx, formik, type, user }) => {
           setInputValue(newInputValue);
         }}
         id={type}
-        options={options}
+        options={options.filter((o) =>
+          type !== "customer" ? o.isTransporter === true : o === o
+        )}
         getOptionLabel={(option) => {
           // e.g value selected with enter, right from the input
           if (typeof option === "string") {

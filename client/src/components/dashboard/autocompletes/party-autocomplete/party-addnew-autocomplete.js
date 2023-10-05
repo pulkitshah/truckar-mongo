@@ -63,10 +63,10 @@ const AddNewPartyFromAutocomplete = ({
                 "A party already exists with this name", // <- key, message
                 async function (value) {
                   try {
-                    const response = await partyApi.validateDuplicateName(
+                    const response = await partyApi.validateDuplicateName({
                       account,
-                      value
-                    );
+                      value,
+                    });
                     return response.data;
                   } catch (error) {}
                 }
@@ -79,10 +79,10 @@ const AddNewPartyFromAutocomplete = ({
                 "Mobile already in use", // <- key, message
                 async function (value) {
                   try {
-                    const response = await partyApi.validateDuplicateMobile(
+                    const response = await partyApi.validateDuplicateMobile({
                       account,
-                      value
-                    );
+                      value,
+                    });
                     return response.data;
                   } catch (error) {}
                 }
@@ -91,7 +91,7 @@ const AddNewPartyFromAutocomplete = ({
           onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
             try {
               setSubmitting(true);
-              const response = await partyApi.createParty(values, dispatch);
+              const response = await partyApi.createParty({ values, dispatch });
               toast.success("Party created!");
               setFieldValue(type, response);
               toggleOpen(false);

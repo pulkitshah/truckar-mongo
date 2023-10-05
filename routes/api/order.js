@@ -4,6 +4,7 @@ const { check, validationResult } = require("express-validator/check");
 const Order = require("../../models/Order");
 const auth = require("../../middlleware/auth");
 const createFilterAggPipeline = require("../../utils/getAggregationPipeline");
+const getFiscalYearTimestamps = require("../../utils/getFiscalYear");
 
 const router = express.Router();
 
@@ -65,6 +66,14 @@ router.get("/:id", auth, async (req, res) => {
     sort = { saleDate: -1, orderNo: -1 },
   } = JSON.parse(req.params.id);
 
+  console.log({
+    account,
+    startRow,
+    endRow,
+    filter,
+    sort,
+  });
+
   // if (!(accountId instanceof mongoose.Types.ObjectId)) {
   //   throw new Error("accountId must be ObjectId");
   // } else if (typeof startRow !== "number") {
@@ -75,14 +84,34 @@ router.get("/:id", auth, async (req, res) => {
 
   let matches = { account: new mongoose.Types.ObjectId(account) };
 
-  const query = [
+  let query = [
     // filter the results by our accountId
     {
       $match: Object.assign(matches),
     },
+  ];
 
-    // more lookups go here if you need them
-    // we have a many-to-one from blogPost -> user
+  // filter according to filterModel object
+  if (filter.orderNo) {
+    const orderNoQuery = createFilterAggPipeline({ orderNo: filter.orderNo });
+    query.push(orderNoQuery[0]);
+  }
+
+  if (filter.customer) {
+    const customerQuery = createFilterAggPipeline({
+      customer: filter.customer,
+    });
+    query.push(customerQuery[0]);
+  }
+
+  if (filter.vehicleNumber) {
+    const vehicleNumberQuery = createFilterAggPipeline({
+      vehicleNumber: filter.vehicleNumber,
+    });
+    query.push(vehicleNumberQuery[0]);
+  }
+
+  let lookups = [
     {
       $lookup: {
         from: "accounts",
@@ -130,9 +159,7 @@ router.get("/:id", auth, async (req, res) => {
         pipeline: [
           {
             $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
+              $expr: { $eq: ["$_id", "$$id"] },
             },
           },
           {
@@ -148,7 +175,12 @@ router.get("/:id", auth, async (req, res) => {
         as: "transporter",
       },
     },
-    { $unwind: "$transporter" },
+    {
+      $unwind: {
+        path: "$transporter",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
     {
       $lookup: {
         from: "drivers",
@@ -174,7 +206,12 @@ router.get("/:id", auth, async (req, res) => {
         as: "driver",
       },
     },
-    { $unwind: "$transporter" },
+    {
+      $unwind: {
+        path: "$driver",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
     {
       $lookup: {
         from: "vehicles",
@@ -199,7 +236,12 @@ router.get("/:id", auth, async (req, res) => {
         as: "vehicle",
       },
     },
-    { $unwind: "$vehicle" },
+    {
+      $unwind: {
+        path: "$vehicle",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
     {
       $lookup: {
         from: "deliveries",
@@ -230,27 +272,9 @@ router.get("/:id", auth, async (req, res) => {
     },
   ];
 
-  // filter according to filterModel object
-  if (filter.orderNo) {
-    const orderNoQuery = createFilterAggPipeline({ orderNo: filter.orderNo });
-    query.push(orderNoQuery[0]);
-  }
+  query = [...query, ...lookups];
 
-  if (filter.customer) {
-    const customerQuery = createFilterAggPipeline({
-      customer: filter.customer,
-    });
-    query.push(customerQuery[0]);
-  }
-
-  if (filter.vehicleNumber) {
-    const vehicleNumberQuery = createFilterAggPipeline({
-      vehicleNumber: filter.vehicleNumber,
-    });
-    query.push(vehicleNumberQuery[0]);
-  }
-
-  // console.log(query);
+  console.log(query);
 
   if (sort) {
     // maybe we want to sort by blog title or something
@@ -321,15 +345,20 @@ router.patch(
 router.get("/validateDuplicateOrderNo/:id", auth, async (req, res) => {
   const { account, saleDate, orderNo } = JSON.parse(req.params.id);
   try {
+    let timestamps = getFiscalYearTimestamps(saleDate);
     const query = {
-      account: account.id,
-      saleDate: saleDate,
+      account: account,
+      orderNo: orderNo,
+      saleDate: {
+        $gte: timestamps.current.start,
+        $lte: timestamps.current.end,
+      },
     };
-    if (orderNo) {
-      query.orderNo = orderNo;
-    }
-    console.log(query);
+
+    // console.log(query);
     const order = await Order.findOne(query);
+    console.log(order);
+
     res.json(order);
   } catch (error) {
     console.log(error.message);

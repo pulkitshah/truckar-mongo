@@ -23,7 +23,9 @@ const DriverAutocomplete = ({
 
   const getDriversByAccount = useCallback(async () => {
     try {
-      const { data } = await driverApi.getDriversByAccount(account);
+      const { data } = await driverApi.getDriversByAccount({
+        account: account._id,
+      });
       console.log(data);
       if (isMounted()) {
         setDrivers(data);

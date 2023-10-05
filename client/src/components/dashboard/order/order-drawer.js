@@ -207,6 +207,12 @@ const OrderPreview = (props) => {
             Whatsapp
           </Button>
         </Box>
+        <PropertyListItem
+          align={align}
+          disableGutters
+          label="Vehicle Number"
+          value={order.vehicleNumber}
+        />
 
         <Divider sx={{ my: 3 }} />
 
@@ -221,45 +227,44 @@ const OrderPreview = (props) => {
         >
           <DeliveryDetailsGrid order={order} gridApi={gridApi} />
         </Box>
-        {!(typeof order.vehicleId === "object") ||
-          (order.vehicleId === null && (
-            <>
-              <Divider sx={{ my: 3 }} />
-              <Box
-                sx={{
-                  display: "flex",
-                  flex: 1,
-                  justifyContent: "space-between",
-                }}
+        {(!(typeof order.vehicle === "object") || order.vehicle === null) && (
+          <>
+            <Divider sx={{ my: 3 }} />
+            <Box
+              sx={{
+                display: "flex",
+                flex: 1,
+                justifyContent: "space-between",
+              }}
+            >
+              <PropertyListItem
+                align={align}
+                disableGutters
+                label="Transporter"
               >
-                <PropertyListItem
-                  align={align}
-                  disableGutters
-                  label="Transporter"
-                >
-                  <Typography color="primary" variant="body2">
-                    {order.transporter.name}
-                  </Typography>
-                  <Typography color="textSecondary" variant="body2">
-                    {order.transporter.mobile}
-                  </Typography>
-                  <Typography color="textSecondary" variant="body2">
-                    {order.transporter.city.description}
-                  </Typography>
-                </PropertyListItem>
-                <Button
-                  disabled={true}
-                  onClick={() => {
-                    sendOrderConfirmationMessageToOwner(order, account);
-                  }}
-                  size="small"
-                  sx={{ pt: 3 }}
-                >
-                  Whatsapp
-                </Button>
-              </Box>
-            </>
-          ))}
+                <Typography color="primary" variant="body2">
+                  {order.transporter.name}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
+                  {order.transporter.mobile}
+                </Typography>
+                <Typography color="textSecondary" variant="body2">
+                  {order.transporter.city.description}
+                </Typography>
+              </PropertyListItem>
+              <Button
+                disabled={true}
+                onClick={() => {
+                  sendOrderConfirmationMessageToOwner(order, account);
+                }}
+                size="small"
+                sx={{ pt: 3 }}
+              >
+                Whatsapp
+              </Button>
+            </Box>
+          </>
+        )}
         {order.driver && (
           <>
             <Divider sx={{ my: 3 }} />
@@ -325,39 +330,40 @@ const OrderPreview = (props) => {
       </PropertyList>
       <Divider sx={{ my: 3 }} />
 
-      {!(typeof order.vehicleId === "object") ||
-        (order.vehicleId === null && (
-          <React.Fragment>
-            <Typography sx={{ my: 3 }} variant="h6">
-              Purchase Details
-            </Typography>
-            <PropertyList>
+      {console.log(typeof order.vehicle === "object")}
+
+      {(!(typeof order.vehicle === "object") || order.vehicle === null) && (
+        <React.Fragment>
+          <Typography sx={{ my: 3 }} variant="h6">
+            Purchase Details
+          </Typography>
+          <PropertyList>
+            <PropertyListItem
+              align={align}
+              disableGutters
+              label="Purchase Rate"
+              value={`Rs ${order.purchaseRate}/ ${getOrderUnit(order)}`}
+            />
+            {order.minimumPurchaseGuarantee && (
               <PropertyListItem
                 align={align}
                 disableGutters
-                label="Purchase Rate"
-                value={`Rs ${order.purchaseRate}/ ${getOrderUnit(order)}`}
+                label="Min Purchase Guarantee"
+                value={`${order.minimumPurchaseGuarantee} ${order.saleType.unit}`}
               />
-              {order.minimumPurchaseGuarantee && (
-                <PropertyListItem
-                  align={align}
-                  disableGutters
-                  label="Min Purchase Guarantee"
-                  value={`${order.minimumPurchaseGuarantee} ${order.saleType.unit}`}
-                />
-              )}
-              {order.purchaseAdvance && (
-                <PropertyListItem
-                  align={align}
-                  disableGutters
-                  label="Purchase Advance"
-                  value={`${dataFormatter(order.purchaseAdvance, "currency")}`}
-                />
-              )}
-            </PropertyList>
-            <Divider sx={{ my: 3 }} />
-          </React.Fragment>
-        ))}
+            )}
+            {order.purchaseAdvance && (
+              <PropertyListItem
+                align={align}
+                disableGutters
+                label="Purchase Advance"
+                value={`${dataFormatter(order.purchaseAdvance, "currency")}`}
+              />
+            )}
+          </PropertyList>
+          <Divider sx={{ my: 3 }} />
+        </React.Fragment>
+      )}
 
       {
         <form onSubmit={formik.handleSubmit} {...props}>
@@ -719,6 +725,7 @@ const OrderForm = (props) => {
           editedOrder.purchaseAdvance = parseFloat(values.purchaseAdvance);
 
         let { data } = await orderApi.updateOrder(editedOrder, dispatch);
+        console.log(data);
         data.deliveries = [];
 
         values.deliveryDetails.map(async (del) => {
@@ -744,7 +751,7 @@ const OrderForm = (props) => {
             let newDelivery = {
               loading: del.loading,
               unloading: del.unloading,
-              orderId: data._id,
+              order: data._id,
               account: account._id,
             };
 
@@ -755,13 +762,12 @@ const OrderForm = (props) => {
               newDelivery.unloadingQuantity = del.unloadingQuantity;
             }
 
-            let response = await deliveryApi.createDelivery(newDelivery).data;
+            let response = await deliveryApi.createDelivery(newDelivery);
 
             data.deliveries.push(response.data);
           }
         });
 
-        console.log(data);
         onOpen(data, gridApi);
         gridApi.refreshInfiniteCache();
         toast.success("Order updated!");

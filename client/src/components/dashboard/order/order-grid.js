@@ -57,9 +57,9 @@ const Table = ({ onOpenDrawer, open, toggleDrawer }) => {
           filter.customer = { filterType: "set", values: filteredCustomers };
         }
 
-        let { data, count } = await orderApi.getOrdersByAccount(
+        let { data, count = 0 } = await orderApi.getOrdersByAccount(
           JSON.stringify({
-            account: account.id,
+            account: account._id,
             startRow: params.startRow,
             endRow: params.endRow,
             filter,

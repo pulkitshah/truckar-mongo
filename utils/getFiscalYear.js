@@ -1,40 +1,45 @@
-const moment = require('moment');
+const moment = require("moment");
 
 const getFiscalYearTimestamps = (date) => {
-  const startMonthName = 'April';
-  const endMonthName = 'March';
+  const startMonthName = "April";
+  const endMonthName = "March";
   if (moment(date).quarter() == 1) {
     return {
       current: {
         start: moment(date)
-          .subtract(1, 'year')
+          .subtract(1, "year")
           .month(startMonthName)
-          .startOf('month'),
-        end: moment(date).month(endMonthName).endOf('month'),
+          .startOf("month"),
+        end: moment(date).month(endMonthName).endOf("month"),
       },
       last: {
         start: moment(date)
-          .subtract(2, 'year')
+          .subtract(2, "year")
           .month(startMonthName)
-          .startOf('month'),
+          .startOf("month"),
         end: moment(date)
-          .subtract(1, 'year')
+          .subtract(1, "year")
           .month(endMonthName)
-          .endOf('month'),
+          .endOf("month"),
       },
     };
   } else {
     return {
       current: {
-        start: moment(date).month(startMonthName).startOf('month'),
-        end: moment(date).add(1, 'year').month(endMonthName).endOf('month'),
+        start: moment(date).month(startMonthName).startOf("month").format(),
+        end: moment(date)
+          .add(1, "year")
+          .month(endMonthName)
+          .endOf("month")
+          .format(),
       },
       last: {
         start: moment(date)
-          .subtract(1, 'year')
+          .subtract(1, "year")
           .month(startMonthName)
-          .startOf('month'),
-        end: moment(date).month(endMonthName).endOf('month'),
+          .startOf("month")
+          .format(),
+        end: moment(date).month(endMonthName).endOf("month").format(),
       },
     };
   }
