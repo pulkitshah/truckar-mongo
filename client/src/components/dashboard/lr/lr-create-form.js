@@ -30,38 +30,39 @@ import { deliveryApi } from "../../../api/delivery-api";
 export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { user } = useAuth();
-  const [driver, setDriver] = useState();
+  const { account } = useAuth();
   const [addresses, setAddresses] = useState({ waypoints: [] });
-
-  const [purchaseType, setPurchaseType] = React.useState("quantity");
-
-  const purchaseTypes = [
-    {
-      value: "quantity",
-      label: "Per Ton",
-    },
-    {
-      value: "fixed",
-      label: "Fixed",
-    },
-  ];
 
   let validationShape = {
     organisation: Yup.object().nullable().required("Organisation is required"),
     lrDate: Yup.object().required("LR Date is required"),
-    lrNo: Yup.number().required("LR No is required"),
+    lrNo: Yup.number()
+      .required("LR No is required")
+      .test({
+        name: "Checking Duplicate Lr No",
+        exclusive: false,
+        params: {},
+        message: "Lr No cannot be repeated in the fiscal year of sale date",
+        test: async function (value) {
+          try {
+            const response = await lrApi.validateDuplicateLrNo({
+              lrNo: value,
+              lrDate: this.parent.lrDate,
+              account: account._id,
+            });
+            // console.log(response);
+            return response.data;
+          } catch (error) {
+            console.log(error);
+          }
+        },
+      }),
+    consignor: Yup.object().required("Consignor is Required"), // these constraints take precedence
+    consignee: Yup.object().required("Consignee is Required"), // these constraints take precedence
   };
 
-  validationShape.deliveryDetails = Yup.array().of(
-    Yup.object().shape({
-      loading: Yup.object().required("Loading Point is Required"), // these constraints take precedence
-      unloading: Yup.object().required("Unloading Point is Required"), // these constraints take precedence
-    })
-  );
-
   let delivery = order.deliveries.find(
-    (delivery) => delivery.id === deliveryId
+    (delivery) => delivery._id === deliveryId
   );
 
   const formik = useFormik({
@@ -72,7 +73,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
       deliveryDetails: [delivery],
       deliveryId: deliveryId,
       saleType: order.saleType
-        ? JSON.parse(order.saleType)
+        ? order.saleType
         : {
             value: "quantity",
             unit: "MT",
@@ -100,7 +101,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
       ewayBillExpiryDate: lr.ewayBillExpiryDate || null,
       gstPayableBy: lr.gstPayableBy || "consignor",
     },
-    // validationSchema: Yup.object().shape(validationShape),
+    validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
         console.log(values);
@@ -108,12 +109,12 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
           lrFormat: values.lrFormat,
           lrNo: parseInt(values.lrNo),
           lrDate: values.lrDate.format(),
-          orderId: order.id,
-          deliveryId: values.deliveryId,
-          organisationId: values.organisation.id,
-          consigneeId: values.consignee.id,
-          consignorId: values.consignor.id,
-          descriptionOfGoods: JSON.stringify(values.descriptionOfGoods),
+          order: order._id,
+          delivery: values.deliveryId,
+          organisation: values.organisation._id,
+          consignee: values.consignee._id,
+          consignor: values.consignor._id,
+          descriptionOfGoods: values.descriptionOfGoods,
           dimesnionsLength: values.dimesnionsLength,
           dimesnionsBreadth: values.dimesnionsBreadth,
           dimesnionsHeight: values.dimesnionsHeight,
@@ -128,19 +129,19 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
           ewayBillExpiryDate:
             values.ewayBillExpiryDate && values.ewayBillExpiryDate.format(),
           gstPayableBy: values.gstPayableBy,
-          lrFormat: user.lrFormat,
-          lrCharges: JSON.stringify(user.lrSettings[0].lrCharges),
-          user: user.id,
+          lrFormat: account.lrFormat,
+          lrCharges: account.lrSettings[0].lrCharges,
+          account: account._id,
         };
 
         console.log(newLr);
 
-        let lr = await lrApi.createLr(newLr, dispatch);
+        let { data } = await lrApi.createLr(newLr, dispatch);
+        console.log(data);
         await deliveryApi.updateDelivery(
           {
-            id: delivery.id,
-            lrId: lr.id,
-            _version: delivery._version,
+            _id: delivery._id,
+            lr: data,
           },
           dispatch
         );
@@ -164,26 +165,22 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
     setAddresses((addresses) => ({
       ...addresses,
       ...{
-        origin: JSON.parse(formik.values.deliveryDetails[0].loading)
-          .description,
+        origin: formik.values.deliveryDetails[0].loading.description,
       },
     }));
 
     // Setting Destination
     if (
-      JSON.parse(
-        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading
-      ).description
+      formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
+        .unloading.description
     ) {
       setAddresses((addresses) => ({
         ...addresses,
         ...{
-          destination: JSON.parse(
+          destination:
             formik.values.deliveryDetails[
               formik.values.deliveryDetails.length - 1
-            ].unloading
-          ).description,
+            ].unloading.description,
         },
       }));
     }
@@ -193,15 +190,15 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
     let waypoints = [];
 
     formik.values.deliveryDetails.map((delivery) => {
-      if (JSON.parse(delivery.loading).description) {
+      if (delivery.loading.description) {
         waypoints.push({
-          location: JSON.parse(delivery.loading).description,
+          location: delivery.loading.description,
         });
       }
 
-      if (JSON.parse(delivery.unloading).description) {
+      if (delivery.unloading.description) {
         waypoints.push({
-          location: JSON.parse(delivery.unloading).description,
+          location: delivery.unloading.description,
         });
       }
     });
@@ -209,16 +206,13 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
     waypoints = waypoints.filter(
       (waypoint) =>
         waypoint.location !==
-        JSON.parse(formik.values.deliveryDetails[0].loading).description
+        formik.values.deliveryDetails[0].loading.description
     );
     waypoints = waypoints.filter(
       (waypoint) =>
         waypoint.location !==
-        JSON.parse(
-          formik.values.deliveryDetails[
-            formik.values.deliveryDetails.length - 1
-          ].unloading
-        ).description
+        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
+          .unloading.description
     );
 
     waypoints = [
@@ -226,11 +220,10 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
     ];
 
     setAddresses({
-      origin: JSON.parse(formik.values.deliveryDetails[0].loading).description,
-      destination: JSON.parse(
+      origin: formik.values.deliveryDetails[0].loading.description,
+      destination:
         formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading
-      ).description,
+          .unloading.description,
       waypoints: waypoints,
     });
   }, [formik.values.deliveryDetails]);
@@ -246,11 +239,11 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
             <Grid item md={8} xs={12}>
               <Grid container spacing={3}>
                 <Grid item md={4} xs={12}>
-                  <OrganisationAutocomplete formik={formik} user={user} />
+                  <OrganisationAutocomplete formik={formik} account={account} />
                 </Grid>
                 <Grid item md={4} xs={12}>
                   <DatePicker
-                    id="lrDate"
+                    _id="lrDate"
                     name="lrDate"
                     label="LR date"
                     showTodayButton={true}
@@ -304,7 +297,11 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
               <GoogleMaps addresses={addresses} />
             </Grid>
             <Grid item md={8} xs={12}>
-              <DeliveryDetails formik={formik} order={order} user={user} />
+              <DeliveryDetails
+                formik={formik}
+                order={order}
+                account={account}
+              />
             </Grid>
           </Grid>
         </CardContent>
@@ -342,7 +339,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                       formik.touched.dimesnionsLength &&
                       formik.errors.dimesnionsLength
                     }
-                    id="dimesnionsLength"
+                    _id="dimesnionsLength"
                     name="dimesnionsLength"
                     label="Length"
                     value={formik.values.dimesnionsLength}
@@ -362,7 +359,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                       formik.touched.dimesnionsBreadth &&
                       formik.errors.dimesnionsBreadth
                     }
-                    id="dimesnionsBreadth"
+                    _id="dimesnionsBreadth"
                     name="dimesnionsBreadth"
                     label="Breadth"
                     value={formik.values.dimesnionsBreadth}
@@ -382,7 +379,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                       formik.touched.dimesnionsHeight &&
                       formik.errors.dimesnionsHeight
                     }
-                    id="dimesnionsHeight"
+                    _id="dimesnionsHeight"
                     name="dimesnionsHeight"
                     label="Height"
                     value={formik.values.dimesnionsHeight}
@@ -419,7 +416,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                       formik.touched.insuranceCompany &&
                       formik.errors.insuranceCompany
                     }
-                    id="insuranceCompany"
+                    _id="insuranceCompany"
                     name="insuranceCompany"
                     label="Insurance Co."
                     value={formik.values.insuranceCompany}
@@ -429,7 +426,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                 </Grid>
                 <Grid item md={3} xs={12}>
                   <DatePicker
-                    id="insuranceDate"
+                    _id="insuranceDate"
                     name="insuranceDate"
                     label="Insurance date"
                     showTodayButton={true}
@@ -469,7 +466,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                       formik.touched.insurancePolicyNo &&
                       formik.errors.insurancePolicyNo
                     }
-                    id="insurancePolicyNo"
+                    _id="insurancePolicyNo"
                     name="insurancePolicyNo"
                     label="Insurance Policy No"
                     value={formik.values.insurancePolicyNo}
@@ -491,7 +488,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                       formik.touched.insuranceAmount &&
                       formik.errors.insuranceAmount
                     }
-                    id="insuranceAmount"
+                    _id="insuranceAmount"
                     name="insuranceAmount"
                     label="Insurance Aount"
                     value={formik.values.insuranceAmount}
@@ -522,7 +519,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                     name="fareBasis"
                     label="Fare Basis"
                     fullWidth
-                    id="fareBasis"
+                    _id="fareBasis"
                     select
                     value={formik.values.fareBasis}
                     onChange={(event) => {
@@ -561,7 +558,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                     helperText={
                       formik.touched.valueOfGoods && formik.errors.valueOfGoods
                     }
-                    id="valueOfGoods"
+                    _id="valueOfGoods"
                     name="valueOfGoods"
                     label="Value Of Goods"
                     value={formik.values.valueOfGoods}
@@ -583,7 +580,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                       formik.touched.chargedWeight &&
                       formik.errors.chargedWeight
                     }
-                    id="chargedWeight"
+                    _id="chargedWeight"
                     name="chargedWeight"
                     label="Charged Weight"
                     value={formik.values.chargedWeight}
@@ -617,7 +614,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                     helperText={
                       formik.touched.ewayBillNo && formik.errors.ewayBillNo
                     }
-                    id="ewayBillNo"
+                    _id="ewayBillNo"
                     name="ewayBillNo"
                     label="Eway Bill No"
                     value={formik.values.ewayBillNo}
@@ -627,7 +624,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                 </Grid>
                 <Grid item md={4} xs={12}>
                   <DatePicker
-                    id="ewayBillExpiryDate"
+                    _id="ewayBillExpiryDate"
                     name="ewayBillExpiryDate"
                     label="E-Way Bill Expiry date"
                     showTodayButton={true}
@@ -665,7 +662,7 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
                       shrink: true,
                     }}
                     fullWidth
-                    id="gstPayableBy"
+                    _id="gstPayableBy"
                     select
                     value={formik.values.gstPayableBy}
                     onChange={(event) => {

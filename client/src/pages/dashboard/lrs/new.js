@@ -23,9 +23,9 @@ const LrCreate = () => {
 
   const getOrder = useCallback(async () => {
     try {
-      const orderFromDB = await orderApi.getOrderById(orderId);
+      const response = await orderApi.getOrderById(orderId);
       if (isMounted()) {
-        setOrder(orderFromDB);
+        setOrder(response.data);
       }
     } catch (err) {
       console.error(err);

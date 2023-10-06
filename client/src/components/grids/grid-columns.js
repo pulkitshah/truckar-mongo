@@ -525,117 +525,123 @@ export const deliveryDetailsTableForOrderDrawer = [
   },
 ];
 
-export const lrTable = [
-  {
-    field: "lrDate",
-    headerName: "Date",
-    width: 130,
-    cellRenderer: (params) => {
-      if (params.value !== undefined) {
-        return moment(params.data.lrDate).format("DD-MM-YY");
-      }
-      // else {
-      //   return <img src="https://www.ag-grid.com/example-assets/loading.gif" />;
-      // }
+export const lrTable = (account) => {
+  return [
+    {
+      field: "lrDate",
+      headerName: "Date",
+      width: 130,
+      cellRenderer: (params) => {
+        if (params.value !== undefined) {
+          return moment(params.data.lrDate).format("DD-MM-YY");
+        }
+      },
     },
-  },
-  {
-    field: "lrNo",
-    headerName: "LR No",
-    width: 100,
-    cellRenderer: (params) => {
-      if (params.value !== undefined) {
-        return (
-          <Link href={`/dashboard/lrs/${params.data.id}`} passHref>
-            {`${params.data.organisation.initials}-${params.data.lrNo}`}
-          </Link>
-        );
-      }
+    {
+      field: "lrNo",
+      headerName: "LR No",
+      width: 100,
+      cellRenderer: (params) => {
+        if (params.value !== undefined) {
+          return (
+            <Link href={`/dashboard/lrs/${params.data.id}`} passHref>
+              {`${params.data.organisation.initials}-${params.data.lrNo}`}
+            </Link>
+          );
+        }
+      },
+      filter: "agNumberColumnFilter",
+      filterParams: {
+        buttons: ["reset"],
+        filterOptions: ["equals", "lessThan", "greaterThan"],
+        debounceMs: 1000,
+        maxNumConditions: 1,
+      },
     },
-  },
-  {
-    field: "orderNo",
-    headerName: "Order No",
-    width: 80,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.order.orderNo;
-      }
+    {
+      field: "orderNo",
+      headerName: "Order No",
+      width: 80,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.order.orderNo;
+        }
+      },
     },
-  },
-  {
-    field: "customer",
-    headerName: "Customer",
-    width: 250,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.order.customer.name;
-      }
+    {
+      field: "customer",
+      headerName: "Customer",
+      width: 250,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.order.customer.name;
+        }
+      },
     },
-  },
-  {
-    field: "vehicleNo",
-    headerName: "Vehicle Number",
-    width: 150,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.order.vehicleNumber;
-      }
+    {
+      field: "vehicleNo",
+      headerName: "Vehicle Number",
+      width: 150,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.order.vehicleNumber;
+        }
+      },
     },
-  },
-  {
-    field: "loading",
-    headerName: "Loading",
-    width: 130,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.delivery.loading.structured_formatting.main_text;
-      }
+    {
+      field: "loading",
+      headerName: "Loading",
+      width: 130,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.delivery.loading.structured_formatting.main_text;
+        }
+      },
     },
-  },
-  {
-    field: "unloading",
-    headerName: "Unoading",
-    width: 130,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.delivery.unloading.structured_formatting.main_text;
-      }
+    {
+      field: "unloading",
+      headerName: "Unoading",
+      width: 130,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.delivery.unloading.structured_formatting.main_text;
+        }
+      },
     },
-  },
-  {
-    field: "consignor",
-    headerName: "Consignor",
-    width: 250,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.consignor.name;
-      }
+    {
+      field: "consignor",
+      headerName: "Consignor",
+      width: 250,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.consignor.name;
+        }
+      },
     },
-  },
-  {
-    field: "consignee",
-    headerName: "Consignee",
-    width: 250,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.consignee.name;
-      }
+    {
+      field: "consignee",
+      headerName: "Consignee",
+      width: 250,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.consignee.name;
+        }
+      },
     },
-  },
-  {
-    field: "saleBillNo",
-    headerName: "Sale Bill No",
-    width: 130,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.delivery.invoiceId
-          ? `${params.data.delivery.invoice.organisation.initials}-${params.data.delivery.invoice.invoiceNo}`
-          : "Not Issued";
-      }
+    {
+      field: "saleBillNo",
+      headerName: "Sale Bill No",
+      width: 130,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.delivery.invoiceId
+            ? `${params.data.delivery.invoice.organisation.initials}-${params.data.delivery.invoice.invoiceNo}`
+            : "Not Issued";
+        }
+      },
     },
-  },
-];
+  ];
+};
 
 export const invoiceTable = [
   {

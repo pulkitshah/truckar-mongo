@@ -1,19 +1,19 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { check, validationResult } = require("express-validator/check");
-const Order = require("../../models/Order");
+const Lr = require("../../models/Lr");
 const auth = require("../../middlleware/auth");
 const createFilterAggPipeline = require("../../utils/getAggregationPipeline");
 const getFiscalYearTimestamps = require("../../utils/getFiscalYear");
 
 const router = express.Router();
 
-// @route   POST api/order
-// @desc    Create Order
+// @route   POST api/lr
+// @desc    Create Lr
 // @access  Private
 router.post(
   "/",
-  [auth, [check("orderNo", "Please enter Order No.").not().isEmpty()]],
+  [auth, [check("lrNo", "Please enter Lr No.").not().isEmpty()]],
   async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -23,15 +23,15 @@ router.post(
 
       // Get fields
       const updates = Object.keys(req.body);
-      const orderFields = {};
-      orderFields.createdBy = req.user.id;
-      updates.forEach((update) => (orderFields[update] = req.body[update]));
+      const lrFields = {};
+      lrFields.createdBy = req.user.id;
+      updates.forEach((update) => (lrFields[update] = req.body[update]));
 
       try {
         // Create
-        order = new Order(orderFields);
-        await order.save();
-        res.send(order);
+        lr = new Lr(lrFields);
+        await lr.save();
+        res.send(lr);
       } catch (error) {
         console.log(error.message);
         res.status(500).send("Server Error");
@@ -43,8 +43,8 @@ router.post(
   }
 );
 
-// @route   GET api/orders/
-// @desc    Get Orders created by user
+// @route   GET api/lrs/
+// @desc    Get Lrs created by user
 // @access  Private
 
 /**
@@ -63,7 +63,7 @@ router.get("/:id", auth, async (req, res) => {
     startRow,
     endRow,
     filter = {},
-    sort = { saleDate: -1, orderNo: -1 },
+    sort = { lrDate: -1, lrNo: -1 },
   } = JSON.parse(req.params.id);
 
   console.log({
@@ -92,24 +92,24 @@ router.get("/:id", auth, async (req, res) => {
   ];
 
   // filter according to filterModel object
-  if (filter.orderNo) {
-    const orderNoQuery = createFilterAggPipeline({ orderNo: filter.orderNo });
-    query.push(orderNoQuery[0]);
+  if (filter.lrNo) {
+    const lrNoQuery = createFilterAggPipeline({ lrNo: filter.lrNo });
+    query.push(lrNoQuery[0]);
   }
 
-  if (filter.customer) {
-    const customerQuery = createFilterAggPipeline({
-      customer: filter.customer,
-    });
-    query.push(customerQuery[0]);
-  }
+  // if (filter.customer) {
+  //   const customerQuery = createFilterAggPipeline({
+  //     customer: filter.customer,
+  //   });
+  //   query.push(customerQuery[0]);
+  // }
 
-  if (filter.vehicleNumber) {
-    const vehicleNumberQuery = createFilterAggPipeline({
-      vehicleNumber: filter.vehicleNumber,
-    });
-    query.push(vehicleNumberQuery[0]);
-  }
+  // if (filter.vehicleNumber) {
+  //   const vehicleNumberQuery = createFilterAggPipeline({
+  //     vehicleNumber: filter.vehicleNumber,
+  //   });
+  //   query.push(vehicleNumberQuery[0]);
+  // }
 
   let lookups = [
     {
@@ -124,9 +124,9 @@ router.get("/:id", auth, async (req, res) => {
     { $unwind: "$account" },
     {
       $lookup: {
-        from: "parties",
+        from: "addresses",
         let: {
-          id: "$customer",
+          id: "$consignor",
         },
         pipeline: [
           {
@@ -136,56 +136,21 @@ router.get("/:id", auth, async (req, res) => {
               },
             },
           },
-          {
-            $project: {
-              name: 1,
-              city: 1,
-              mobile: 1,
-              isTransporter: 1,
-              _id: 1,
-            },
-          },
         ],
-        as: "customer",
-      },
-    },
-    { $unwind: "$customer" },
-    {
-      $lookup: {
-        from: "parties",
-        let: {
-          id: "$transporter",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ["$_id", "$$id"] },
-            },
-          },
-          {
-            $project: {
-              name: 1,
-              city: 1,
-              mobile: 1,
-              isTransporter: 1,
-              _id: 1,
-            },
-          },
-        ],
-        as: "transporter",
+        as: "consignor",
       },
     },
     {
       $unwind: {
-        path: "$transporter",
+        path: "$consignor",
         preserveNullAndEmptyArrays: true,
       },
     },
     {
       $lookup: {
-        from: "drivers",
+        from: "addresses",
         let: {
-          id: "$driver",
+          id: "$consignee",
         },
         pipeline: [
           {
@@ -195,28 +160,22 @@ router.get("/:id", auth, async (req, res) => {
               },
             },
           },
-          {
-            $project: {
-              name: 1,
-              mobile: 1,
-              _id: 1,
-            },
-          },
         ],
-        as: "driver",
+        as: "consignee",
       },
     },
     {
       $unwind: {
-        path: "$driver",
+        path: "$consignee",
         preserveNullAndEmptyArrays: true,
       },
     },
+
     {
       $lookup: {
-        from: "vehicles",
+        from: "organisations",
         let: {
-          id: "$vehicle",
+          id: "$organisation",
         },
         pipeline: [
           {
@@ -226,19 +185,13 @@ router.get("/:id", auth, async (req, res) => {
               },
             },
           },
-          {
-            $project: {
-              vehicleNumber: 1,
-              _id: 1,
-            },
-          },
         ],
-        as: "vehicle",
+        as: "organisation",
       },
     },
     {
       $unwind: {
-        path: "$vehicle",
+        path: "$organisation",
         preserveNullAndEmptyArrays: true,
       },
     },
@@ -246,28 +199,76 @@ router.get("/:id", auth, async (req, res) => {
       $lookup: {
         from: "deliveries",
         let: {
-          id: "$_id",
+          id: "$delivery",
         },
         pipeline: [
           {
             $match: {
               $expr: {
-                $eq: ["$order", "$$id"],
+                $eq: ["$_id", "$$id"],
+              },
+            },
+          },
+        ],
+        as: "delivery",
+      },
+    },
+    {
+      $unwind: {
+        path: "$delivery",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "orders",
+        let: {
+          id: "$order",
+        },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ["$_id", "$$id"],
               },
             },
           },
           {
-            $project: {
-              loading: 1,
-              unloading: 1,
-              lrNo: 1,
-              billQuantity: 1,
-              unloadingQuantity: 1,
-              status: 1,
+            $lookup: {
+              from: "parties",
+              let: {
+                id: "$customer",
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $eq: ["$_id", "$$id"],
+                    },
+                  },
+                },
+                {
+                  $project: {
+                    name: 1,
+                    city: 1,
+                    mobile: 1,
+                    isTransporter: 1,
+                    _id: 1,
+                  },
+                },
+              ],
+              as: "customer",
             },
           },
+          { $unwind: "$customer" },
         ],
-        as: "deliveries",
+        as: "order",
+      },
+    },
+    {
+      $unwind: {
+        path: "$order",
+        preserveNullAndEmptyArrays: true,
       },
     },
   ];
@@ -300,12 +301,12 @@ router.get("/:id", auth, async (req, res) => {
     }
   );
 
-  const orders = await Order.aggregate(query);
-  res.json(orders);
+  const lrs = await Lr.aggregate(query);
+  res.json(lrs);
 });
 
-// @route   GET api/orders/:OrderID
-// @desc    Get Orders by orderID created by user
+// @route   GET api/lrs/:LrID
+// @desc    Get Lrs by lrID created by user
 ///////////////////////////////// @access  Public
 
 router.get("/id/:id", async (req, res) => {
@@ -460,7 +461,7 @@ router.get("/id/:id", async (req, res) => {
             {
               $match: {
                 $expr: {
-                  $eq: ["$order", "$$id"],
+                  $eq: ["$lr", "$$id"],
                 },
               },
             },
@@ -482,49 +483,50 @@ router.get("/id/:id", async (req, res) => {
 
     query = [...query, ...lookups];
 
-    const orders = await Order.aggregate(query);
+    const lrs = await Lr.aggregate(query);
 
-    if (!orders) {
+    if (!lrs) {
       res
         .status(400)
-        .json({ errors: [{ msg: "There are no orders by this user" }] });
+        .json({ errors: [{ msg: "There are no lrs by this user" }] });
     }
 
     // console.log(response[0]);
-    res.json(orders[0]);
+    res.json(lrs[0]);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");
   }
 });
 
-// @route   PATCH api/order
-// @desc    Create Order
+// @route   PATCH api/lr
+// @desc    Create Lr
 // @access  Private
 router.patch(
   "/",
-  [auth, [check("orderNo", "Please enter Order No.").not().isEmpty()]],
+  [auth, [check("lrNo", "Please enter Lr No.").not().isEmpty()]],
   async (req, res) => {
     const updates = Object.keys(req.body);
     try {
-      const order = await Order.findOne({
+      const lr = await Lr.findOne({
         _id: req.body._id,
       })
-        .populate("customer")
-        .populate("transporter")
-        .populate("driver")
-        .populate("vehicle");
+        .populate("consignor")
+        .populate("consignee")
+        .populate("organisation")
+        .populate("delivery")
+        .populate("order");
 
       console.log(req.body);
 
-      if (!order) {
-        return res.status(404).send("No order to update");
+      if (!lr) {
+        return res.status(404).send("No lr to update");
       }
 
-      updates.forEach((update) => (order[update] = req.body[update]));
-      await order.save();
+      updates.forEach((update) => (lr[update] = req.body[update]));
+      await lr.save();
 
-      res.send(order);
+      res.send(lr);
     } catch (error) {
       console.log(error.message);
       res.status(500).send("Server Error");
@@ -532,28 +534,28 @@ router.patch(
   }
 );
 
-// @route   GET api/orders/
-// @desc    Get Orders with Duplicate Valid Number
+// @route   GET api/lrs/
+// @desc    Get Lrs with Duplicate Valid Number
 // @access  Private
 
-router.get("/validateDuplicateOrderNo/:id", auth, async (req, res) => {
-  const { account, saleDate, orderNo } = JSON.parse(req.params.id);
+router.get("/validateDuplicateLrNo/:id", auth, async (req, res) => {
+  const { account, lrDate, lrNo } = JSON.parse(req.params.id);
   try {
-    let timestamps = getFiscalYearTimestamps(saleDate);
+    let timestamps = getFiscalYearTimestamps(lrDate);
     const query = {
       account: account,
-      orderNo: orderNo,
-      saleDate: {
+      lrNo: lrNo,
+      lrDate: {
         $gte: timestamps.current.start,
         $lte: timestamps.current.end,
       },
     };
 
     // console.log(query);
-    const order = await Order.findOne(query);
-    console.log(order);
+    const lr = await Lr.findOne(query);
+    console.log(lr);
 
-    res.json(order);
+    res.json(lr);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");

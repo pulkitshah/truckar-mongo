@@ -61,13 +61,13 @@ const statusOptions = [
 ];
 
 const LrPreview = (props) => {
-  const { lgUp, onApprove, onEdit, onReject, lr, gridApi } = props;
+  const { lgUp, onEdit, lr, gridApi } = props;
   const [viewPDF, setViewPDF] = useState(false);
   const LrFormat = LrPDFs[lr ? lr.lrFormat : "standardLoose"];
 
   const align = lgUp ? "horizontal" : "vertical";
   const [logo, setLogo] = useState();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const dispatch = useDispatch();
 
   const getOrganisationLogo = useCallback(async () => {
@@ -91,17 +91,17 @@ const LrPreview = (props) => {
 
   const formik = useFormik({
     initialValues: {
-      id: lr.id,
-      lrCharges: JSON.parse(lr.lrCharges),
+      _id: lr._id,
+      lrCharges: lr.lrCharges,
     },
     // validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
         console.log(values);
         const editedLr = {
-          id: lr.id,
-          lrCharges: JSON.stringify(values.lrCharges),
-          user: user.id,
+          _id: lr._id,
+          lrCharges: values.lrCharges,
+          account: account._id,
           _version: lr._version,
         };
         console.log(editedLr);
@@ -118,6 +118,9 @@ const LrPreview = (props) => {
       }
     },
   });
+
+  console.log("edited lr");
+  console.log(lr);
 
   return (
     <>
@@ -212,7 +215,7 @@ const LrPreview = (props) => {
           align={align}
           disableGutters
           label="Loading From"
-          value={JSON.parse(delivery.loading).description}
+          value={delivery.loading.description}
         />
 
         <PropertyListItem align={align} disableGutters label="Consignor">
@@ -226,7 +229,7 @@ const LrPreview = (props) => {
             {lr.consignor.billingAddressLine2}
           </Typography>
           <Typography color="textSecondary" variant="body2">
-            {JSON.parse(lr.consignor.city).description}
+            {lr.consignor.city.description}
           </Typography>
           <Typography color="textSecondary" variant="body2">
             {lr.consignor.pan && `PAN - ${lr.consignor.pan}`}
@@ -239,20 +242,20 @@ const LrPreview = (props) => {
           align={align}
           disableGutters
           label="Unloading at"
-          value={JSON.parse(delivery.unloading).description}
+          value={delivery.unloading.description}
         />
         <PropertyListItem align={align} disableGutters label="Consignee">
           <Typography color="primary" variant="body2">
             {lr.consignee.name}
           </Typography>
           <Typography color="textSecondary" variant="body2">
-            {lr.consignor.billingAddressLine1}
+            {lr.consignee.billingAddressLine1}
           </Typography>
           <Typography color="textSecondary" variant="body2">
-            {lr.consignor.billingAddressLine2}
+            {lr.consignee.billingAddressLine2}
           </Typography>
           <Typography color="textSecondary" variant="body2">
-            {JSON.parse(lr.consignee.city).description}
+            {lr.consignee.city.description}
           </Typography>
           <Typography color="textSecondary" variant="body2">
             {lr.consignee.pan && `PAN - ${lr.consignee.pan}`}
@@ -309,7 +312,7 @@ const LrPreview = (props) => {
                                 variant="outlined"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                id={chargeName}
+                                _id={chargeName}
                                 name={chargeName}
                                 helperText={
                                   touchedChargeName && errorChargeName
@@ -335,7 +338,7 @@ const LrPreview = (props) => {
                                 variant="outlined"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                id={chargeDefaultAmount}
+                                _id={chargeDefaultAmount}
                                 name={chargeDefaultAmount}
                                 helperText={
                                   touchedChargeDefaultAmount &&
@@ -383,7 +386,7 @@ const LrPreview = (props) => {
                         startIcon={<PlusIcon fontSize="small" />}
                         onClick={() => {
                           push({
-                            id: uuidv4(),
+                            _id: uuidv4(),
                             chargeName: "",
                             chargeDefaultAmount: 0,
                           });
@@ -406,14 +409,14 @@ const LrPreview = (props) => {
           </form>
         }
 
-        {JSON.parse(lr.descriptionOfGoods)[0].description && (
+        {lr.descriptionOfGoods[0].description && (
           <React.Fragment>
             <Divider sx={{ my: 3 }} />
             <Typography sx={{ mt: 6, mb: 3 }} variant="h6">
               Description of Goods
             </Typography>
             <PropertyListItem align={align} disableGutters label="Description">
-              {JSON.parse(lr.descriptionOfGoods).map((goodsDescription) => {
+              {lr.descriptionOfGoods.map((goodsDescription) => {
                 return (
                   <React.Fragment>
                     <Typography color="textSecondary" variant="body2">
@@ -570,25 +573,8 @@ const LrPreview = (props) => {
 export const LrForm = (props) => {
   const { onCancel, lr, onOpen, gridApi } = props;
   const dispatch = useDispatch();
-  const { user } = useAuth();
-  const [selectedVehicle, setSelectedVehicle] = useState(
-    lr.vehicle ? lr.vehicle : lr.vehicleNumber
-  );
-  const [driver, setDriver] = useState();
+  const { account } = useAuth();
   const [addresses, setAddresses] = useState({ waypoints: [] });
-
-  const [purchaseType, setPurchaseType] = React.useState(lr.purchaseType);
-
-  const purchaseTypes = [
-    {
-      value: "quantity",
-      label: "Per Ton",
-    },
-    {
-      value: "fixed",
-      label: "Fixed",
-    },
-  ];
 
   let validationShape = {
     lrNo: Yup.number()
@@ -606,7 +592,7 @@ export const LrForm = (props) => {
             const response = await lrApi.validateDuplicateLrNo(
               value,
               this.parent.lrDate,
-              user
+              account
             );
             // console.log(response);
             return response;
@@ -635,7 +621,7 @@ export const LrForm = (props) => {
 
   const formik = useFormik({
     initialValues: {
-      id: lr.id,
+      _id: lr._id,
       organisation: lr.organisation || "",
       lrDate: moment(lr.lrDate) || moment(),
       lrNo: lr.lrNo || "",
@@ -644,7 +630,7 @@ export const LrForm = (props) => {
       consignee: lr.consignee,
       consignor: lr.consignor,
       saleType: lr.order.saleType
-        ? JSON.parse(lr.order.saleType)
+        ? lr.order.saleType
         : {
             value: "quantity",
             unit: "MT",
@@ -652,7 +638,7 @@ export const LrForm = (props) => {
           },
       // LR
       descriptionOfGoods: lr.descriptionOfGoods
-        ? JSON.parse(lr.descriptionOfGoods)
+        ? lr.descriptionOfGoods
         : [
             {
               description: "",
@@ -675,40 +661,14 @@ export const LrForm = (props) => {
         ? moment(lr.ewayBillExpiryDate)
         : null,
       gstPayableBy: lr.gstPayableBy || "consignor",
+      lrCharges: lr.lrCharges || [],
+      account: account._id,
     },
     // validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
-        const editedLr = {
-          id: lr.id,
-          lrNo: parseInt(values.lrNo),
-          lrDate: values.lrDate.format(),
-          orderId: lr.order.id,
-          deliveryId: values.deliveryId,
-          organisationId: values.organisation.id,
-          consigneeId: values.consignee.id,
-          consignorId: values.consignor.id,
-          descriptionOfGoods: JSON.stringify(values.descriptionOfGoods),
-          dimesnionsLength: values.dimesnionsLength,
-          dimesnionsBreadth: values.dimesnionsBreadth,
-          dimesnionsHeight: values.dimesnionsHeight,
-          fareBasis: values.fareBasis,
-          valueOfGoods: values.valueOfGoods,
-          chargedWeight: values.chargedWeight,
-          insuranceCompany: values.insuranceCompany,
-          insuranceDate: values.insuranceDate && values.insuranceDate.format(),
-          insurancePolicyNo: values.insurancePolicyNo,
-          insuranceAmount: values.insuranceAmount,
-          ewayBillNo: values.ewayBillNo,
-          ewayBillExpiryDate:
-            values.ewayBillExpiryDate && values.ewayBillExpiryDate.format(),
-          gstPayableBy: values.gstPayableBy,
-          lrCharges: JSON.stringify(user.lrSettings[0].lrCharges),
-          user: user.id,
-          _version: lr._version,
-        };
-        let newLr = await lrApi.updateLr(editedLr, dispatch);
-        onOpen(newLr, gridApi);
+        let { data } = await lrApi.updateLr(values, dispatch);
+        onOpen(data, gridApi);
         gridApi.refreshInfiniteCache();
         toast.success("Lr created!");
         onCancel();
@@ -729,26 +689,22 @@ export const LrForm = (props) => {
     setAddresses((addresses) => ({
       ...addresses,
       ...{
-        origin: JSON.parse(formik.values.deliveryDetails[0].loading)
-          .description,
+        origin: formik.values.deliveryDetails[0].loading.description,
       },
     }));
 
     // Setting Destination
     if (
-      JSON.parse(
-        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading
-      ).description
+      formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
+        .unloading.description
     ) {
       setAddresses((addresses) => ({
         ...addresses,
         ...{
-          destination: JSON.parse(
+          destination:
             formik.values.deliveryDetails[
               formik.values.deliveryDetails.length - 1
-            ].unloading
-          ).description,
+            ].unloading.description,
         },
       }));
     }
@@ -758,15 +714,15 @@ export const LrForm = (props) => {
     let waypoints = [];
 
     formik.values.deliveryDetails.map((delivery) => {
-      if (JSON.parse(delivery.loading).description) {
+      if (delivery.loading.description) {
         waypoints.push({
-          location: JSON.parse(delivery.loading).description,
+          location: delivery.loading.description,
         });
       }
 
-      if (JSON.parse(delivery.unloading).description) {
+      if (delivery.unloading.description) {
         waypoints.push({
-          location: JSON.parse(delivery.unloading).description,
+          location: delivery.unloading.description,
         });
       }
     });
@@ -774,16 +730,13 @@ export const LrForm = (props) => {
     waypoints = waypoints.filter(
       (waypoint) =>
         waypoint.location !==
-        JSON.parse(formik.values.deliveryDetails[0].loading).description
+        formik.values.deliveryDetails[0].loading.description
     );
     waypoints = waypoints.filter(
       (waypoint) =>
         waypoint.location !==
-        JSON.parse(
-          formik.values.deliveryDetails[
-            formik.values.deliveryDetails.length - 1
-          ].unloading
-        ).description
+        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
+          .unloading.description
     );
 
     waypoints = [
@@ -791,11 +744,10 @@ export const LrForm = (props) => {
     ];
 
     setAddresses({
-      origin: JSON.parse(formik.values.deliveryDetails[0].loading).description,
-      destination: JSON.parse(
+      origin: formik.values.deliveryDetails[0].loading.description,
+      destination:
         formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading
-      ).description,
+          .unloading.description,
       waypoints: waypoints,
     });
   }, [formik.values.deliveryDetails]);
@@ -846,10 +798,14 @@ export const LrForm = (props) => {
         <Typography sx={{ mb: 3 }} variant="h6">
           Details
         </Typography>
-        <OrganisationAutocomplete sx={{ mb: 2 }} formik={formik} user={user} />
+        <OrganisationAutocomplete
+          sx={{ mb: 2 }}
+          formik={formik}
+          account={account}
+        />
         <DatePicker
           sx={{ my: 2 }}
-          id="lrDate"
+          _id="lrDate"
           name="lrDate"
           label="LR date"
           showTodayButton={true}
@@ -888,7 +844,7 @@ export const LrForm = (props) => {
           sx={{ my: 2 }}
           formik={formik}
           order={lr.order}
-          user={user}
+          account={account}
         />
 
         <Divider sx={{ my: 3 }} />
@@ -912,7 +868,7 @@ export const LrForm = (props) => {
                 formik.touched.dimesnionsLength &&
                 formik.errors.dimesnionsLength
               }
-              id="dimesnionsLength"
+              _id="dimesnionsLength"
               name="dimesnionsLength"
               label="Length"
               value={formik.values.dimesnionsLength}
@@ -932,7 +888,7 @@ export const LrForm = (props) => {
                 formik.touched.dimesnionsBreadth &&
                 formik.errors.dimesnionsBreadth
               }
-              id="dimesnionsBreadth"
+              _id="dimesnionsBreadth"
               name="dimesnionsBreadth"
               label="Breadth"
               value={formik.values.dimesnionsBreadth}
@@ -952,7 +908,7 @@ export const LrForm = (props) => {
                 formik.touched.dimesnionsHeight &&
                 formik.errors.dimesnionsHeight
               }
-              id="dimesnionsHeight"
+              _id="dimesnionsHeight"
               name="dimesnionsHeight"
               label="Height"
               value={formik.values.dimesnionsHeight}
@@ -979,7 +935,7 @@ export const LrForm = (props) => {
           helperText={
             formik.touched.insuranceCompany && formik.errors.insuranceCompany
           }
-          id="insuranceCompany"
+          _id="insuranceCompany"
           name="insuranceCompany"
           label="Insurance Co."
           value={formik.values.insuranceCompany}
@@ -987,7 +943,7 @@ export const LrForm = (props) => {
           variant="outlined"
         />
         <DatePicker
-          id="insuranceDate"
+          _id="insuranceDate"
           name="insuranceDate"
           label="Insurance date"
           showTodayButton={true}
@@ -1020,7 +976,7 @@ export const LrForm = (props) => {
           helperText={
             formik.touched.insurancePolicyNo && formik.errors.insurancePolicyNo
           }
-          id="insurancePolicyNo"
+          _id="insurancePolicyNo"
           name="insurancePolicyNo"
           label="Insurance Policy No"
           value={formik.values.insurancePolicyNo}
@@ -1038,7 +994,7 @@ export const LrForm = (props) => {
           helperText={
             formik.touched.insuranceAmount && formik.errors.insuranceAmount
           }
-          id="insuranceAmount"
+          _id="insuranceAmount"
           name="insuranceAmount"
           label="Insurance Amount"
           value={formik.values.insuranceAmount}
@@ -1057,7 +1013,7 @@ export const LrForm = (props) => {
           name="fareBasis"
           label="Fare Basis"
           fullWidth
-          id="fareBasis"
+          _id="fareBasis"
           select
           value={formik.values.fareBasis}
           onChange={(event) => {
@@ -1093,7 +1049,7 @@ export const LrForm = (props) => {
           )}
           onBlur={formik.handleBlur}
           helperText={formik.touched.valueOfGoods && formik.errors.valueOfGoods}
-          id="valueOfGoods"
+          _id="valueOfGoods"
           name="valueOfGoods"
           label="Value Of Goods"
           value={formik.values.valueOfGoods}
@@ -1112,7 +1068,7 @@ export const LrForm = (props) => {
           helperText={
             formik.touched.chargedWeight && formik.errors.chargedWeight
           }
-          id="chargedWeight"
+          _id="chargedWeight"
           name="chargedWeight"
           label="Charged Weight"
           value={formik.values.chargedWeight}
@@ -1132,7 +1088,7 @@ export const LrForm = (props) => {
           error={Boolean(formik.touched.ewayBillNo && formik.errors.ewayBillNo)}
           onBlur={formik.handleBlur}
           helperText={formik.touched.ewayBillNo && formik.errors.ewayBillNo}
-          id="ewayBillNo"
+          _id="ewayBillNo"
           name="ewayBillNo"
           label="Eway Bill No"
           value={formik.values.ewayBillNo}
@@ -1140,7 +1096,7 @@ export const LrForm = (props) => {
           variant="outlined"
         />
         <DatePicker
-          id="ewayBillExpiryDate"
+          _id="ewayBillExpiryDate"
           name="ewayBillExpiryDate"
           label="E-Way Bill Expiry date"
           showTodayButton={true}
@@ -1175,7 +1131,7 @@ export const LrForm = (props) => {
             shrink: true,
           }}
           fullWidth
-          id="gstPayableBy"
+          _id="gstPayableBy"
           select
           value={formik.values.gstPayableBy}
           onChange={(event) => {
@@ -1278,9 +1234,7 @@ export const LrDrawer = (props) => {
       >
         {!isEditing ? (
           <LrPreview
-            onApprove={onClose}
             onEdit={handleEdit}
-            onReject={onClose}
             lr={lr}
             lgUp={lgUp}
             gridApi={gridApi}

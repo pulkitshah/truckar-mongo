@@ -21,6 +21,7 @@ import GooglePlaces from "../party-autocomplete/google-places-autocomplete";
 
 import { addressApi } from "../../../../api/address-api";
 import { useDispatch } from "../../../../store";
+import { useAuth } from "../../../../hooks/use-auth";
 const AddNewPartyAddressFromAutocomplete = ({
   open,
   dialogValue,
@@ -28,11 +29,12 @@ const AddNewPartyAddressFromAutocomplete = ({
   setFieldValue,
   toggleOpen,
   type,
+  partyId,
   user,
   ...rest
 }) => {
   const dispatch = useDispatch();
-
+  const { account } = useAuth();
   return (
     <React.Fragment>
       <Dialog
@@ -40,7 +42,7 @@ const AddNewPartyAddressFromAutocomplete = ({
         onClose={() => toggleOpen(false)}
         aria-labelledby="form-dialog-name"
       >
-        <DialogTitle id="form-dialog-name">
+        <DialogTitle _id="form-dialog-name">
           Add a new Address (Consignor/Consignee)
         </DialogTitle>
         <Formik
@@ -56,16 +58,18 @@ const AddNewPartyAddressFromAutocomplete = ({
             billingAddressLine1: dialogValue.billingAddressLine1 || "",
             billingAddressLine2: dialogValue.billingAddressLine2 || "",
             city: dialogValue.location || "",
-            partyId: dialogValue.partyId,
-            user: user.id,
+            party: partyId,
+            account: account._id,
           }}
           onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
             try {
-              values.city = JSON.stringify(values.city);
               console.log(values);
-              const response = await addressApi.createAddress(values, dispatch);
+              const response = await addressApi.createAddress({
+                values,
+                dispatch,
+              });
               toast.success("Address created!");
-              setFieldValue(type, response);
+              setFieldValue(type, response.data);
               toggleOpen(false);
             } catch (err) {
               console.log(err);

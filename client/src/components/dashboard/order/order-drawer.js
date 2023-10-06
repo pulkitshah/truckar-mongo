@@ -729,6 +729,7 @@ const OrderForm = (props) => {
         data.deliveries = [];
 
         values.deliveryDetails.map(async (del) => {
+          console.log(del);
           if (del._id) {
             let editedDelivery = {
               _id: del._id,
@@ -744,6 +745,8 @@ const OrderForm = (props) => {
             if (del.unloadingQuantity) {
               editedDelivery.unloadingQuantity = del.unloadingQuantity;
             }
+
+            console.log(editedDelivery);
 
             let response = await deliveryApi.updateDelivery(editedDelivery);
             data.deliveries.push(response.data);

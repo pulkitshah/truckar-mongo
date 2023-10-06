@@ -31,7 +31,6 @@ const OrganisationAutocomplete = ({
         account._id
       );
       if (isMounted()) {
-        console.log(response.data);
         setOrganisations(response.data);
       }
     } catch (err) {

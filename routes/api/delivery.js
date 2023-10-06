@@ -72,7 +72,16 @@ router.get("/deliveriesbyorder/:id", auth, async (req, res) => {
       account,
       order,
     };
-    const deliveries = await Delivery.find(query).populate("order");
+    const deliveries = await Delivery.find(query)
+      .populate({
+        path: "lr",
+        populate: {
+          path: "organisation",
+          model: "organisation",
+        },
+      })
+      .populate("order");
+
     console.log(query);
     res.json(deliveries);
   } catch (error) {

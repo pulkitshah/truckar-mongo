@@ -83,7 +83,7 @@ const DeliveryForm = ({ sx, formik, order, user, ...rest }) => {
                         <Grid item md={5} xs={12} className="col" key={index}>
                           <AddressAutocomplete
                             type={"consignor"}
-                            partyId={order.customer.id}
+                            partyId={order.customer._id}
                             user={user}
                             formik={formik}
                           />
@@ -91,7 +91,7 @@ const DeliveryForm = ({ sx, formik, order, user, ...rest }) => {
                         <Grid item md={5} xs={12} className="col">
                           <AddressAutocomplete
                             type={"consignee"}
-                            partyId={order.customer.id}
+                            partyId={order.customer._id}
                             user={user}
                             formik={formik}
                           />

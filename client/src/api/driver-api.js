@@ -92,7 +92,7 @@ class DriverApi {
       const response = await axios.get(
         `/api/driver/${JSON.stringify({ account, value })}`
       );
-      console.log(response);
+
       let drivers = response.data;
       dispatch && dispatch(slice.actions.getDrivers(response.data));
 

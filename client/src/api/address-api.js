@@ -74,7 +74,6 @@ class AddressApi {
 
       dispatch(slice.actions.getAddresses(response.data));
 
-      console.log(response);
       return {
         status: response.status,
         data: addresses,

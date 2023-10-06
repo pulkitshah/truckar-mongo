@@ -22,14 +22,14 @@ export default function GoogleMaps({
 }) {
   const [value, setValue] = React.useState(
     values.deliveryDetails[index][type]
-      ? JSON.parse(values.deliveryDetails[index][type])
+      ? values.deliveryDetails[index][type]
       : null
   );
   const [inputValue, setInputValue] = React.useState("");
   const [options, setOptions] = React.useState([]);
 
   React.useEffect(() => {
-    setValue(JSON.parse(values.deliveryDetails[index][type]));
+    setValue(values.deliveryDetails[index][type]);
   }, [values.deliveryDetails.length]);
 
   const fetch = React.useMemo(

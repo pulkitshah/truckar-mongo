@@ -81,6 +81,7 @@ const OrderList = () => {
   };
 
   const handleOpenDrawer = (params, gridApi) => {
+    console.log(params);
     setDrawer({
       isOpen: true,
       order: params,

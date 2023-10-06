@@ -36,7 +36,6 @@ import { checkJsonString } from "../../../utils/check-json-string";
 const Table = ({ onOpenDrawer, open, toggleDrawer }) => {
   const { account } = useAuth();
   const [gridApi, setGridApi] = useState(null);
-  const [filters, setFilters] = useState({});
 
   const onGridReady = useCallback((params) => {
     const dataSource = {
@@ -104,7 +103,6 @@ const Table = ({ onOpenDrawer, open, toggleDrawer }) => {
               .getSelectedNodes()
               .map((node) => onOpenDrawer(node.data, gridApi));
           }}
-          // infiniteInitialRowCount={150}
         />
       </div>
     </div>

@@ -31,7 +31,7 @@ const PartyAutocomplete = ({ sx, formik, type, user }) => {
         account: account._id,
         value: inputValue,
       });
-      console.log(data);
+
       if (isMounted()) {
         let newOptions = [];
 

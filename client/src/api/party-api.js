@@ -93,8 +93,6 @@ class PartyApi {
       params.value = value;
     }
 
-    console.log({ account, value });
-
     try {
       const response = await axios.get(
         `/api/party/${JSON.stringify({ account, value })}`
@@ -103,7 +101,6 @@ class PartyApi {
 
       dispatch && dispatch(slice.actions.getParties(response.data));
 
-      console.log(response);
       return {
         status: response.status,
         data: parties,

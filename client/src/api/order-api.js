@@ -85,9 +85,9 @@ class OrderApi {
 
   async updateOrder(editedOrder) {
     try {
+      console.log(editedOrder);
       const response = await axios.patch(`/api/order/`, editedOrder);
       let order = response.data;
-      console.log(order);
 
       return {
         status: response.status,
@@ -102,6 +102,27 @@ class OrderApi {
           data: err,
           error:
             "Account not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async getOrderById(id) {
+    try {
+      const response = await axios.get(`/api/order/id/${id}`);
+      return {
+        status: response.status,
+        data: response.data,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Order Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Order not created, please try again or contact customer support.",
         };
       }
     }
@@ -231,40 +252,6 @@ class OrderApi {
       // dispatch(slice.actions.getOrders(orders));
 
       return { orders, nextOrderToken };
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async getOrderById(id) {
-    try {
-      //////////////////////// GraphQL API ////////////////////////
-
-      const response = await API.graphql({
-        query: getOrder,
-        variables: {
-          id: id.toString(),
-        },
-      });
-
-      const order = response.data.getOrder;
-      //////////////////////// GraphQL API ////////////////////////
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // const orders = await DataStore.query(Order, (c) =>
-      //   c.user("eq", user.id)
-      // );
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // console.log(orders);
-
-      // Dispatch - Reducer
-
-      // dispatch(slice.actions.getOrders(orders));
-
-      return order;
     } catch (error) {
       console.log(error);
     }

@@ -1,3 +1,4 @@
+import axios from "../utils/axios";
 import { API } from "aws-amplify";
 import {
   getLr,
@@ -6,13 +7,115 @@ import {
   lrsByOrganisation,
 } from "../graphql/queries";
 import { createLr, updateLr } from "../graphql/mutations";
-import { Lr } from "../models";
-import { DataStore, Predicates } from "@aws-amplify/datastore";
 import moment from "moment";
 import { slice } from "../slices/lrs";
-import { getFiscalYearTimestamps } from "../utils/get-fiscal-year";
 
 class LrApi {
+  async getLrsByAccount(params) {
+    try {
+      const response = await axios.get(`/api/lr/${params}`);
+      console.log(response);
+      let lrs = response.data[0].rows;
+      let count = response.data[0].count;
+      return {
+        status: response.status,
+        data: lrs,
+        count,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Lr Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Lr not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async createLr(newLr, dispatch) {
+    try {
+      const response = await axios.post(`/api/lr/`, newLr);
+      let lr = response.data;
+      console.log(lr);
+
+      return {
+        status: response.status,
+        data: lr,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Lr Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Account not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async validateDuplicateLrNo({ lrNo, lrDate, account }) {
+    try {
+      const response = await axios.get(
+        `/api/lr/validateDuplicateLrNo/${JSON.stringify({
+          account,
+          lrNo,
+          lrDate,
+        })}`
+      );
+      let lr = response.data;
+
+      return {
+        status: response.status,
+        data: Boolean(!lr),
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Lr Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Lr not created, please try again or contact customer support.",
+        };
+      }
+    }
+    return Boolean(!lr);
+  }
+
+  async updateLr(editedLr, dispatch) {
+    try {
+      const response = await axios.patch(`/api/lr/`, editedLr);
+      let lr = response.data;
+      console.log(lr);
+
+      return {
+        status: response.status,
+        data: lr,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Lr Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "LR not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  /// ALL APIS ABOVE THIS LINE ARE CONVERTED TO EXPRESS
+
   async getLrsByUser(user, token) {
     try {
       let variables = {
@@ -157,86 +260,6 @@ class LrApi {
       // dispatch(slice.actions.getLrs(lrs));
 
       return lr;
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async createLr(newLr, dispatch) {
-    console.log(newLr);
-
-    const createdAt = moment().toISOString();
-    let newOrg = newLr;
-    newOrg.createdAt = createdAt;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: createLr,
-      variables: { input: newLr },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const lr = response.data.createLr;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    //////////////////////// DataStore API ////////////////////////
-
-    // const lr = await DataStore.save(new Lr(newOrg));
-
-    //////////////////////// DataStore API ////////////////////////
-
-    console.log(lr);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.createLr({ lr }));
-
-    return lr;
-  }
-
-  async updateLr(editedLr, dispatch) {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await API.graphql({
-      query: updateLr,
-      variables: { input: editedLr },
-      authMode: "AMAZON_COGNITO_USER_POOLS",
-    });
-
-    const lr = response.data.updateLr;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    // console.log(lr);
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateLr({ lr }));
-
-    return lr;
-  }
-
-  async validateDuplicateLrNo(lrNo, saleDate, user) {
-    try {
-      const response = await API.graphql({
-        query: lrsByUser,
-        variables: { user: user.id.toString() },
-      });
-
-      const lrs = response.data.lrsByUser.items;
-
-      const lr = lrs.filter((lr) => {
-        const lrSaleDate = moment(lrs[0].saleDate);
-
-        return (
-          lr.lrNo === lrNo &&
-          getFiscalYearTimestamps(lrSaleDate).current.start.format("L") ===
-            getFiscalYearTimestamps(saleDate).current.start.format("L")
-        );
-      });
-      return Boolean(!lr.length);
     } catch (error) {
       console.log(error);
     }

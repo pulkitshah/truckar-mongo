@@ -35,6 +35,7 @@ const Table = ({ order, gridApi }) => {
         account._id,
         order._id
       );
+
       if (isMounted()) {
         console.log(data);
         setDeliveries(data);

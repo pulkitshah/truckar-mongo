@@ -274,7 +274,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                     )}
                     {Boolean(lr.consignor.city) && (
                       <Text style={styles.body1}>
-                        {JSON.parse(lr.consignor.city).description}
+                        {lr.consignor.city.description}
                       </Text>
                     )}
                     {Boolean(lr.consignor.pan) && (
@@ -321,7 +321,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                     )}
                     {Boolean(lr.consignee.city) ? (
                       <Text style={styles.body1}>
-                        {JSON.parse(lr.consignee.city).description}
+                        {lr.consignee.city.description}
                       </Text>
                     ) : (
                       <Text style={styles.body1}></Text>
@@ -382,13 +382,13 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                     FROM
                   </Text>
                   <Text style={[styles.body1, styles.bottomBorder]}>
-                    {JSON.parse(lr.delivery.loading).description}
+                    {lr.delivery.loading.description}
                   </Text>
                   <Text style={[styles.body1, styles.bold, styles.underlined]}>
                     TO
                   </Text>
                   <Text style={[styles.body1]}>
-                    {JSON.parse(lr.delivery.unloading).description}
+                    {lr.delivery.unloading.description}
                   </Text>
                 </View>
                 <View
@@ -515,15 +515,13 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                   <Text style={[styles.body1, styles.bold]}>Packages</Text>
                 </View>
                 <View style={[styles.tableCell]}>
-                  {JSON.parse(lr.descriptionOfGoods).map(
-                    (descriptionOfGood, index) => {
-                      return (
-                        <Text key={index} style={[styles.body1]}>
-                          {descriptionOfGood.packages}
-                        </Text>
-                      );
-                    }
-                  )}
+                  {lr.descriptionOfGoods.map((descriptionOfGood, index) => {
+                    return (
+                      <Text key={index} style={[styles.body1]}>
+                        {descriptionOfGood.packages}
+                      </Text>
+                    );
+                  })}
                 </View>
               </View>
               <View
@@ -537,15 +535,13 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                   <Text style={[styles.body1, styles.bold]}>Packing</Text>
                 </View>
                 <View style={[styles.tableCell, { maxWidth: 50 }]}>
-                  {JSON.parse(lr.descriptionOfGoods).map(
-                    (descriptionOfGood, index) => {
-                      return (
-                        <Text key={index} style={[styles.body1]}>
-                          {descriptionOfGood.packing}
-                        </Text>
-                      );
-                    }
-                  )}
+                  {lr.descriptionOfGoods.map((descriptionOfGood, index) => {
+                    return (
+                      <Text key={index} style={[styles.body1]}>
+                        {descriptionOfGood.packing}
+                      </Text>
+                    );
+                  })}
                 </View>
               </View>
               <View
@@ -564,15 +560,13 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                       </Text>
                     </View>
                     <View style={[styles.tableCell]}>
-                      {JSON.parse(lr.descriptionOfGoods).map(
-                        (descriptionOfGood, index) => {
-                          return (
-                            <Text key={index} style={[styles.body1]}>
-                              {descriptionOfGood.description}
-                            </Text>
-                          );
-                        }
-                      )}
+                      {lr.descriptionOfGoods.map((descriptionOfGood, index) => {
+                        return (
+                          <Text key={index} style={[styles.body1]}>
+                            {descriptionOfGood.description}
+                          </Text>
+                        );
+                      })}
                     </View>
                   </View>
                   <View style={[styles.tableColumn, styles.leftBorder]}>
@@ -582,9 +576,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                     <View style={[styles.tableCell]}>
                       <Text style={[styles.body1]}>
                         {lr.delivery.billQuantity &&
-                          `${lr.delivery.billQuantity} ${
-                            JSON.parse(lr.order.saleType).unit
-                          }`}
+                          `${lr.delivery.billQuantity} ${lr.order.saleType.unit}`}
                       </Text>
                     </View>
                   </View>
@@ -780,7 +772,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                   >
                     Freight
                   </Text>
-                  {JSON.parse(lr.lrCharges).map((lrCharge) => {
+                  {lr.lrCharges.map((lrCharge) => {
                     return (
                       <Text
                         style={[
@@ -840,7 +832,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                       ? lr.fareBasis.toUpperCase()
                       : "TBB"}
                   </Text>
-                  {JSON.parse(lr.lrCharges).map((lrCharge) => {
+                  {lr.lrCharges.map((lrCharge) => {
                     return (
                       <Text
                         style={[

@@ -3,9 +3,10 @@ import PropTypes from "prop-types";
 import { CircularProgress, TextField } from "@mui/material";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import { useMounted } from "../../../../hooks/use-mounted";
-import { useDispatch } from "../../../../store";
+import { useDispatch, useSelector } from "../../../../store";
 import { addressApi } from "../../../../api/address-api";
 import AddNewPartyAddressFromAutocomplete from "./address-addnew-autocomplete";
+import { useAuth } from "../../../../hooks/use-auth";
 
 const AddressAutocomplete = ({
   formik,
@@ -17,10 +18,11 @@ const AddressAutocomplete = ({
 }) => {
   const dispatch = useDispatch();
   const isMounted = useMounted();
+  const { account } = useAuth();
   const filter = createFilterOptions();
   const { touched, setFieldValue, errors, handleBlur, values } = formik;
   const [open, toggleOpen] = useState(false);
-  const [addresses, setAddresses] = useState([]);
+  const { addresses } = useSelector((state) => state.addresses);
   const [value, setValue] = React.useState(values[type]);
   const [dialogValue, setDialogValue] = React.useState({
     name: "",
@@ -29,24 +31,17 @@ const AddressAutocomplete = ({
 
   const loading = open && addresses.length === 0;
 
-  const getAddresses = useCallback(async () => {
+  const getAddressesByAccount = useCallback(async () => {
     try {
-      const addressesDB = await addressApi.getAddressesByUser(user, dispatch);
-      if (isMounted()) {
-        setAddresses(addressesDB);
-      }
+      await addressApi.getAddressesByAccount({ account, dispatch });
     } catch (err) {
       console.error(err);
     }
   }, [isMounted]);
 
   useEffect(() => {
-    getAddresses();
-
-    if (!open) {
-      setAddresses([]);
-    }
-  }, [getAddresses, open]);
+    getAddressesByAccount();
+  }, [getAddressesByAccount, open]);
 
   useEffect(() => {
     if (address) {
@@ -92,8 +87,10 @@ const AddressAutocomplete = ({
             setValue(newValue);
           }
         }}
-        id="address"
-        options={addresses}
+        id={type}
+        options={
+          partyId ? addresses.filter((a) => a.party._id === partyId) : addresses
+        }
         getOptionLabel={(option) => {
           // e.g value selected with enter, right from the input
           if (typeof option === "string") {
@@ -133,11 +130,18 @@ const AddressAutocomplete = ({
         renderInput={(params) => (
           <TextField
             {...params}
-            name="address"
             label={type.charAt(0).toUpperCase() + type.slice(1)}
-            error={Boolean(touched.address && errors.address)}
-            helperText={touched.address && errors.address}
+            error={Boolean(
+              type === "consignee"
+                ? touched.consignee && errors.consignee
+                : touched.consignor && errors.consignor
+            )}
             onBlur={handleBlur}
+            helperText={
+              type === "consignee"
+                ? touched.consignee && errors.consignee
+                : touched.consignor && errors.consignor
+            }
             variant="outlined"
             InputProps={{
               ...params.InputProps,
@@ -160,6 +164,7 @@ const AddressAutocomplete = ({
         setDialogValue={setDialogValue}
         setFieldValue={formik.setFieldValue}
         type={type}
+        partyId={partyId}
         user={user}
       />
     </React.Fragment>
