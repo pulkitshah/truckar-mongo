@@ -35,7 +35,7 @@ class OrganisationApi {
         `/api/organisation/${JSON.stringify({ account, value })}`
       );
       let organisations = response.data;
-      dispatch(slice.actions.getOrganisations(organisations));
+      dispatch && dispatch(slice.actions.getOrganisations(organisations));
       return {
         status: response.status,
         data: organisations,

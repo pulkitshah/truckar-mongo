@@ -30,38 +30,6 @@ import { partyApi } from "../../../api/party-api";
 import { organisationApi } from "../../../api/organisation-api";
 import LrsByOrganisationTable from "../../../components/dashboard/lr/lr-organisatoin-grid";
 
-const applyFilters = (lrs, filters) =>
-  lrs.filter((lr) => {
-    if (filters.query) {
-      // Checks only the lr number, but can be extended to support other fields, such as customer
-      // name, email, etc.
-      const containsQuery = lr.number
-        .toLowerCase()
-        .includes(filters.query.toLowerCase());
-
-      if (!containsQuery) {
-        return false;
-      }
-    }
-
-    if (typeof filters.status !== "undefined") {
-      const statusMatched = lr.status === filters.status;
-
-      if (!statusMatched) {
-        return false;
-      }
-    }
-
-    return true;
-  });
-
-const applySort = (lrs, lr) =>
-  lrs.sort((a, b) => {
-    const comparator = a.createdAt > b.createdAt ? -1 : 1;
-
-    return lr === "desc" ? comparator : -comparator;
-  });
-
 const LrListInner = styled("div", {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
@@ -92,7 +60,7 @@ const LrList = () => {
   const isMounted = useMounted();
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const [tabs, setTabs] = useState([]);
   const [currentTab, setCurrentTab] = useState("all");
   const rootRef = useRef(null);
@@ -103,9 +71,12 @@ const LrList = () => {
   });
   const [gridApi, setGridApi] = useState(null);
 
-  const getOrganisationsByUser = useCallback(async () => {
+  const getOrganisationsByAccount = useCallback(async () => {
     try {
-      let data = await organisationApi.getOrganisationsByUser(user, dispatch);
+      let { data } = await organisationApi.getOrganisationsByAccount(
+        dispatch,
+        account
+      );
       let org = data.map((o) => {
         return {
           value: o.id,
@@ -120,7 +91,7 @@ const LrList = () => {
 
   useEffect(() => {
     try {
-      getOrganisationsByUser();
+      getOrganisationsByAccount();
     } catch (error) {
       console.log(error);
     }

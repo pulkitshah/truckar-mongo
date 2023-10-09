@@ -227,6 +227,7 @@ const OrderPreview = (props) => {
         >
           <DeliveryDetailsGrid order={order} gridApi={gridApi} />
         </Box>
+        {console.log(order)}
         {(!(typeof order.vehicle === "object") || order.vehicle === null) && (
           <>
             <Divider sx={{ my: 3 }} />
@@ -566,13 +567,13 @@ const OrderForm = (props) => {
             if (value === order.orderNo) {
               return true;
             }
-            const response = await orderApi.validateDuplicateOrderNo(
-              value,
-              this.parent.saleDate,
-              account
-            );
+            const response = await orderApi.validateDuplicateOrderNo({
+              orderNo: value,
+              saleDate: this.parent.saleDate,
+              account: account._id,
+            });
             // console.log(response);
-            return response;
+            return response.data;
           } catch (error) {
             console.log(error);
           }
@@ -683,7 +684,7 @@ const OrderForm = (props) => {
           _id: values._id,
           orderNo: parseInt(values.orderNo),
           saleDate: values.saleDate.format(),
-          customerId: values.customer._id,
+          customer: values.customer._id,
           saleRate: parseFloat(values.saleRate),
           saleType: values.saleType,
           account: account._id,
@@ -693,19 +694,19 @@ const OrderForm = (props) => {
 
         if (typeof selectedVehicle === "object" && selectedVehicle !== null) {
           // editedOrder.vehicle = values.vehicle;
-          editedOrder.vehicleId = values.vehicle._id;
+          editedOrder.vehicle = values.vehicle._id;
           editedOrder.vehicleNumber =
             values.vehicle.vehicleNumber.toUpperCase();
           if (values.driver) {
             // editedOrder.driver = values.driver;
-            editedOrder.driverId = values.driver._id;
+            editedOrder.driver = values.driver._id;
           }
         } else {
-          editedOrder.vehicleId = null;
-          editedOrder.driverId = null;
+          editedOrder.vehicle = null;
+          editedOrder.driver = null;
           editedOrder.vehicleNumber = values.vehicle.toUpperCase();
           // editedOrder.transporter = values.transporter;
-          editedOrder.transporterId = values.transporter._id;
+          editedOrder.transporter = values.transporter._id;
           editedOrder.purchaseRate = parseFloat(values.purchaseRate);
           editedOrder.purchaseType = values.purchaseType;
           if (values.minimumPurchaseGuarantee)
@@ -735,7 +736,7 @@ const OrderForm = (props) => {
               _id: del._id,
               loading: del.loading,
               unloading: del.unloading,
-              orderId: data._id,
+              order: data._id,
               _version: del._version,
             };
 
@@ -971,6 +972,7 @@ const OrderForm = (props) => {
             setDriver={setDriver}
             account={account}
             values={formik.values}
+            formik={formik}
           />
         ) : (
           selectedVehicle !== null && (

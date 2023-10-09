@@ -166,7 +166,7 @@ export const orderTable = (account) => {
         keyCreator: (params) => {
           const v = JSON.parse(params.value);
           console.log(v);
-          return v.id;
+          return v._id;
         },
         valueFormatter: (params) => {
           const v = JSON.parse(params.value);
@@ -280,170 +280,173 @@ export const orderTable = (account) => {
   ];
 };
 
-export const deliveriesTable = [
-  {
-    field: "saleDate",
-    headerName: "Date",
-    width: 120,
-    valueGetter: (params) => {
-      // console.log(params.data);
-      if (params.data) {
-        return moment(params.data.order.saleDate).format("DD-MM-YY");
-      }
-    },
-  },
-  {
-    field: "loading",
-    headerName: "Loading",
-    width: 130,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.loading.structured_formatting.main_text;
-      }
-    },
-  },
-  {
-    field: "lr",
-    headerName: "LR",
-    width: 90,
-    cellRenderer: (params) => {
-      if (params.data) {
-        if (params.data.lr) {
-          return (
-            <Link
-              color="secondary"
-              href={`/dashboard/lrs/${params.data.lr.id}`}
-              variant="body"
-            >
-              {`${params.data.lr.organisation.initials}-${params.data.lr.lrNo}`}
-            </Link>
-          );
-        } else {
-          return (
-            <Link
-              color="primary"
-              href={`/dashboard/lrs/new?deliveryId=${params.data.id}&orderId=${params.data.order.id}`}
-              variant="body"
-            >
-              Make LR
-            </Link>
-          );
+export const deliveriesTable = (account) => {
+  return [
+    {
+      field: "saleDate",
+      headerName: "Date",
+      width: 120,
+      valueGetter: (params) => {
+        // console.log(params.data);
+        if (params.data) {
+          if (!params.data.order) console.log(params.data);
+          return moment(params.data.order.saleDate).format("DD-MM-YY");
         }
-      }
+      },
     },
-  },
-  {
-    field: "orderNo",
-    headerName: "Order No",
-    width: 120,
-    valueGetter: (params) => {
-      // console.log(params.data);
-      if (params.data) {
-        return params.data.order.orderNo;
-      }
+    {
+      field: "loading",
+      headerName: "Loading",
+      width: 130,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.loading.structured_formatting.main_text;
+        }
+      },
     },
-  },
-  {
-    field: "customer",
-    headerName: "Customer",
-    width: 250,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.order.customer.name;
-      }
+    {
+      field: "lr",
+      headerName: "LR",
+      width: 90,
+      cellRenderer: (params) => {
+        if (params.data) {
+          if (params.data.lr) {
+            return (
+              <Link
+                color="secondary"
+                href={`/dashboard/lrs/${params.data.lr._id}`}
+                variant="body"
+              >
+                {`${params.data.lr.organisation.initials}-${params.data.lr.lrNo}`}
+              </Link>
+            );
+          } else {
+            return (
+              <Link
+                color="primary"
+                href={`/dashboard/lrs/new?deliveryId=${params.data._id}&orderId=${params.data.order._id}`}
+                variant="body"
+              >
+                Make LR
+              </Link>
+            );
+          }
+        }
+      },
     },
-  },
+    {
+      field: "orderNo",
+      headerName: "Order No",
+      width: 120,
+      valueGetter: (params) => {
+        // console.log(params.data);
+        if (params.data) {
+          return params.data.order.orderNo;
+        }
+      },
+    },
+    {
+      field: "customer",
+      headerName: "Customer",
+      width: 250,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.order.customer.name;
+        }
+      },
+    },
 
-  {
-    field: "consignor",
-    headerName: "Consignor",
-    width: 250,
-    valueGetter: (params) => {
-      if (params.data) {
-        if (params.data.lr) {
-          return params.data.lr.consignor.name;
-        } else {
-          return "N/A";
+    {
+      field: "consignor",
+      headerName: "Consignor",
+      width: 250,
+      valueGetter: (params) => {
+        if (params.data) {
+          if (params.data.lr) {
+            return params.data.lr.consignor.name;
+          } else {
+            return "N/A";
+          }
         }
-      }
+      },
     },
-  },
-  {
-    field: "consignee",
-    headerName: "Consignee",
-    width: 250,
-    valueGetter: (params) => {
-      if (params.data) {
-        if (params.data.lr) {
-          return params.data.lr.consignee.name;
-        } else {
-          return "N/A";
+    {
+      field: "consignee",
+      headerName: "Consignee",
+      width: 250,
+      valueGetter: (params) => {
+        if (params.data) {
+          if (params.data.lr) {
+            return params.data.lr.consignee.name;
+          } else {
+            return "N/A";
+          }
         }
-      }
+      },
     },
-  },
 
-  {
-    field: "unloading",
-    headerName: "Unloading",
-    width: 130,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.unloading.structured_formatting.main_text;
-      }
-    },
-  },
-  {
-    field: "billQuantity",
-    headerName: "Bill Wt",
-    width: 90,
-    editable: true,
-    valueFormatter: (params) => {
-      if (params.value) {
-        return `${params.value} ${params.data.order.saleType.unit}`;
-      } else {
-        return "-";
-      }
-    },
-  },
-  {
-    field: "unloadingQuantity",
-    headerName: "Unloading Wt",
-    width: 120,
-    editable: true,
-    valueFormatter: (params) => {
-      if (params.value) {
-        return `${params.value} ${params.data.order.saleType.unit}`;
-      } else {
-        return "-";
-      }
-    },
-  },
-  {
-    field: "vehicleNo",
-    headerName: "Vehicle No",
-    width: 150,
-    valueGetter: (params) => {
-      if (params.data) {
-        return params.data.order.vehicleNumber;
-      }
-    },
-  },
-  {
-    field: "transporter",
-    headerName: "Transporter",
-    width: 200,
-    valueGetter: (params) => {
-      if (params.data) {
-        if (params.data.order.vehicleId) {
-          return "SELF";
-        } else {
-          return params.data.order.transporter.name;
+    {
+      field: "unloading",
+      headerName: "Unloading",
+      width: 130,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.unloading.structured_formatting.main_text;
         }
-      }
+      },
     },
-  },
-];
+    {
+      field: "billQuantity",
+      headerName: "Bill Wt",
+      width: 90,
+      editable: true,
+      valueFormatter: (params) => {
+        if (params.value) {
+          return `${params.value} ${params.data.order.saleType.unit}`;
+        } else {
+          return "-";
+        }
+      },
+    },
+    {
+      field: "unloadingQuantity",
+      headerName: "Unloading Wt",
+      width: 120,
+      editable: true,
+      valueFormatter: (params) => {
+        if (params.value) {
+          return `${params.value} ${params.data.order.saleType.unit}`;
+        } else {
+          return "-";
+        }
+      },
+    },
+    {
+      field: "vehicleNo",
+      headerName: "Vehicle No",
+      width: 150,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.order.vehicleNumber;
+        }
+      },
+    },
+    {
+      field: "transporter",
+      headerName: "Transporter",
+      width: 200,
+      valueGetter: (params) => {
+        if (params.data) {
+          if (params.data.order.vehicle) {
+            return "SELF";
+          } else {
+            return params.data.order.transporter.name;
+          }
+        }
+      },
+    },
+  ];
+};
 
 export const deliveryDetailsTableForOrderDrawer = [
   {
@@ -455,7 +458,7 @@ export const deliveryDetailsTableForOrderDrawer = [
         return (
           <Link
             color="secondary"
-            href={`/dashboard/lrs/${params.row.lr.id}`}
+            href={`/dashboard/lrs/${params.row.lr._id}`}
             variant="body"
           >
             {`${params.row.lr.organisation.initials}-${params.row.lr.lrNo}`}
@@ -465,7 +468,7 @@ export const deliveryDetailsTableForOrderDrawer = [
         return (
           <Link
             color="secondary"
-            href={`/dashboard/lrs/new?deliveryId=${params.row.id}&orderId=${params.row.order.id}`}
+            href={`/dashboard/lrs/new?deliveryId=${params.row._id}&orderId=${params.row.order._id}`}
             variant="body"
           >
             Make LR
@@ -544,7 +547,7 @@ export const lrTable = (account) => {
       cellRenderer: (params) => {
         if (params.value !== undefined) {
           return (
-            <Link href={`/dashboard/lrs/${params.data.id}`} passHref>
+            <Link href={`/dashboard/lrs/${params.data._id}`} passHref>
               {`${params.data.organisation.initials}-${params.data.lrNo}`}
             </Link>
           );
@@ -651,7 +654,7 @@ export const invoiceTable = [
     renderCell: (params) => {
       if (params.value) {
         return (
-          <Link href={`/dashboard/invoices/${params.row.id}`} passHref>
+          <Link href={`/dashboard/invoices/${params.row._id}`} passHref>
             {`${params.row.organisation.initials}-${params.row.invoiceNo}`}
           </Link>
         );

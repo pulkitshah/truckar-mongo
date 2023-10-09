@@ -78,6 +78,31 @@ class DeliveryApi {
     }
   }
 
+  async getDeliveriesByAccount(params) {
+    try {
+      const response = await axios.get(`/api/delivery/${params}`);
+      console.log(response);
+      let deliveries = response.data[0].rows;
+      let count = response.data[0].count;
+      return {
+        status: response.status,
+        data: deliveries,
+        count,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Delivery Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Delivery not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
   ////API Modified
   async getDeliveryById(id) {
     try {

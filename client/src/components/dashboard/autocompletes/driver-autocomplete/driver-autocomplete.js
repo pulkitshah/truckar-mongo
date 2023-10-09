@@ -6,20 +6,16 @@ import { useMounted } from "../../../../hooks/use-mounted";
 import { driverApi } from "../../../../api/driver-api";
 import { useAuth } from "../../../../hooks/use-auth";
 
-const DriverAutocomplete = ({
-  touched,
-  setFieldValue,
-  errors,
-  handleBlur,
-  values,
-  driver,
-  user,
-}) => {
+const DriverAutocomplete = ({ formik, driver, user }) => {
   const { account } = useAuth();
   const [open, setOpen] = useState(false);
+  const [value, setValue] = React.useState(
+    formik.values && formik.values.driver
+  );
   const [drivers, setDrivers] = useState([]);
   const [inputValue, setInputValue] = React.useState("");
   const isMounted = useMounted();
+  const { touched, setFieldValue, errors, handleBlur, values } = formik;
 
   const getDriversByAccount = useCallback(async () => {
     try {
@@ -41,15 +37,17 @@ const DriverAutocomplete = ({
     } catch (error) {
       console.log(error);
     }
-  }, []);
+  }, [getDriversByAccount, open]);
 
   useEffect(() => {
     console.log("driver has changed");
     setFieldValue("driver", driver);
-  }, [setFieldValue, driver]);
+    setValue(driver);
+  }, [setFieldValue, driver, value]);
 
   const handleOnChange = (event, newValue) => {
     setFieldValue("driver", newValue);
+    setValue(newValue);
 
     // setFieldValue('driver', newValue);
   };
@@ -92,7 +90,7 @@ const DriverAutocomplete = ({
           );
         }}
         options={drivers}
-        value={values.driver}
+        value={value}
         onChange={handleOnChange}
         inputValue={inputValue}
         onInputChange={handleInputChange}
