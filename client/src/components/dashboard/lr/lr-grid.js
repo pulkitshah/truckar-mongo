@@ -6,6 +6,7 @@ import "ag-grid-community/dist/styles/ag-theme-balham.css";
 import { useAuth } from "../../../hooks/use-auth";
 import { lrApi } from "../../../api/lr-api";
 import { lrTable } from "../../grids/grid-columns";
+import { checkJsonString } from "../../../utils/check-json-string";
 
 const Table = ({ onOpenDrawer }) => {
   const { account } = useAuth();
@@ -28,6 +29,21 @@ const Table = ({ onOpenDrawer }) => {
           });
 
           filter.customer = { filterType: "set", values: filteredCustomers };
+        }
+
+        if (filter.organisation) {
+          let filteredOrganisations = filter.organisation.values.map((c) => {
+            if (checkJsonString(c)) {
+              return JSON.parse(c)._id;
+            } else {
+              return c._id;
+            }
+          });
+
+          filter.organisation = {
+            filterType: "set",
+            values: filteredOrganisations,
+          };
         }
 
         let { data, count = 0 } = await lrApi.getLrsByAccount(

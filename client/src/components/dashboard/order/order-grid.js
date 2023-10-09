@@ -75,7 +75,7 @@ const Table = ({ onOpenDrawer, open, toggleDrawer }) => {
   const defaultColDef = useMemo(() => {
     return {
       resizable: true,
-      filter: true,
+      // filter: true,
       menuTabs: ["filterMenuTab"],
     };
   }, []);

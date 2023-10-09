@@ -97,12 +97,14 @@ router.get("/:id", auth, async (req, res) => {
     query.push(lrNoQuery[0]);
   }
 
-  // if (filter.customer) {
-  //   const customerQuery = createFilterAggPipeline({
-  //     customer: filter.customer,
-  //   });
-  //   query.push(customerQuery[0]);
-  // }
+  if (filter.organisation) {
+    const organisationQuery = createFilterAggPipeline({
+      organisation: filter.organisation,
+    });
+    query.push(organisationQuery[0]);
+  }
+
+  console.log(query);
 
   // if (filter.vehicleNumber) {
   //   const vehicleNumberQuery = createFilterAggPipeline({
@@ -274,8 +276,6 @@ router.get("/:id", auth, async (req, res) => {
   ];
 
   query = [...query, ...lookups];
-
-  console.log(query);
 
   if (sort) {
     // maybe we want to sort by blog title or something

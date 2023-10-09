@@ -41,16 +41,15 @@ function createFilterAggregationPipeline(filterModel) {
         });
       }
     } else if (filter.filterType === "set") {
-      console.log(filter);
-
       let filteredCustomers = filter.values.map(
         (value) => new mongoose.Types.ObjectId(value)
       );
 
+      console.log(filteredCustomers);
       // if no values are selected, return no rows
       aggregationPipeline.push({
         $match: {
-          [`${key}._id`]: { $in: filteredCustomers || [""] },
+          [`${key}`]: { $in: filteredCustomers || [""] },
         },
       });
     }

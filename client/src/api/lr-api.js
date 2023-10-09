@@ -13,6 +13,32 @@ import { slice } from "../slices/lrs";
 class LrApi {
   async getLrsByAccount(params) {
     try {
+      console.log(params);
+      const response = await axios.get(`/api/lr/${params}`);
+      console.log(response);
+      let lrs = response.data[0].rows;
+      let count = response.data[0].count;
+      return {
+        status: response.status,
+        data: lrs,
+        count,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Lr Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Lr not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
+  async getLrsByOrganisation(organisationId, token) {
+    try {
       const response = await axios.get(`/api/lr/${params}`);
       console.log(response);
       let lrs = response.data[0].rows;
@@ -135,47 +161,6 @@ class LrApi {
       });
       const lrs = response.data.lrsByUser.items;
       const nextLrToken = response.data.lrsByUser.nextToken;
-      //////////////////////// GraphQL API ////////////////////////
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // const lrs = await DataStore.query(Lr, (c) =>
-      //   c.user("eq", user.id)
-      // );
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // console.log(lrs);
-
-      // Dispatch - Reducer
-
-      // dispatch(slice.actions.getLrs(lrs));
-
-      return { lrs, nextLrToken };
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async getLrsByOrganisation(organisationId, token) {
-    try {
-      let variables = {
-        organisationId: organisationId.toString(),
-        sortDirection: "DESC",
-      };
-
-      if (token) {
-        variables.nextToken = token;
-      }
-
-      //////////////////////// GraphQL API ////////////////////////
-
-      const response = await API.graphql({
-        query: lrsByOrganisation,
-        variables: variables,
-      });
-      const lrs = response.data.lrsByOrganisation.items;
-      const nextLrToken = response.data.lrsByOrganisation.nextToken;
       //////////////////////// GraphQL API ////////////////////////
 
       //////////////////////// DataStore API ////////////////////////

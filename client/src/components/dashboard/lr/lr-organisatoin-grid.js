@@ -1,86 +1,82 @@
-import React, { useCallback, useRef, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useMemo,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/dist/styles/ag-grid.css";
 import { useAuth } from "../../../hooks/use-auth";
 import { lrApi } from "../../../api/lr-api";
 import { lrTable } from "../../grids/grid-columns";
+import { checkJsonString } from "../../../utils/check-json-string";
 
 const LrsByOrganisationTable = ({ onOpenDrawer, organisationId }) => {
+  const { account } = useAuth();
   const [gridApi, setGridApi] = useState(null);
-  const [pageTokens, setPageTokens] = useState([
-    {
-      startRow: 0,
-      endRow: 100,
-      nextToken: null,
-    },
-  ]);
-  const [noOfRows, setNoOfRows] = useState(0);
-  const pageTokensRef = useRef(null);
-  const noOfRowsRef = useRef(null);
+
+  let orgId = useRef();
 
   useEffect(() => {
-    pageTokensRef.current = pageTokens;
-    noOfRowsRef.current = noOfRows;
-  }, [pageTokens, noOfRows, organisationId]);
+    try {
+      orgId.current = organisationId;
+    } catch (error) {
+      console.log(error);
+    }
+  }, [organisationId]);
 
-  const onGridReady = useCallback(
-    (params) => {
-      const dataSource = {
-        rowCount: undefined,
-        getRows: async (params) => {
-          let currentPageToken = pageTokensRef.current.find(
-            (pageToken) => pageToken.startRow === params.startRow
-          );
+  console.log(orgId.current);
 
-          let data = await lrApi.getLrsByOrganisation(
-            organisationId,
-            currentPageToken && currentPageToken.nextToken
-          );
+  const onGridReady = useCallback((params) => {
+    const dataSource = {
+      rowCount: undefined,
+      getRows: async (params) => {
+        let filter = params.filterModel;
+        const sort = params.sortModel;
 
-          setPageTokens((previousPageTokens) => {
-            let currentPageToken = previousPageTokens.find(
-              (pageToken) => pageToken.startRow === params.endRow
-            );
-
-            if (currentPageToken) {
-              return previousPageTokens;
+        if (filter.customer) {
+          let filteredCustomers = filter.customer.values.map((c) => {
+            if (checkJsonString(c)) {
+              return JSON.parse(c)._id;
             } else {
-              setNoOfRows(noOfRowsRef.current + data.lrs.length);
-              noOfRowsRef.current = noOfRowsRef.current + data.lrs.length;
-              pageTokensRef.current = [
-                ...previousPageTokens,
-                {
-                  startRow: params.endRow,
-                  endRow: params.endRow + 100,
-                  nextToken: data.nextLrToken,
-                },
-              ];
-              return [
-                ...previousPageTokens,
-                {
-                  startRow: params.endRow,
-                  endRow: params.endRow + 100,
-                  nextToken: data.nextLrToken,
-                },
-              ];
+              return c;
             }
           });
-          let lastRow = -1;
-          if (data.lrs.length < params.endRow - params.startRow) {
-            lastRow = noOfRowsRef.current;
-          }
 
-          params.successCallback(data.lrs, lastRow);
-        },
-      };
-      params.api.setDatasource(dataSource);
-      setGridApi(params.api);
-    },
-    [organisationId]
-  );
-  if (noOfRowsRef.current === 0) {
-    return "...Loading";
-  }
+          filter.customer = { filterType: "set", values: filteredCustomers };
+        }
+
+        filter.organisation = {
+          filterType: "set",
+          values: [orgId.current],
+        };
+        console.log(filter);
+        let { data, count = 0 } = await lrApi.getLrsByAccount(
+          JSON.stringify({
+            account: account._id,
+            startRow: params.startRow,
+            endRow: params.endRow,
+            filter,
+          })
+        );
+
+        console.log(data);
+
+        params.successCallback(data, count);
+      },
+    };
+    params.api.setDatasource(dataSource);
+    setGridApi(params.api);
+  }, []);
+
+  const defaultColDef = useMemo(() => {
+    return {
+      resizable: true,
+      filter: true,
+      menuTabs: ["filterMenuTab"],
+    };
+  }, []);
   return (
     <div key={organisationId} style={{ width: "100%", height: "100%" }}>
       <div
@@ -88,7 +84,8 @@ const LrsByOrganisationTable = ({ onOpenDrawer, organisationId }) => {
         className="ag-theme-balham"
       >
         <AgGridReact
-          columnDefs={lrTable}
+          columnDefs={lrTable(account)}
+          defaultColDef={defaultColDef}
           rowModelType={"infinite"}
           onGridReady={onGridReady}
           rowSelection="multiple"
@@ -97,7 +94,6 @@ const LrsByOrganisationTable = ({ onOpenDrawer, organisationId }) => {
               .getSelectedNodes()
               .map((node) => onOpenDrawer(node.data, gridApi));
           }}
-          infiniteInitialRowCount={150}
         />
       </div>
     </div>

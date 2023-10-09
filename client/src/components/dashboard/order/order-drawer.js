@@ -643,6 +643,8 @@ const OrderForm = (props) => {
     })
   );
 
+  console.log(order.deliveries);
+
   const formik = useFormik({
     initialValues: {
       _id: order._id,
@@ -973,6 +975,7 @@ const OrderForm = (props) => {
             account={account}
             values={formik.values}
             formik={formik}
+            driver={formik.values.driver}
           />
         ) : (
           selectedVehicle !== null && (

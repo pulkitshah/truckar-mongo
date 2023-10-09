@@ -6,7 +6,7 @@ import { useMounted } from "../../../../hooks/use-mounted";
 import { driverApi } from "../../../../api/driver-api";
 import { useAuth } from "../../../../hooks/use-auth";
 
-const DriverAutocomplete = ({ formik, driver, user }) => {
+const DriverAutocomplete = ({ formik, driver }) => {
   const { account } = useAuth();
   const [open, setOpen] = useState(false);
   const [value, setValue] = React.useState(
@@ -40,7 +40,6 @@ const DriverAutocomplete = ({ formik, driver, user }) => {
   }, [getDriversByAccount, open]);
 
   useEffect(() => {
-    console.log("driver has changed");
     setFieldValue("driver", driver);
     setValue(driver);
   }, [setFieldValue, driver, value]);

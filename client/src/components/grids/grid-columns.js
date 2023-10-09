@@ -6,9 +6,24 @@ import {
   dataFormatter,
 } from "../../utils/amount-calculation";
 import { partyApi } from "../../api/party-api";
+import { organisationApi } from "../../api/organisation-api";
+import { vehicleApi } from "../../api/vehicle-api";
 
 const getPartiesByAccount = async (params, account) => {
-  const { data } = await partyApi.getPartiesByAccount(account);
+  const { data } = await partyApi.getPartiesByAccount({ account });
+  params.success(data.map((d) => JSON.stringify(d)));
+};
+
+const getOrganisationsByAccount = async (params, account) => {
+  const { data } = await organisationApi.getOrganisationsByAccount(
+    null,
+    account
+  );
+  params.success(data.map((d) => JSON.stringify(d)));
+};
+
+const getVehiclesByAccount = async (params, account) => {
+  const { data } = await vehicleApi.getVehiclesByAccount(account);
   params.success(data.map((d) => JSON.stringify(d)));
 };
 
@@ -503,7 +518,6 @@ export const deliveryDetailsTableForOrderDrawer = [
     width: 90,
     valueFormatter: (params) => {
       if (params.value) {
-        console.log(params);
         return `${params.value} ${
           params.api.getRow(params.id).order.saleType.unit
         }`;
@@ -559,6 +573,28 @@ export const lrTable = (account) => {
         filterOptions: ["equals", "lessThan", "greaterThan"],
         debounceMs: 1000,
         maxNumConditions: 1,
+      },
+    },
+    {
+      field: "organisation",
+      headerName: "Organisation",
+      width: 80,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.organisation.name;
+        }
+      },
+      filter: "agSetColumnFilter",
+      filterParams: {
+        values: (params) => getOrganisationsByAccount(params, account),
+        keyCreator: (params) => {
+          const v = JSON.parse(params.value);
+          return v._id;
+        },
+        valueFormatter: (params) => {
+          const v = JSON.parse(params.value);
+          return `${v.name}`;
+        },
       },
     },
     {
