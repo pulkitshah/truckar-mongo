@@ -28,8 +28,40 @@ import { deliveryApi } from "../../../api/delivery-api";
 
 export const InvoiceCreateForm = ({ invoice = {} }) => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const dispatch = useDispatch();
+
+  let validationShape = {
+    invoiceNo: Yup.number()
+      .required("Invoice No is required")
+      .test({
+        name: "Checking Duplicate Order No",
+        exclusive: false,
+        params: {},
+        message:
+          "Invoice No cannot be repeated in the fiscal year of invoice date in the same organisation.",
+        test: async function (value) {
+          try {
+            const response = await invoiceApi.validateDuplicateInvoiceNo({
+              invoiceNo: value,
+              invoiceDate: this.parent.invoiceDate,
+              organisation: this.parent.organisation._id,
+              account: account._id,
+            });
+            console.log(response);
+            return response.data;
+          } catch (error) {
+            console.log(error);
+          }
+        },
+      }),
+    invoiceDate: Yup.object().required("Invoice Date is required"),
+    customer: Yup.object().nullable().required("Customer is required"),
+    organisation: Yup.object().nullable().required("Organisation is required"),
+    billingAddress: Yup.object()
+      .nullable()
+      .required("Billing Address is required"),
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -37,40 +69,39 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
       invoiceDate: invoice.invoiceDate || moment(),
       invoiceNo: invoice.invoiceNo || "",
       customer: invoice.customer || null,
+      billingAddress: invoice.billingAddress || null,
       deliveries: invoice.deliveries || [],
     },
-    // validationSchema: Yup.object().shape(validationShape),
+    validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
         console.log(values);
         let newInvoice = {
-          organisationId: values.organisation.id,
+          organisation: values.organisation._id,
           invoiceNo: values.invoiceNo || "",
           invoiceDate: values.invoiceDate.format(),
-          customerId: values.customer.id,
-          billingAddressId: values.billingAddress.id,
-          invoiceFormat: user.invoiceFormat,
-          user: user.id,
+          customer: values.customer._id,
+          billingAddress: values.billingAddress._id,
+          invoiceFormat: account.invoiceFormat,
+          account: account._id,
         };
-        let invoice = await invoiceApi.createInvoice(newInvoice, dispatch);
-        console.log(invoice);
-        newInvoice.deliveries = JSON.stringify(
-          values.deliveries.map(async (delivery) => {
-            let updatedDelivery = {
-              id: delivery.id,
-              invoiceId: invoice.id,
-              particular: delivery.particular,
-              invoiceCharges: JSON.stringify(delivery.extraCharges || []),
-              _version: delivery._version,
-            };
+        let { data } = await invoiceApi.createInvoice(newInvoice, dispatch);
 
-            console.log(updatedDelivery);
+        newInvoice.deliveries = values.deliveries.map(async (delivery) => {
+          let updatedDelivery = {
+            _id: delivery._id,
+            invoice: data._id,
+            particular: delivery.particular,
+            invoiceCharges: delivery.extraCharges || [],
+            _version: delivery._version,
+          };
 
-            console.log(
-              await deliveryApi.updateDelivery(updatedDelivery, dispatch)
-            );
-          })
-        );
+          console.log(updatedDelivery);
+
+          console.log(
+            await deliveryApi.updateDelivery(updatedDelivery, dispatch)
+          );
+        });
 
         toast.success("Invoice created!");
         router.push("/dashboard/invoices");
@@ -95,11 +126,11 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
             <Grid item md={8} xs={12}>
               <Grid container spacing={3}>
                 <Grid item md={4} xs={12}>
-                  <OrganisationAutocomplete formik={formik} user={user} />
+                  <OrganisationAutocomplete formik={formik} account={account} />
                 </Grid>
                 <Grid item md={4} xs={12}>
                   <DatePicker
-                    id="invoiceDate"
+                    _id="invoiceDate"
                     name="invoiceDate"
                     label="Invoice date"
                     showTodayButton={true}
@@ -166,19 +197,21 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
                     setFieldValue={formik.setFieldValue}
                     handleBlur={formik.handleBlur}
                     type="customer"
-                    user={user}
+                    account={account}
                     formik={formik}
                   />
                 </Grid>
-
                 <Grid item md={4} xs={12}>
                   <AddressAutocomplete
                     type={"billingAddress"}
-                    partyId={
-                      formik.values.customer && formik.values.customer.id
-                    }
-                    user={user}
+                    party={formik.values.customer && formik.values.customer._id}
+                    account={account}
                     formik={formik}
+                    disabled={
+                      !Boolean(
+                        formik.values.customer && formik.values.customer._id
+                      )
+                    }
                   />
                 </Grid>
               </Grid>

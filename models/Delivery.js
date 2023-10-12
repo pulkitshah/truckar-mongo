@@ -24,7 +24,7 @@ deliverySchema = new mongoose.Schema({
     type: String,
   },
   particular: {
-    type: String,
+    type: Array,
   },
 
   invoiceCharges: {

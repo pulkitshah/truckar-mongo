@@ -67,27 +67,27 @@ const statusOptions = [
   },
 ];
 
+export const getOrderUnit = (order) => {
+  switch (order.saleType.value) {
+    case "quantity":
+      return `${order.saleType.unit}`;
+      break;
+    case "fixed":
+      return `(Fixed)`;
+      break;
+    case "time":
+      return `${order.saleType.unit}`;
+      break;
+    default:
+      break;
+  }
+};
+
 const OrderPreview = (props) => {
   const { lgUp, onEdit, order, gridApi } = props;
   const { account } = useAuth();
   const align = lgUp ? "horizontal" : "vertical";
   const dispatch = useDispatch();
-
-  const getOrderUnit = (order) => {
-    switch (order.saleType.value) {
-      case "quantity":
-        return `${order.saleType.unit}`;
-        break;
-      case "fixed":
-        return `(Fixed)`;
-        break;
-      case "time":
-        return `${order.saleType.unit}`;
-        break;
-      default:
-        break;
-    }
-  };
 
   const formik = useFormik({
     initialValues: {

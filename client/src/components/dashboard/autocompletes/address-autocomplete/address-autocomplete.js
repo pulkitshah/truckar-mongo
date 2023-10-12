@@ -13,6 +13,7 @@ const AddressAutocomplete = ({
   user,
   address,
   partyId,
+  disabled = false,
   type,
   ...rest
 }) => {
@@ -127,21 +128,14 @@ const AddressAutocomplete = ({
             </React.Fragment>
           );
         }}
+        disabled={disabled}
         renderInput={(params) => (
           <TextField
             {...params}
             label={type.charAt(0).toUpperCase() + type.slice(1)}
-            error={Boolean(
-              type === "consignee"
-                ? touched.consignee && errors.consignee
-                : touched.consignor && errors.consignor
-            )}
+            error={Boolean(touched[type] && errors[type])}
             onBlur={handleBlur}
-            helperText={
-              type === "consignee"
-                ? touched.consignee && errors.consignee
-                : touched.consignor && errors.consignor
-            }
+            helperText={touched[type] && errors[type]}
             variant="outlined"
             InputProps={{
               ...params.InputProps,

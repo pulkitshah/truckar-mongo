@@ -28,60 +28,6 @@ import { gtm } from "../../../lib/gtm";
 import { useDispatch, useSelector } from "../../../store";
 import { partyApi } from "../../../api/party-api";
 
-const tabs = [
-  {
-    label: "INVOICE REGISTER",
-    value: "invoice-register",
-  },
-  {
-    label: "Canceled",
-    value: "canceled",
-  },
-];
-
-const sortOptions = [
-  {
-    label: "Newest",
-    value: "desc",
-  },
-  {
-    label: "Oldest",
-    value: "asc",
-  },
-];
-
-const applyFilters = (invoices, filters) =>
-  invoices.filter((invoice) => {
-    if (filters.query) {
-      // Checks only the invoice number, but can be extended to support other fields, such as customer
-      // name, email, etc.
-      const containsQuery = invoice.number
-        .toLowerCase()
-        .includes(filters.query.toLowerCase());
-
-      if (!containsQuery) {
-        return false;
-      }
-    }
-
-    if (typeof filters.status !== "undefined") {
-      const statusMatched = invoice.status === filters.status;
-
-      if (!statusMatched) {
-        return false;
-      }
-    }
-
-    return true;
-  });
-
-const applySort = (invoices, invoice) =>
-  invoices.sort((a, b) => {
-    const comparator = a.createdAt > b.createdAt ? -1 : 1;
-
-    return invoice === "desc" ? comparator : -comparator;
-  });
-
 const InvoiceListInner = styled("div", {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
@@ -111,31 +57,31 @@ const InvoiceListInner = styled("div", {
 const InvoiceList = () => {
   const isMounted = useMounted();
   const dispatch = useDispatch();
-  const { invoices } = useSelector((state) => state.invoices);
-
-  // const [invoices, setInvoices] = useState([]);
   const { t } = useTranslation();
-
-  const { user } = useAuth();
+  const { account } = useAuth();
+  const [tabs, setTabs] = useState([]);
+  const [currentTab, setCurrentTab] = useState("all");
   const rootRef = useRef(null);
-  const queryRef = useRef(null);
-  const [sort, setSort] = useState("desc");
 
-  const [filters, setFilters] = useState({
-    query: "",
-    status: undefined,
-  });
+  const [gridApi, setGridApi] = useState(null);
   const [drawer, setDrawer] = useState({
     isOpen: false,
-    invoiceId: null,
+    invoice: null,
   });
 
-  const getInvoicesByUser = useCallback(async () => {
+  const getOrganisationsByAccount = useCallback(async () => {
     try {
-      let data = await invoiceApi.getInvoicesByUser(user, dispatch);
-      if (isMounted()) {
-        // setInvoices(data);
-      }
+      let { data } = await organisationApi.getOrganisationsByAccount(
+        dispatch,
+        account
+      );
+      let org = data.map((o) => {
+        return {
+          value: o.id,
+          label: o.name,
+        };
+      });
+      setTabs(org);
     } catch (err) {
       console.error(err);
     }
@@ -143,34 +89,23 @@ const InvoiceList = () => {
 
   useEffect(() => {
     try {
-      getInvoicesByUser();
+      getOrganisationsByAccount();
     } catch (error) {
       console.log(error);
     }
   }, []);
 
-  const newInvoice = useEffect(() => {
-    gtm.push({ event: "page_view" });
-  }, []);
-
-  const handleQueryChange = (event) => {
-    event.preventDefault();
-    setFilters((prevState) => ({
-      ...prevState,
-      query: queryRef.current?.value,
-    }));
+  const handleTabsChange = async (event, value) => {
+    setCurrentTab(value);
   };
 
-  const handleSortChange = (event) => {
-    const value = event.target.value;
-    setSort(value);
-  };
-
-  const handleOpenDrawer = (params) => {
+  const handleOpenDrawer = (params, gridApi) => {
+    console.log(params);
     setDrawer({
       isOpen: true,
-      invoiceId: params.row.id,
+      invoice: params,
     });
+    setGridApi(gridApi);
   };
 
   const handleCloseDrawer = () => {
@@ -213,17 +148,40 @@ const InvoiceList = () => {
                 </NextLink>
               </Grid>
             </Grid>
+            <Tabs
+              indicatorColor="primary"
+              onChange={handleTabsChange}
+              scrollButtons="auto"
+              textColor="primary"
+              value={currentTab}
+              sx={{ mt: 3 }}
+              variant="scrollable"
+            >
+              {[{ value: "all", label: "All" }, ...tabs].map((tab) => (
+                <Tab key={tab.value} label={tab.label} value={tab.value} />
+              ))}
+            </Tabs>
           </Box>
           <Box sx={{ mt: 3, px: 3, height: "70vh", width: "100%" }}>
             <Divider />
-            <InvoiceGrid onOpenDrawer={handleOpenDrawer} invoices={invoices} />
+            {currentTab === "all" ? (
+              <InvoiceGrid onOpenDrawer={handleOpenDrawer} />
+            ) : (
+              <InvoicesByOrganisationTable
+                onOpenDrawer={handleOpenDrawer}
+                organisationId={currentTab}
+              />
+            )}
           </Box>
         </InvoiceListInner>
         <InvoiceDrawer
           containerRef={rootRef}
           onClose={handleCloseDrawer}
+          onOpen={handleOpenDrawer}
           open={drawer.isOpen}
-          invoice={invoices.find((invoice) => invoice.id === drawer.invoiceId)}
+          lr={drawer.lr}
+          gridApi={gridApi}
+          invoice={drawer.invoice}
         />
       </Box>
     </>

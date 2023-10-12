@@ -42,32 +42,15 @@ import { DeliveryCard } from "./delivery-card";
 import { deliveryApi } from "../../../api/delivery-api";
 import { InvoiceEditForm } from "./invoice-edit-form";
 
-const statusOptions = [
-  {
-    label: "Canceled",
-    value: "canceled",
-  },
-  {
-    label: "Complete",
-    value: "complete",
-  },
-  {
-    label: "Pending",
-    value: "pending",
-  },
-  {
-    label: "Rejected",
-    value: "rejected",
-  },
-];
-
 const InvoicePreview = (props) => {
-  const { lgUp, onEdit, invoice } = props;
+  const { lgUp, onEdit, invoice, gridApi } = props;
   const [viewPDF, setViewPDF] = useState(false);
   const InvoiceFormat =
     InvoicePDFs[invoice ? invoice.invoiceFormat : "standardTableFormat"];
   const align = lgUp ? "horizontal" : "vertical";
   const [logo, setLogo] = useState();
+  const { account } = useAuth();
+  const dispatch = useDispatch();
 
   const getOrganisationLogo = useCallback(async () => {
     try {
@@ -190,7 +173,7 @@ const InvoicePreview = (props) => {
             {invoice.customer.mobile}
           </Typography>
           <Typography color="textSecondary" variant="body2">
-            {JSON.parse(invoice.customer.city).description}
+            {invoice.customer.city.description}
           </Typography>
         </PropertyListItem>
 
@@ -205,7 +188,7 @@ const InvoicePreview = (props) => {
             {invoice.billingAddress.billingAddressLine2}
           </Typography>
           <Typography color="textSecondary" variant="body2">
-            {JSON.parse(invoice.billingAddress.city).description}
+            {invoice.billingAddress.city.description}
           </Typography>
           <Typography color="textSecondary" variant="body2">
             {invoice.billingAddress.pan &&

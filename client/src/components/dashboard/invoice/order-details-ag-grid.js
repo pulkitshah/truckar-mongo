@@ -1,48 +1,42 @@
 import React, { useCallback, useRef, useEffect, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
+import "ag-grid-enterprise";
 import "ag-grid-community/dist/styles/ag-grid.css";
-import "ag-grid-community/dist/styles/ag-theme-material.css";
+import "ag-grid-community/dist/styles/ag-theme-balham.css";
+
 import { orderTableForCreateInvoice } from "../../grids/grid-columns";
-import { orderApi } from "../../../api/order-api";
 import { deliveryApi } from "../../../api/delivery-api";
+import { useAuth } from "../../../hooks/use-auth";
 
 const OrderDetailsGrid = ({ formik }) => {
+  const { account } = useAuth();
   const [gridApi, setGridApi] = useState(null);
+  const dataSource = {
+    rowCount: undefined,
+    getRows: async (params) => {
+      let filter = params.filterModel;
+      const sort = params.sortModel;
 
-  const [pageTokens, setPageTokens] = React.useState({
-    noOfRows: 0,
-    nextToken: null,
-  });
-  const pageTokensRef = useRef(null);
+      filter.customer = {
+        filterType: "set",
+        values: [formik.values.customer._id],
+      };
+      let { data, count = 0 } = await deliveryApi.getDeliveriesByCustomer(
+        JSON.stringify({
+          account: account._id,
+          customer: formik.values.customer._id,
+          startRow: params.startRow,
+          endRow: params.endRow,
+          filter,
+        })
+      );
+      console.log(data);
 
-  useEffect(() => {
-    pageTokensRef.current = pageTokens;
-  }, [pageTokens]);
+      params.successCallback(data, count);
+    },
+  };
 
   const onGridReady = useCallback((params) => {
-    const dataSource = {
-      rowCount: undefined,
-      getRows: async (params) => {
-        let token = pageTokensRef.current.nextToken;
-
-        let data = await deliveryApi.getDeliveriesByCustomer(
-          formik.values.customer,
-          token && token
-        );
-        setPageTokens((previousPageToken) => {
-          return {
-            noOfRows: previousPageToken.noOfRows + data.deliveries.length,
-            nextToken: data.nextOrderToken,
-          };
-        });
-        let lastRow = -1;
-        if (data.deliveries.length < params.endRow - params.startRow) {
-          lastRow = pageTokensRef.current.noOfRows + data.deliveries.length;
-        }
-
-        params.successCallback(data.deliveries, lastRow);
-      },
-    };
     params.api.setDatasource(dataSource);
     setGridApi(params.api);
   }, []);
@@ -51,7 +45,7 @@ const OrderDetailsGrid = ({ formik }) => {
     gridApi.forEachNode(function (node) {
       if (node.data) {
         node.setSelected(
-          Boolean(formik.values.deliveries.find((e) => e.id === node.data.id))
+          Boolean(formik.values.deliveries.find((e) => e._id === node.data._id))
         );
       }
     });
@@ -74,24 +68,24 @@ const OrderDetailsGrid = ({ formik }) => {
               o.push({
                 ...node.data,
                 extraCharges: formik.values.deliveries.find(
-                  (del) => del.id === node.data.id
+                  (del) => del._id === node.data._id
                 )
                   ? formik.values.deliveries.find(
-                      (del) => del.id === node.data.id
+                      (del) => del._id === node.data._id
                     ).extraCharges
                     ? formik.values.deliveries.find(
-                        (del) => del.id === node.data.id
+                        (del) => del._id === node.data._id
                       ).extraCharges
                     : []
                   : [],
                 particular: formik.values.deliveries.find(
-                  (del) => del.id === node.data.id
+                  (del) => del._id === node.data._id
                 )
                   ? formik.values.deliveries.find(
-                      (del) => del.id === node.data.id
+                      (del) => del._id === node.data._id
                     ).particular
                     ? formik.values.deliveries.find(
-                        (del) => del.id === node.data.id
+                        (del) => del._id === node.data._id
                       ).particular
                     : null
                   : [],

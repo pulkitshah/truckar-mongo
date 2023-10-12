@@ -45,9 +45,11 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
         message: "Lr No cannot be repeated in the fiscal year of sale date",
         test: async function (value) {
           try {
+            console.log(this.parent.organisation._id);
             const response = await lrApi.validateDuplicateLrNo({
               lrNo: value,
               lrDate: this.parent.lrDate,
+              organisation: this.parent.organisation._id,
               account: account._id,
             });
             // console.log(response);

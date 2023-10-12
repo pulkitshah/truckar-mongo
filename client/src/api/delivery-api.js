@@ -103,6 +103,33 @@ class DeliveryApi {
     }
   }
 
+  async getDeliveriesByCustomer(params) {
+    try {
+      const response = await axios.get(
+        `/api/delivery/deliveriesbycustomer/${params}`
+      );
+      console.log(response);
+      let deliveries = response.data[0].rows;
+      let count = response.data[0].count;
+      return {
+        status: response.status,
+        data: deliveries,
+        count,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Delivery Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Delivery not created, please try again or contact customer support.",
+        };
+      }
+    }
+  }
+
   ////API Modified
   async getDeliveryById(id) {
     try {
@@ -167,41 +194,6 @@ class DeliveryApi {
       // Dispatch - Reducer
 
       // dispatch(slice.actions.getOrders(orders));
-
-      return { deliveries, nextOrderToken };
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async getDeliveriesByCustomer(customer) {
-    try {
-      //////////////////////// GraphQL API ////////////////////////
-      const response = await API.graphql({
-        query: deliveriesByCustomer,
-        variables: {
-          customerId: customer.id.toString(),
-          sortDirection: "DESC",
-        },
-      });
-      const deliveries = response.data.deliveriesByCustomer.items;
-
-      //////////////////////// GraphQL API ////////////////////////
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // const deliveries = await DataStore.query(Delivery, (c) =>
-      //   c.user("eq", user.id)
-      // );
-
-      //////////////////////// DataStore API ////////////////////////
-      const nextOrderToken = response.data.deliveriesByCustomer.nextToken;
-
-      // console.log(deliveries);
-
-      // Dispatch - Reducer
-
-      // dispatch(slice.actions.getDeliveries(deliveries));
 
       return { deliveries, nextOrderToken };
     } catch (error) {

@@ -86,13 +86,14 @@ class LrApi {
     }
   }
 
-  async validateDuplicateLrNo({ lrNo, lrDate, account }) {
+  async validateDuplicateLrNo({ lrNo, lrDate, account, organisation }) {
     try {
       const response = await axios.get(
         `/api/lr/validateDuplicateLrNo/${JSON.stringify({
           account,
           lrNo,
           lrDate,
+          organisation,
         })}`
       );
       let lr = response.data;
@@ -114,6 +115,28 @@ class LrApi {
       }
     }
     return Boolean(!lr);
+  }
+
+  async getLrById(id) {
+    try {
+      const response = await axios.get(`/api/lr/id/${id}`);
+
+      return {
+        status: response.status,
+        data: response.data,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Lr Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Lr not created, please try again or contact customer support.",
+        };
+      }
+    }
   }
 
   async updateLr(editedLr, dispatch) {
@@ -178,40 +201,6 @@ class LrApi {
       // dispatch(slice.actions.getLrs(lrs));
 
       return { lrs, nextLrToken };
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async getLrById(id) {
-    try {
-      //////////////////////// GraphQL API ////////////////////////
-
-      const response = await API.graphql({
-        query: getLr,
-        variables: {
-          id: id.toString(),
-        },
-      });
-
-      const lr = response.data.getLr;
-      //////////////////////// GraphQL API ////////////////////////
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // const lrs = await DataStore.query(Lr, (c) =>
-      //   c.user("eq", user.id)
-      // );
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // console.log(lrs);
-
-      // Dispatch - Reducer
-
-      // dispatch(slice.actions.getLrs(lrs));
-
-      return lr;
     } catch (error) {
       console.log(error);
     }

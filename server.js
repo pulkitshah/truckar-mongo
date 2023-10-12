@@ -18,6 +18,7 @@ app.use("/api/auth", require("./routes/api/auth"));
 app.use("/api/account", require("./routes/api/account"));
 app.use("/api/delivery", require("./routes/api/delivery"));
 app.use("/api/driver", require("./routes/api/driver"));
+app.use("/api/invoice", require("./routes/api/invoice"));
 app.use("/api/lr", require("./routes/api/lr"));
 app.use("/api/order", require("./routes/api/order"));
 app.use("/api/organisation", require("./routes/api/organisation"));

@@ -62,28 +62,20 @@ export const DeliveryCard = (props) => {
                     <Box>
                       <Typography variant="body2">From</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {
-                          JSON.parse(delivery.loading).structured_formatting
-                            .main_text
-                        }
+                        {delivery.loading.structured_formatting.main_text}
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="body2">To</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {
-                          JSON.parse(delivery.unloading).structured_formatting
-                            .main_text
-                        }
+                        {delivery.unloading.structured_formatting.main_text}
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="body2">Bill Quantity</Typography>
                       {delivery.billQuantity && (
                         <Typography sx={{ mb: 3 }} variant="body2">
-                          {`${delivery.billQuantity} ${
-                            JSON.parse(delivery.order.saleType).unit
-                          }`}
+                          {`${delivery.billQuantity} ${delivery.order.saleType.unit}`}
                         </Typography>
                       )}
                     </Box>
@@ -103,27 +95,19 @@ export const DeliveryCard = (props) => {
                     <Box>
                       <Typography variant="body2">From</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {
-                          JSON.parse(delivery.loading).structured_formatting
-                            .main_text
-                        }
+                        {delivery.loading.structured_formatting.main_text}
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="body2">To</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {
-                          JSON.parse(delivery.unloading).structured_formatting
-                            .main_text
-                        }
+                        {delivery.unloading.structured_formatting.main_text}
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="body2">Bill Quantity</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {`${delivery.billQuantity} ${
-                          JSON.parse(delivery.order.saleType).unit
-                        }`}
+                        {`${delivery.billQuantity} ${delivery.order.saleType.unit}`}
                       </Typography>
                     </Box>
                   </Box>
@@ -145,38 +129,36 @@ export const DeliveryCard = (props) => {
                 <Typography variant="body2">{`Rs  `}</Typography>
               </Grid>
 
-              {JSON.parse(delivery.invoiceCharges).map(
-                (extraCharge, indexExtraCharge) => {
-                  return (
-                    <React.Fragment>
-                      <Grid
-                        item
-                        md={10}
-                        xs={12}
-                        className="col"
-                        key={indexExtraCharge}
-                        sx={{ mt: 2 }}
-                      >
-                        <Box>
-                          <Typography variant="body2">Extra Charges</Typography>
-                          <Typography sx={{ mb: 3 }} variant="body2">
-                            {`${extraCharge.particular} `}
-                          </Typography>
-                        </Box>
-                      </Grid>
+              {delivery.invoiceCharges.map((extraCharge, indexExtraCharge) => {
+                return (
+                  <React.Fragment>
+                    <Grid
+                      item
+                      md={10}
+                      xs={12}
+                      className="col"
+                      key={indexExtraCharge}
+                      sx={{ mt: 2 }}
+                    >
+                      <Box>
+                        <Typography variant="body2">Extra Charges</Typography>
+                        <Typography sx={{ mb: 3 }} variant="body2">
+                          {`${extraCharge.particular} `}
+                        </Typography>
+                      </Box>
+                    </Grid>
 
-                      <Grid item md={2} xs={12} className="col">
-                        <Box>
-                          <Typography variant="body2">Amount</Typography>
-                          <Typography variant="body2">
-                            {`Rs. ${extraCharge.amount} `}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    </React.Fragment>
-                  );
-                }
-              )}
+                    <Grid item md={2} xs={12} className="col">
+                      <Box>
+                        <Typography variant="body2">Amount</Typography>
+                        <Typography variant="body2">
+                          {`Rs. ${extraCharge.amount} `}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </React.Fragment>
+                );
+              })}
             </Grid>
           </Grid>
         </CardContent>

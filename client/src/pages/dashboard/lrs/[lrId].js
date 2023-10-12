@@ -58,8 +58,8 @@ const LrDetails = () => {
 
   const getLr = useCallback(async () => {
     try {
-      let data = await lrApi.getLrsByUser(user, dispatch);
-      setLr(data.find((lr) => lr.id === lrId));
+      let { data } = await lrApi.getLrById(lrId);
+      setLr(data);
     } catch (err) {
       console.error(err);
     }

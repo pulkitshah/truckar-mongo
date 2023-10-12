@@ -64,7 +64,6 @@ const LrPreview = (props) => {
   const { lgUp, onEdit, lr, gridApi } = props;
   const [viewPDF, setViewPDF] = useState(false);
   const LrFormat = LrPDFs[lr ? lr.lrFormat : "standardLoose"];
-
   const align = lgUp ? "horizontal" : "vertical";
   const [logo, setLogo] = useState();
   const { account } = useAuth();
@@ -577,44 +576,36 @@ export const LrForm = (props) => {
   const [addresses, setAddresses] = useState({ waypoints: [] });
 
   let validationShape = {
+    organisation: Yup.object().nullable().required("Organisation is required"),
+    lrDate: Yup.object().required("LR Date is required"),
     lrNo: Yup.number()
       .required("Lr No is required")
       .test({
         name: "Checking Duplicate Lr No",
         exclusive: false,
         params: {},
-        message: "Lr No cannot be repeated in the fiscal year of sale date",
+        message:
+          "Lr No cannot be repeated for an organisation in the same fiscal year of LR date",
         test: async function (value) {
           try {
             if (value === lr.lrNo) {
               return true;
             }
-            const response = await lrApi.validateDuplicateLrNo(
-              value,
-              this.parent.lrDate,
-              account
-            );
+            const response = await lrApi.validateDuplicateLrNo({
+              lrNo: value,
+              lrDate: this.parent.lrDate,
+              organisation: this.parent.organisation._id,
+              account: account._id,
+            });
             // console.log(response);
-            return response;
+            return response.data;
           } catch (error) {
             console.log(error);
           }
         },
       }),
-    lrDate: Yup.object().required("Sale Date is required"),
-    customer: Yup.object().nullable().required("Customer is required"),
-    vehicle: Yup.lazy((value) => {
-      switch (typeof value) {
-        case "object":
-          return Yup.object().nullable().required("Vehicle is required");
-        case "string":
-          return Yup.string().required("Vehicle is required");
-        default:
-          return Yup.string().required("Vehicle is required");
-      }
-    }),
-    saleType: Yup.object().required("Sale is required"),
-    saleRate: Yup.string().required("Sale Rate is required"),
+    consignor: Yup.object().nullable().required("Consignor is Required"), // these constraints take precedence
+    consignee: Yup.object().nullable().required("Consignee is Required"), // these constraints take precedence
   };
 
   let delivery = lr.delivery;
@@ -664,13 +655,13 @@ export const LrForm = (props) => {
       lrCharges: lr.lrCharges || [],
       account: account._id,
     },
-    // validationSchema: Yup.object().shape(validationShape),
+    validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
         let { data } = await lrApi.updateLr(values, dispatch);
-        onOpen(data, gridApi);
-        gridApi.refreshInfiniteCache();
-        toast.success("Lr created!");
+        onOpen && onOpen(data, gridApi);
+        gridApi && gridApi.refreshInfiniteCache();
+        toast.success("Lr updated!");
         onCancel();
       } catch (err) {
         console.error(err);

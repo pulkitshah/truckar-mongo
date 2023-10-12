@@ -42,7 +42,7 @@ export const LrSummary = (props) => {
   const formik = useFormik({
     initialValues: {
       id: lr.id,
-      lrCharges: JSON.parse(lr.lrCharges),
+      lrCharges: lr.lrCharges,
     },
     // validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
@@ -50,7 +50,7 @@ export const LrSummary = (props) => {
         console.log(values);
         const editedLr = {
           id: lr.id,
-          lrCharges: JSON.stringify(values.lrCharges),
+          lrCharges: values.lrCharges,
           user: user.id,
           _version: lr._version,
         };
@@ -76,7 +76,7 @@ export const LrSummary = (props) => {
     setAddresses((addresses) => ({
       ...addresses,
       ...{
-        origin: JSON.parse(delivery.loading).description,
+        origin: delivery.loading.description,
       },
     }));
 
@@ -85,7 +85,7 @@ export const LrSummary = (props) => {
       setAddresses((addresses) => ({
         ...addresses,
         ...{
-          destination: JSON.parse(delivery.unloading).description,
+          destination: delivery.unloading.description,
         },
       }));
     }
@@ -94,25 +94,23 @@ export const LrSummary = (props) => {
 
     let waypoints = [];
 
-    if (JSON.parse(delivery.loading).description) {
+    if (delivery.loading.description) {
       waypoints.push({
-        location: JSON.parse(delivery.loading).description,
+        location: delivery.loading.description,
       });
     }
 
-    if (JSON.parse(delivery.unloading).description) {
+    if (delivery.unloading.description) {
       waypoints.push({
-        location: JSON.parse(delivery.unloading).description,
+        location: delivery.unloading.description,
       });
     }
 
     waypoints = waypoints.filter(
-      (waypoint) =>
-        waypoint.location !== JSON.parse(delivery.loading).description
+      (waypoint) => waypoint.location !== delivery.loading.description
     );
     waypoints = waypoints.filter(
-      (waypoint) =>
-        waypoint.location !== JSON.parse(delivery.unloading).description
+      (waypoint) => waypoint.location !== delivery.unloading.description
     );
 
     waypoints = [
@@ -120,8 +118,8 @@ export const LrSummary = (props) => {
     ];
 
     setAddresses({
-      origin: JSON.parse(delivery.loading).description,
-      destination: JSON.parse(delivery.unloading).description,
+      origin: delivery.loading.description,
+      destination: delivery.unloading.description,
       waypoints: waypoints,
     });
   }, []);
@@ -185,7 +183,7 @@ export const LrSummary = (props) => {
                   {`${lr.order.customer.name}`}
                 </Typography>
                 <Typography color="textSecondary" variant="body2">
-                  {JSON.parse(lr.order.customer.city).description}
+                  {lr.order.customer.city.description}
                 </Typography>
                 <Typography color="textSecondary" variant="body2">
                   {`${lr.order.customer.mobile}`}
@@ -204,7 +202,7 @@ export const LrSummary = (props) => {
         <PropertyListItem
           align={align}
           label="Loading From"
-          value={JSON.parse(delivery.loading).description}
+          value={delivery.loading.description}
         />
         <Divider />
 
@@ -219,7 +217,7 @@ export const LrSummary = (props) => {
             {lr.consignor.billingAddressLine2}
           </Typography>
           <Typography color="textSecondary" variant="body2">
-            {JSON.parse(lr.consignor.city).description}
+            {lr.consignor.city.description}
           </Typography>
           <Typography color="textSecondary" variant="body2">
             {lr.consignor.pan && `PAN - ${lr.consignor.pan}`}
@@ -233,7 +231,7 @@ export const LrSummary = (props) => {
         <PropertyListItem
           align={align}
           label="Unloading at"
-          value={JSON.parse(delivery.unloading).description}
+          value={delivery.unloading.description}
         />
         <Divider />
 
@@ -248,7 +246,7 @@ export const LrSummary = (props) => {
             {lr.consignor.billingAddressLine2}
           </Typography>
           <Typography color="textSecondary" variant="body2">
-            {JSON.parse(lr.consignee.city).description}
+            {lr.consignee.city.description}
           </Typography>
           <Typography color="textSecondary" variant="body2">
             {lr.consignee.pan && `PAN - ${lr.consignee.pan}`}
@@ -404,12 +402,12 @@ export const LrSummary = (props) => {
         </Card>
       }
 
-      {JSON.parse(lr.descriptionOfGoods)[0].description && (
+      {lr.descriptionOfGoods[0].description && (
         <Card sx={{ my: 2 }} {...other}>
           <CardHeader title="Description of Goods" />
           <Divider />
           <PropertyListItem align={align} label="Description">
-            {JSON.parse(lr.descriptionOfGoods).map((goodsDescription) => {
+            {lr.descriptionOfGoods.map((goodsDescription) => {
               return (
                 <React.Fragment>
                   <Typography color="textSecondary" variant="body2">

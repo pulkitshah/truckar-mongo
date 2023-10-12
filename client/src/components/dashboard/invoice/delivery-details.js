@@ -98,10 +98,9 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         variant="body2"
                                       >
                                         {
-                                          JSON.parse(
-                                            formik.values.deliveries[index]
-                                              .loading
-                                          ).structured_formatting.main_text
+                                          formik.values.deliveries[index]
+                                            .loading.structured_formatting
+                                            .main_text
                                         }
                                       </Typography>
                                     </Box>
@@ -114,10 +113,9 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         variant="body2"
                                       >
                                         {
-                                          JSON.parse(
-                                            formik.values.deliveries[index]
-                                              .unloading
-                                          ).structured_formatting.main_text
+                                          formik.values.deliveries[index]
+                                            .unloading.structured_formatting
+                                            .main_text
                                         }
                                       </Typography>
                                     </Box>
@@ -129,15 +127,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         sx={{ mb: 3 }}
                                         variant="body2"
                                       >
-                                        {`${
-                                          formik.values.deliveries[index]
-                                            .billQuantity
-                                        } ${
-                                          JSON.parse(
-                                            formik.values.deliveries[index]
-                                              .order.saleType
-                                          ).unit
-                                        }`}
+                                        {`${formik.values.deliveries[index].billQuantity} ${formik.values.deliveries[index].order.saleType.unit}`}
                                       </Typography>
                                     </Box>
                                     {!drawer && (
@@ -190,10 +180,9 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         variant="body2"
                                       >
                                         {
-                                          JSON.parse(
-                                            formik.values.deliveries[index]
-                                              .loading
-                                          ).structured_formatting.main_text
+                                          formik.values.deliveries[index]
+                                            .loading.structured_formatting
+                                            .main_text
                                         }
                                       </Typography>
                                     </Box>
@@ -206,10 +195,9 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         variant="body2"
                                       >
                                         {
-                                          JSON.parse(
-                                            formik.values.deliveries[index]
-                                              .unloading
-                                          ).structured_formatting.main_text
+                                          formik.values.deliveries[index]
+                                            .unloading.structured_formatting
+                                            .main_text
                                         }
                                       </Typography>
                                     </Box>
@@ -221,15 +209,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         sx={{ mb: 3 }}
                                         variant="body2"
                                       >
-                                        {`${
-                                          formik.values.deliveries[index]
-                                            .billQuantity
-                                        } ${
-                                          JSON.parse(
-                                            formik.values.deliveries[index]
-                                              .order.saleType
-                                          ).unit
-                                        }`}
+                                        {`${formik.values.deliveries[index].billQuantity} ${formik.values.deliveries[index].order.saleType.unit}`}
                                       </Typography>
                                     </Box>
                                   </Box>

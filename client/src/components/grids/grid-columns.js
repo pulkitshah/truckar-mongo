@@ -8,6 +8,7 @@ import {
 import { partyApi } from "../../api/party-api";
 import { organisationApi } from "../../api/organisation-api";
 import { vehicleApi } from "../../api/vehicle-api";
+import { getOrderUnit } from "../dashboard/order/order-drawer";
 
 const getPartiesByAccount = async (params, account) => {
   const { data } = await partyApi.getPartiesByAccount({ account });
@@ -174,7 +175,7 @@ export const orderTable = (account) => {
     {
       field: "customer",
       headerName: "Customer",
-      width: 250,
+      width: 150,
       filter: "agSetColumnFilter",
       filterParams: {
         values: (params) => getPartiesByAccount(params, account),
@@ -245,6 +246,32 @@ export const orderTable = (account) => {
       },
     },
     {
+      field: "transporter",
+      headerName: "Transporter",
+      width: 150,
+      valueGetter: (params) => {
+        if (params.data) {
+          if (params.data.vehicle) {
+            return "SELF";
+          } else {
+            return params.data.transporter.name;
+          }
+        }
+      },
+    },
+    {
+      field: "saleRate",
+      headerName: "Sale Rate",
+      width: 130,
+      valueGetter: (params) => {
+        if (params.data) {
+          return `Rs. ${params.data.saleRate} / ${getOrderUnit(params.data)}`;
+        } else {
+          return "-";
+        }
+      },
+    },
+    {
       field: "sales",
       headerName: "Sales",
       width: 100,
@@ -299,23 +326,13 @@ export const deliveriesTable = (account) => {
   return [
     {
       field: "saleDate",
-      headerName: "Date",
+      headerName: "Sale Date",
       width: 120,
       valueGetter: (params) => {
         // console.log(params.data);
         if (params.data) {
           if (!params.data.order) console.log(params.data);
           return moment(params.data.order.saleDate).format("DD-MM-YY");
-        }
-      },
-    },
-    {
-      field: "loading",
-      headerName: "Loading",
-      width: 130,
-      valueGetter: (params) => {
-        if (params.data) {
-          return params.data.loading.structured_formatting.main_text;
         }
       },
     },
@@ -361,9 +378,33 @@ export const deliveriesTable = (account) => {
       },
     },
     {
+      field: "vehicleNo",
+      headerName: "Vehicle No",
+      width: 150,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.order.vehicleNumber;
+        }
+      },
+    },
+    {
+      field: "transporter",
+      headerName: "Transporter",
+      width: 200,
+      valueGetter: (params) => {
+        if (params.data) {
+          if (params.data.order.vehicle) {
+            return "SELF";
+          } else {
+            return params.data.order.transporter.name;
+          }
+        }
+      },
+    },
+    {
       field: "customer",
       headerName: "Customer",
-      width: 250,
+      width: 200,
       valueGetter: (params) => {
         if (params.data) {
           return params.data.order.customer.name;
@@ -374,7 +415,7 @@ export const deliveriesTable = (account) => {
     {
       field: "consignor",
       headerName: "Consignor",
-      width: 250,
+      width: 200,
       valueGetter: (params) => {
         if (params.data) {
           if (params.data.lr) {
@@ -388,7 +429,7 @@ export const deliveriesTable = (account) => {
     {
       field: "consignee",
       headerName: "Consignee",
-      width: 250,
+      width: 200,
       valueGetter: (params) => {
         if (params.data) {
           if (params.data.lr) {
@@ -399,7 +440,16 @@ export const deliveriesTable = (account) => {
         }
       },
     },
-
+    {
+      field: "loading",
+      headerName: "Loading",
+      width: 130,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.loading.structured_formatting.main_text;
+        }
+      },
+    },
     {
       field: "unloading",
       headerName: "Unloading",
@@ -407,6 +457,20 @@ export const deliveriesTable = (account) => {
       valueGetter: (params) => {
         if (params.data) {
           return params.data.unloading.structured_formatting.main_text;
+        }
+      },
+    },
+    {
+      field: "saleRate",
+      headerName: "Sale Rate",
+      width: 130,
+      valueGetter: (params) => {
+        if (params.data) {
+          return `Rs. ${params.data.order.saleRate} / ${getOrderUnit(
+            params.data.order
+          )}`;
+        } else {
+          return "-";
         }
       },
     },
@@ -433,30 +497,6 @@ export const deliveriesTable = (account) => {
           return `${params.value} ${params.data.order.saleType.unit}`;
         } else {
           return "-";
-        }
-      },
-    },
-    {
-      field: "vehicleNo",
-      headerName: "Vehicle No",
-      width: 150,
-      valueGetter: (params) => {
-        if (params.data) {
-          return params.data.order.vehicleNumber;
-        }
-      },
-    },
-    {
-      field: "transporter",
-      headerName: "Transporter",
-      width: 200,
-      valueGetter: (params) => {
-        if (params.data) {
-          if (params.data.order.vehicle) {
-            return "SELF";
-          } else {
-            return params.data.order.transporter.name;
-          }
         }
       },
     },
@@ -682,32 +722,86 @@ export const lrTable = (account) => {
   ];
 };
 
-export const invoiceTable = [
-  {
-    field: "invoiceNo",
-    headerName: "Invoice No",
-    width: 130,
-    renderCell: (params) => {
-      if (params.value) {
-        return (
-          <Link href={`/dashboard/invoices/${params.row._id}`} passHref>
-            {`${params.row.organisation.initials}-${params.row.invoiceNo}`}
-          </Link>
-        );
-      }
+export const invoiceTable = (account) => {
+  return [
+    {
+      field: "invoiceDate",
+      headerName: "Date",
+      width: 130,
+      cellRenderer: (params) => {
+        if (params.value !== undefined) {
+          return moment(params.data.invoiceDate).format("DD-MM-YY");
+        }
+      },
     },
-  },
-  {
-    field: "invoiceDate",
-    headerName: "Date",
-    width: 130,
-    valueGetter: (params) => {
-      if (params.value) {
-        return moment(params.value).format("DD-MM-YY");
-      }
+    {
+      field: "invoiceNo",
+      headerName: "Invoice No",
+      width: 120,
+      cellRenderer: (params) => {
+        if (params.value !== undefined) {
+          return (
+            <Link href={`/dashboard/invoices/${params.data._id}`} passHref>
+              {`${params.data.organisation.initials}-${params.data.invoiceNo}`}
+            </Link>
+          );
+        }
+      },
+      filter: "agNumberColumnFilter",
+      filterParams: {
+        buttons: ["reset"],
+        filterOptions: ["equals", "lessThan", "greaterThan"],
+        debounceMs: 1000,
+        maxNumConditions: 1,
+      },
     },
-  },
-];
+    {
+      field: "organisation",
+      headerName: "Organisation",
+      width: 180,
+      valueGetter: (params) => {
+        if (params.data) {
+          return params.data.organisation.name;
+        }
+      },
+      filter: "agSetColumnFilter",
+      filterParams: {
+        values: (params) => getOrganisationsByAccount(params, account),
+        keyCreator: (params) => {
+          const v = JSON.parse(params.value);
+          return v._id;
+        },
+        valueFormatter: (params) => {
+          const v = JSON.parse(params.value);
+          return `${v.name}`;
+        },
+      },
+    },
+    {
+      field: "customer",
+      headerName: "Customer",
+      width: 250,
+      filter: "agSetColumnFilter",
+      filterParams: {
+        values: (params) => getPartiesByAccount(params, account),
+        keyCreator: (params) => {
+          const v = JSON.parse(params.value);
+          console.log(v);
+          return v._id;
+        },
+        valueFormatter: (params) => {
+          const v = JSON.parse(params.value);
+          return `${v.name} - ${v.mobile} - ${v.city.structured_formatting.main_text}`;
+        },
+      },
+      valueGetter: (params) => {
+        if (params.data && params.data.customer) {
+          return params.data.customer.name;
+        }
+      },
+    },
+  ];
+};
 
 export const orderTableForCreateInvoice = [
   {

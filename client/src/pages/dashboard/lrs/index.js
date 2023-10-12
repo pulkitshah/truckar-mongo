@@ -67,7 +67,7 @@ const LrList = () => {
 
   const [drawer, setDrawer] = useState({
     isOpen: false,
-    lrId: null,
+    lr: null,
   });
   const [gridApi, setGridApi] = useState(null);
 

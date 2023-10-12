@@ -1,19 +1,146 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { check, validationResult } = require("express-validator/check");
-const Lr = require("../../models/Lr");
+const Invoice = require("../../models/Invoice");
 const auth = require("../../middlleware/auth");
 const createFilterAggPipeline = require("../../utils/getAggregationPipeline");
 const getFiscalYearTimestamps = require("../../utils/getFiscalYear");
 
 const router = express.Router();
 
-// @route   POST api/lr
-// @desc    Create Lr
+let lookups = [
+  {
+    $lookup: {
+      from: "accounts",
+      localField: "account",
+      foreignField: "_id",
+      as: "account",
+    },
+  },
+  // each blog has a single user (author) so flatten it using $unwind
+  { $unwind: "$account" },
+  {
+    $lookup: {
+      from: "addresses",
+      let: {
+        id: "$billingAddress",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+      ],
+      as: "billingAddress",
+    },
+  },
+  {
+    $unwind: {
+      path: "$billingAddress",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
+      from: "organisations",
+      let: {
+        id: "$organisation",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+      ],
+      as: "organisation",
+    },
+  },
+  {
+    $unwind: {
+      path: "$organisation",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
+      from: "parties",
+      let: {
+        id: "$customer",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+      ],
+      as: "customer",
+    },
+  },
+  {
+    $unwind: {
+      path: "$customer",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
+      from: "deliveries",
+      let: {
+        id: "$_id",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$invoice", "$$id"],
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "orders",
+            let: {
+              id: "$order",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", "$$id"],
+                  },
+                },
+              },
+            ],
+            as: "order",
+          },
+        },
+        {
+          $unwind: {
+            path: "$order",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ],
+      as: "deliveries",
+    },
+  },
+];
+
+// @route   POST api/invoice
+// @desc    Create Invoice
 // @access  Private
 router.post(
   "/",
-  [auth, [check("lrNo", "Please enter Lr No.").not().isEmpty()]],
+  [auth, [check("invoiceNo", "Please enter Invoice No.").not().isEmpty()]],
   async (req, res) => {
     try {
       const errors = validationResult(req);
@@ -23,15 +150,15 @@ router.post(
 
       // Get fields
       const updates = Object.keys(req.body);
-      const lrFields = {};
-      lrFields.createdBy = req.user.id;
-      updates.forEach((update) => (lrFields[update] = req.body[update]));
+      const invoiceFields = {};
+      invoiceFields.createdBy = req.user.id;
+      updates.forEach((update) => (invoiceFields[update] = req.body[update]));
 
       try {
         // Create
-        lr = new Lr(lrFields);
-        await lr.save();
-        res.send(lr);
+        invoice = new Invoice(invoiceFields);
+        await invoice.save();
+        res.send(invoice);
       } catch (error) {
         console.log(error.message);
         res.status(500).send("Server Error");
@@ -43,8 +170,8 @@ router.post(
   }
 );
 
-// @route   GET api/lrs/
-// @desc    Get Lrs created by user
+// @route   GET api/invoices/
+// @desc    Get Invoices created by user
 // @access  Private
 
 /**
@@ -63,7 +190,7 @@ router.get("/:id", auth, async (req, res) => {
     startRow,
     endRow,
     filter = {},
-    sort = { lrDate: -1, lrNo: -1 },
+    sort = { invoiceDate: -1, invoiceNo: -1 },
   } = JSON.parse(req.params.id);
 
   console.log({
@@ -92,9 +219,11 @@ router.get("/:id", auth, async (req, res) => {
   ];
 
   // filter according to filterModel object
-  if (filter.lrNo) {
-    const lrNoQuery = createFilterAggPipeline({ lrNo: filter.lrNo });
-    query.push(lrNoQuery[0]);
+  if (filter.invoiceNo) {
+    const invoiceNoQuery = createFilterAggPipeline({
+      invoiceNo: filter.invoiceNo,
+    });
+    query.push(invoiceNoQuery[0]);
   }
 
   if (filter.organisation) {
@@ -112,168 +241,6 @@ router.get("/:id", auth, async (req, res) => {
   //   });
   //   query.push(vehicleNumberQuery[0]);
   // }
-
-  let lookups = [
-    {
-      $lookup: {
-        from: "accounts",
-        localField: "account",
-        foreignField: "_id",
-        as: "account",
-      },
-    },
-    // each blog has a single user (author) so flatten it using $unwind
-    { $unwind: "$account" },
-    {
-      $lookup: {
-        from: "addresses",
-        let: {
-          id: "$consignor",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-        ],
-        as: "consignor",
-      },
-    },
-    {
-      $unwind: {
-        path: "$consignor",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "addresses",
-        let: {
-          id: "$consignee",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-        ],
-        as: "consignee",
-      },
-    },
-    {
-      $unwind: {
-        path: "$consignee",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-
-    {
-      $lookup: {
-        from: "organisations",
-        let: {
-          id: "$organisation",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-        ],
-        as: "organisation",
-      },
-    },
-    {
-      $unwind: {
-        path: "$organisation",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "deliveries",
-        let: {
-          id: "$delivery",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-        ],
-        as: "delivery",
-      },
-    },
-    {
-      $unwind: {
-        path: "$delivery",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "orders",
-        let: {
-          id: "$order",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-          {
-            $lookup: {
-              from: "parties",
-              let: {
-                id: "$customer",
-              },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $eq: ["$_id", "$$id"],
-                    },
-                  },
-                },
-                {
-                  $project: {
-                    name: 1,
-                    city: 1,
-                    mobile: 1,
-                    isTransporter: 1,
-                    _id: 1,
-                  },
-                },
-              ],
-              as: "customer",
-            },
-          },
-          { $unwind: "$customer" },
-        ],
-        as: "order",
-      },
-    },
-    {
-      $unwind: {
-        path: "$order",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-  ];
 
   query = [...query, ...lookups];
 
@@ -301,12 +268,12 @@ router.get("/:id", auth, async (req, res) => {
     }
   );
 
-  const lrs = await Lr.aggregate(query);
-  res.json(lrs);
+  const invoices = await Invoice.aggregate(query);
+  res.json(invoices);
 });
 
-// @route   GET api/lrs/:LrID
-// @desc    Get Lrs by lrID created by user
+// @route   GET api/invoices/:InvoiceID
+// @desc    Get Invoices by invoiceID created by user
 ///////////////////////////////// @access  Public
 
 router.get("/id/:id", async (req, res) => {
@@ -484,32 +451,32 @@ router.get("/id/:id", async (req, res) => {
 
     query = [...query, ...lookups];
 
-    const lrs = await Lr.aggregate(query);
+    const invoices = await Invoice.aggregate(query);
 
-    if (!lrs) {
+    if (!invoices) {
       res
         .status(400)
-        .json({ errors: [{ msg: "There are no lrs by this user" }] });
+        .json({ errors: [{ msg: "There are no invoices by this user" }] });
     }
 
     // console.log(response[0]);
-    res.json(lrs[0]);
+    res.json(invoices[0]);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");
   }
 });
 
-// @route   PATCH api/lr
-// @desc    Create Lr
+// @route   PATCH api/invoice
+// @desc    Create Invoice
 // @access  Private
 router.patch(
   "/",
-  [auth, [check("lrNo", "Please enter Lr No.").not().isEmpty()]],
+  [auth, [check("invoiceNo", "Please enter Invoice No.").not().isEmpty()]],
   async (req, res) => {
     const updates = Object.keys(req.body);
     try {
-      const lr = await Lr.findOne({
+      const invoice = await Invoice.findOne({
         _id: req.body._id,
       })
         .populate("consignor")
@@ -520,14 +487,14 @@ router.patch(
 
       console.log(req.body);
 
-      if (!lr) {
-        return res.status(404).send("No lr to update");
+      if (!invoice) {
+        return res.status(404).send("No invoice to update");
       }
 
-      updates.forEach((update) => (lr[update] = req.body[update]));
-      await lr.save();
+      updates.forEach((update) => (invoice[update] = req.body[update]));
+      await invoice.save();
 
-      res.send(lr);
+      res.send(invoice);
     } catch (error) {
       console.log(error.message);
       res.status(500).send("Server Error");
@@ -535,18 +502,20 @@ router.patch(
   }
 );
 
-// @route   GET api/lrs/
-// @desc    Get Lrs with Duplicate Valid Number
+// @route   GET api/invoices/
+// @desc    Get Invoices with Duplicate Valid Number
 // @access  Private
 
-router.get("/validateDuplicateLrNo/:id", auth, async (req, res) => {
-  const { account, lrDate, lrNo, organisation } = JSON.parse(req.params.id);
+router.get("/validateDuplicateInvoiceNo/:id", auth, async (req, res) => {
+  const { account, invoiceDate, invoiceNo, organisation } = JSON.parse(
+    req.params.id
+  );
   try {
-    let timestamps = getFiscalYearTimestamps(lrDate);
+    let timestamps = getFiscalYearTimestamps(invoiceDate);
     const query = {
       account: account,
-      lrNo: lrNo,
-      lrDate: {
+      invoiceNo: invoiceNo,
+      invoiceDate: {
         $gte: timestamps.current.start,
         $lte: timestamps.current.end,
       },
@@ -554,10 +523,10 @@ router.get("/validateDuplicateLrNo/:id", auth, async (req, res) => {
     };
 
     console.log(query);
-    const lr = await Lr.findOne(query);
-    console.log(lr);
+    const invoice = await Invoice.findOne(query);
+    console.log(invoice);
 
-    res.json(lr);
+    res.json(invoice);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");
