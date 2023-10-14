@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 import { AgGridReact } from "ag-grid-react";
-import "ag-grid-community/dist/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-grid.css";
 import { useAuth } from "../../../hooks/use-auth";
 import { lrApi } from "../../../api/lr-api";
 import { lrTable } from "../../grids/grid-columns";

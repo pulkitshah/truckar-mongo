@@ -28,9 +28,14 @@ import { invoiceApi } from "../../../api/invoice-api";
 import { deliveryApi } from "../../../api/delivery-api";
 import TaxForm from "./tax-form";
 
-export const InvoiceEditForm = ({ deliveries, invoice = {}, onCancel }) => {
+export const InvoiceEditForm = ({
+  deliveries,
+  invoice = {},
+  onCancel,
+  gridApi,
+}) => {
   const router = useRouter();
-  const { user } = useAuth();
+  const { account } = useAuth();
   const dispatch = useDispatch();
   const [invoiceFormat, setInvoiceFormat] = React.useState(
     invoice.invoiceFormat
@@ -44,16 +49,16 @@ export const InvoiceEditForm = ({ deliveries, invoice = {}, onCancel }) => {
       customer: invoice.customer || null,
       billingAddress: invoice.billingAddress || null,
       deliveries: deliveries || [],
-      taxes: invoice.taxes ? JSON.parse(invoice.taxes) : [],
+      taxes: invoice.taxes ? invoice.taxes : [],
     },
     // validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
         deliveries.map(async (delivery) => {
-          if (!values.deliveries.find((e) => e.id === delivery.id)) {
+          if (!values.deliveries.find((e) => e._id === delivery._id)) {
             let updatedDelivery = {
-              id: delivery.id,
-              invoiceId: null,
+              _id: delivery._id,
+              invoice: null,
               particular: null,
               invoiceCharges: null,
               _version: delivery._version,
@@ -65,37 +70,37 @@ export const InvoiceEditForm = ({ deliveries, invoice = {}, onCancel }) => {
         });
 
         let editedInvoice = {
-          id: invoice.id,
-          organisationId: values.organisation.id,
+          _id: invoice._id,
+          organisation: values.organisation._id,
           invoiceNo: values.invoiceNo || "",
           invoiceDate: values.invoiceDate.format(),
           invoiceFormat: values.invoiceFormat,
-          customerId: values.customer.id,
-          billingAddressId: values.billingAddress.id,
-          taxes: JSON.stringify(values.taxes),
-          user: user.id,
+          customer: values.customer._id,
+          billingAddress: values.billingAddress._id,
+          taxes: values.taxes,
+          account: account._id,
           _version: invoice._version,
         };
         console.log(editedInvoice);
 
         await invoiceApi.updateInvoice(editedInvoice, dispatch);
 
-        editedInvoice.deliveries = JSON.stringify(
-          values.deliveries.map(async (delivery) => {
-            let updatedDelivery = {
-              id: delivery.id,
-              invoiceId: invoice.id,
-              particular: delivery.particular,
-              invoiceCharges: JSON.stringify(delivery.extraCharges || []),
-              _version: delivery._version,
-            };
+        editedInvoice.deliveries = values.deliveries.map(async (delivery) => {
+          let updatedDelivery = {
+            _id: delivery._id,
+            invoice: invoice._id,
+            particular: delivery.particular,
+            invoiceCharges: delivery.extraCharges || [],
+            _version: delivery._version,
+          };
 
-            console.log(
-              await deliveryApi.updateDelivery(updatedDelivery, dispatch)
-            );
-          })
-        );
+          console.log(
+            await deliveryApi.updateDelivery(updatedDelivery, dispatch)
+          );
+        });
         onCancel();
+
+        gridApi.refreshInfiniteCache();
         toast.success("Invoice updated!");
         router.push("/dashboard/invoices");
       } catch (err) {
@@ -108,6 +113,7 @@ export const InvoiceEditForm = ({ deliveries, invoice = {}, onCancel }) => {
     },
   });
 
+  console.log(formik.values);
   return (
     <>
       <form onSubmit={formik.handleSubmit}>
@@ -199,7 +205,7 @@ export const InvoiceEditForm = ({ deliveries, invoice = {}, onCancel }) => {
               </Typography>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
-                  <OrganisationAutocomplete formik={formik} user={user} />
+                  <OrganisationAutocomplete formik={formik} account={account} />
                 </Grid>
                 <Grid item xs={12}>
                   <DatePicker
@@ -267,7 +273,6 @@ export const InvoiceEditForm = ({ deliveries, invoice = {}, onCancel }) => {
                     setFieldValue={formik.setFieldValue}
                     handleBlur={formik.handleBlur}
                     type="customer"
-                    user={user}
                     formik={formik}
                   />
                 </Grid>
@@ -276,9 +281,8 @@ export const InvoiceEditForm = ({ deliveries, invoice = {}, onCancel }) => {
                   <AddressAutocomplete
                     type={"billingAddress"}
                     partyId={
-                      formik.values.customer && formik.values.customer.id
+                      formik.values.customer && formik.values.customer._id
                     }
-                    user={user}
                     formik={formik}
                   />
                 </Grid>

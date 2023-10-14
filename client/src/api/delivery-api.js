@@ -108,7 +108,7 @@ class DeliveryApi {
       const response = await axios.get(
         `/api/delivery/deliveriesbycustomer/${params}`
       );
-      console.log(response);
+
       let deliveries = response.data[0].rows;
       let count = response.data[0].count;
       return {
@@ -130,35 +130,29 @@ class DeliveryApi {
     }
   }
 
-  ////API Modified
   async getDeliveryById(id) {
     try {
-      //////////////////////// GraphQL API ////////////////////////
+      const response = await axios.get(`/api/delivery/id/${id}`);
 
-      const response = await API.graphql({
-        query: getDelivery,
-        variables: { id: id.toString() },
-      });
-
-      const delivery = response.data.getDelivery;
-
-      //////////////////////// GraphQL API ////////////////////////
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // const deliveries = await DataStore.query(Delivery, (c) =>
-      //   c.user("eq", user.id)
-      // );
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // console.log(deliveries);
-
-      return delivery;
-    } catch (error) {
-      console.log(error);
+      return {
+        status: response.status,
+        data: response.data,
+        error: false,
+      };
+    } catch (err) {
+      console.error("[Delivery Api]: ", err);
+      if (err) {
+        return {
+          status: 400,
+          data: err,
+          error:
+            "Delivery not fetched, please try again or contact customer support.",
+        };
+      }
     }
   }
+
+  ////API Modified
 
   async getDeliveriesByUser(user, token) {
     try {

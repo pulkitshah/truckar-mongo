@@ -7,8 +7,8 @@ import React, {
 } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-enterprise";
-import "ag-grid-community/dist/styles/ag-grid.css";
-import "ag-grid-community/dist/styles/ag-theme-balham.css";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-balham.css";
 import { useAuth } from "../../../hooks/use-auth";
 import { orderApi } from "../../../api/order-api";
 import { orderTable } from "../../grids/grid-columns";

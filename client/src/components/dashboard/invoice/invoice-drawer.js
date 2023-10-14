@@ -29,15 +29,8 @@ import { X as XIcon } from "../../../icons/x";
 import EditIcon from "@mui/icons-material/Edit";
 import { PropertyList } from "../../property-list";
 import { PropertyListItem } from "../../property-list-item";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useAuth } from "../../../hooks/use-auth";
 import { useDispatch } from "../../../store";
-import DeliveryDetails from "./delivery-details";
-import OrganisationAutocomplete from "../autocompletes/organisation-autcomplete/organisation-autocomplete";
-import PartyAutocomplete from "../autocompletes/party-autocomplete/party-autocomplete";
-import AddressAutocomplete from "../autocompletes/address-autocomplete/address-autocomplete";
-import OrderDetailsGrid from "./order-details-ag-grid";
-import { invoiceApi } from "../../../api/invoice-api";
 import { DeliveryCard } from "./delivery-card";
 import { deliveryApi } from "../../../api/delivery-api";
 import { InvoiceEditForm } from "./invoice-edit-form";
@@ -238,41 +231,14 @@ const InvoicePreview = (props) => {
 };
 
 export const InvoiceForm = (props) => {
-  const { invoice, onCancel } = props;
-  const dispatch = useDispatch();
-  const { user } = useAuth();
-
-  const [formDeliveries, setFormDeliveries] = useState(null);
-
-  let getDeliveries = async () => {
-    let del = [];
-    for (let delivery of invoice.deliveries) {
-      let data = await deliveryApi.getDeliveryById(delivery.id);
-      del.push({
-        ...data,
-        particular: delivery.particular,
-        invoiceCharges: delivery.invoiceCharges,
-      });
-    }
-    setFormDeliveries(del);
-    return;
-  };
-
-  useEffect(() => {
-    try {
-      getDeliveries();
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
-
-  if (!Array.isArray(formDeliveries)) return "...Loading";
+  const { invoice, onCancel, gridApi } = props;
 
   return (
     <InvoiceEditForm
       onCancel={onCancel}
       invoice={invoice}
-      deliveries={formDeliveries}
+      deliveries={invoice.deliveries}
+      gridApi={gridApi}
     />
   );
 };
@@ -300,7 +266,8 @@ const InvoiceDrawerMobile = styled(Drawer)({
 });
 
 export const InvoiceDrawer = (props) => {
-  const { containerRef, onClose, open, invoice, ...other } = props;
+  const { containerRef, onOpen, onClose, open, invoice, gridApi, ...other } =
+    props;
   const [isEditing, setIsEditing] = useState(false);
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up("lg"));
 
@@ -349,7 +316,12 @@ export const InvoiceDrawer = (props) => {
             lgUp={lgUp}
           />
         ) : (
-          <InvoiceForm onCancel={handleCancel} invoice={invoice} />
+          <InvoiceForm
+            onOpen={onOpen}
+            onCancel={handleCancel}
+            invoice={invoice}
+            gridApi={gridApi}
+          />
         )}
       </Box>
     </>

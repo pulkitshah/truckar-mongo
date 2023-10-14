@@ -8,7 +8,7 @@ import { partyApi } from "../../../../api/party-api";
 import AddNewPartyFromAutocomplete from "../party-autocomplete/party-addnew-autocomplete";
 import { useAuth } from "../../../../hooks/use-auth";
 
-const PartyAutocomplete = ({ sx, formik, type, user }) => {
+const PartyAutocomplete = ({ sx, formik, type }) => {
   const dispatch = useDispatch();
   const isMounted = useMounted();
   const { account } = useAuth();
@@ -187,7 +187,6 @@ const PartyAutocomplete = ({ sx, formik, type, user }) => {
         setDialogValue={setDialogValue}
         setFieldValue={formik.setFieldValue}
         type={type}
-        user={user}
       />
     </React.Fragment>
   );

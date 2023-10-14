@@ -119,6 +119,34 @@ let lookups = [
                   },
                 },
               },
+              {
+                $lookup: {
+                  from: "deliveries",
+                  let: {
+                    id: "$_id",
+                  },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: {
+                          $eq: ["$order", "$$id"],
+                        },
+                      },
+                    },
+                    {
+                      $project: {
+                        loading: 1,
+                        unloading: 1,
+                        lrNo: 1,
+                        billQuantity: 1,
+                        unloadingQuantity: 1,
+                        status: 1,
+                      },
+                    },
+                  ],
+                  as: "deliveries",
+                },
+              },
             ],
             as: "order",
           },
@@ -126,6 +154,102 @@ let lookups = [
         {
           $unwind: {
             path: "$order",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "lrs",
+            let: {
+              id: "$lr",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", "$$id"],
+                  },
+                },
+              },
+              {
+                $lookup: {
+                  from: "organisations",
+                  let: {
+                    id: "$organisation",
+                  },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: {
+                          $eq: ["$_id", "$$id"],
+                        },
+                      },
+                    },
+                  ],
+                  as: "organisation",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$organisation",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $lookup: {
+                  from: "addresses",
+                  let: {
+                    id: "$consignor",
+                  },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: {
+                          $eq: ["$_id", "$$id"],
+                        },
+                      },
+                    },
+                  ],
+                  as: "consignor",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$consignor",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+              {
+                $lookup: {
+                  from: "addresses",
+                  let: {
+                    id: "$consignee",
+                  },
+                  pipeline: [
+                    {
+                      $match: {
+                        $expr: {
+                          $eq: ["$_id", "$$id"],
+                        },
+                      },
+                    },
+                  ],
+                  as: "consignee",
+                },
+              },
+              {
+                $unwind: {
+                  path: "$consignee",
+                  preserveNullAndEmptyArrays: true,
+                },
+              },
+            ],
+            as: "lr",
+          },
+        },
+        {
+          $unwind: {
+            path: "$lr",
             preserveNullAndEmptyArrays: true,
           },
         },

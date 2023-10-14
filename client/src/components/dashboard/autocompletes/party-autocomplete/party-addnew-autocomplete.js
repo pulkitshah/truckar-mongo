@@ -28,7 +28,6 @@ const AddNewPartyFromAutocomplete = ({
   setFieldValue,
   toggleOpen,
   type,
-  user,
   ...rest
 }) => {
   const dispatch = useDispatch();

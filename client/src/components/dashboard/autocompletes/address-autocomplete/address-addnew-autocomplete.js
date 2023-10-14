@@ -30,7 +30,6 @@ const AddNewPartyAddressFromAutocomplete = ({
   toggleOpen,
   type,
   partyId,
-  user,
   ...rest
 }) => {
   const dispatch = useDispatch();

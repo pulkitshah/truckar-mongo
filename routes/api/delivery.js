@@ -584,4 +584,37 @@ router.get("/deliveriesbycustomer/:id", auth, async (req, res) => {
   const deliveries = await Delivery.aggregate(query);
   res.json(deliveries);
 });
+
+// @route   GET api/deliveries/:InvoiceID
+// @desc    Get Deliveries by invoiceID created by user
+///////////////////////////////// @access  Public
+
+router.get("/id/:id", async (req, res) => {
+  try {
+    let matches = { _id: new mongoose.Types.ObjectId(req.params.id) };
+
+    let query = [
+      // filter the results by our accountId
+      {
+        $match: Object.assign(matches),
+      },
+    ];
+
+    query = [...query, ...lookups];
+
+    const deliveries = await Delivery.aggregate(query);
+
+    if (!deliveries) {
+      res
+        .status(400)
+        .json({ errors: [{ msg: "There are no deliveries by this user" }] });
+    }
+
+    // console.log(response[0]);
+    res.json(deliveries[0]);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server Error");
+  }
+});
 module.exports = router;

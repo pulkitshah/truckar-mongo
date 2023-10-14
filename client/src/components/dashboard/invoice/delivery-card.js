@@ -13,6 +13,10 @@ import {
 import { deliveryApi } from "../../../api/delivery-api";
 import { useMounted } from "../../../hooks/use-mounted";
 import moment from "moment";
+import {
+  calculateAmountForDelivery,
+  formatNumber,
+} from "../../../utils/amount-calculation";
 
 export const DeliveryCard = (props) => {
   const { delivery, index, ...other } = props;
@@ -27,7 +31,7 @@ export const DeliveryCard = (props) => {
             container
             spacing={1}
             className="row"
-            key={delivery.id}
+            key={delivery._id}
             justifyContent={"space-between"}
           >
             <Grid item xs={12} className="col">
@@ -126,7 +130,9 @@ export const DeliveryCard = (props) => {
 
               <Grid item md={2} xs={12} className="col">
                 <Typography variant="body2">Amount</Typography>
-                <Typography variant="body2">{`Rs  `}</Typography>
+                <Typography variant="body2">
+                  {formatNumber(calculateAmountForDelivery(delivery, "sale"))}
+                </Typography>
               </Grid>
 
               {delivery.invoiceCharges.map((extraCharge, indexExtraCharge) => {

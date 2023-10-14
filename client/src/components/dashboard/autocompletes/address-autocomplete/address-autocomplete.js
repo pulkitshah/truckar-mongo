@@ -10,7 +10,6 @@ import { useAuth } from "../../../../hooks/use-auth";
 
 const AddressAutocomplete = ({
   formik,
-  user,
   address,
   partyId,
   disabled = false,
@@ -159,7 +158,6 @@ const AddressAutocomplete = ({
         setFieldValue={formik.setFieldValue}
         type={type}
         partyId={partyId}
-        user={user}
       />
     </React.Fragment>
   );

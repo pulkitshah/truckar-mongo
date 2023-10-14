@@ -946,7 +946,7 @@ const OrderForm = (props) => {
         <Typography sx={{ my: 3 }} variant="h6">
           Delivery details
         </Typography>
-        <GoogleMaps sx={{ my: 2 }} addresses={addresses} />
+        {/* <GoogleMaps sx={{ my: 2 }} addresses={addresses} /> */}
         <DeliveryDetails sx={{ my: 2 }} formik={formik} />
 
         <Divider sx={{ my: 3 }} />
