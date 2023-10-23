@@ -22,8 +22,16 @@ invoiceSchema = new mongoose.Schema({
   },
   deliveries: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "delivery",
+      delivery: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "delivery",
+      },
+      invoiceCharges: {
+        type: Array,
+      },
+      particular: {
+        type: Array,
+      },
     },
   ],
   taxes: {

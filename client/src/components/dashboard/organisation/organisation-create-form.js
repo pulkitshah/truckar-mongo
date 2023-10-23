@@ -21,6 +21,18 @@ import { v4 as uuid } from "uuid";
 import { organisationApi } from "../../../api/organisation-api";
 import { useDispatch } from "../../../store";
 
+import S3 from "react-aws-s3";
+
+const config = {
+  bucketName: "truckarprod",
+  dirName: "media/logos" /* optional */,
+  region: "ap-south-1",
+  accessKeyId: "AKIAZRZV5R3N7OYQNHHA",
+  secretAccessKey: "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",
+};
+
+const ReactS3Client = new S3(config);
+
 export const OrganisationCreateForm = (props) => {
   const router = useRouter();
   const dispatch = useDispatch();
@@ -79,17 +91,31 @@ export const OrganisationCreateForm = (props) => {
         const id = uuid();
         values.id = id;
         values.user = user.id;
-        const filename = `${user.id}_organisationLogo_${id}`;
+
         let logoBase64;
         let logo;
         if (values.logo) {
           logoBase64 = await fetch(values.logo);
           logo = await logoBase64.blob();
-          values.logo = filename;
-          await Storage.put(filename, logo);
+          values.logo = null;
+          // await Storage.put(filename, logo);
         }
 
-        await organisationApi.createOrganisation(values, dispatch);
+        const response = await organisationApi.createOrganisation(
+          values,
+          dispatch
+        );
+
+        ReactS3Client.uploadFile(logo, `${response.data._id}/logo`)
+          .then(async (data) => {
+            console.log(data);
+            let updatedOrganisation = await organisationApi.updateOrganisation(
+              { _id: response.data._id, logo: data },
+              dispatch
+            );
+            console.log(updatedOrganisation);
+          })
+          .catch((err) => console.error(err));
 
         toast.success("Organisation created!");
         router.push("/dashboard/organisations");

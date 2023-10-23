@@ -174,10 +174,9 @@ export const OrderCreateForm = (props) => {
     validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
-        console.log(values);
         const newOrder = {
           orderNo: parseInt(values.orderNo),
-          saleDate: values.saleDate.format("DD/MM/YYYY"),
+          saleDate: values.saleDate.format(),
           customer: values.customer,
           saleRate: values.saleRate,
           saleType: values.saleType,
@@ -433,6 +432,7 @@ export const OrderCreateForm = (props) => {
                       setDriver={setDriver}
                       account={account}
                       values={formik.values}
+                      formik={formik}
                     />
                   ) : (
                     selectedVehicle !== null && (

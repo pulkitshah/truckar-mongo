@@ -53,7 +53,7 @@ const organisationSchema = new Schema({
     type: String,
   },
   logo: {
-    type: String,
+    type: Object,
   },
   account: {
     type: mongoose.Schema.Types.ObjectId,

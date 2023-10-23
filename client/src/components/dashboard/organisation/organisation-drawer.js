@@ -31,12 +31,23 @@ import { PropertyListItem } from "../../property-list-item";
 import { organisationApi } from "../../../api/organisation-api";
 import { OrganisationLogoDropzone } from "./organisation-logo-dropzone";
 
+import S3 from "react-aws-s3";
+
+const config = {
+  bucketName: "truckarprod",
+  dirName: "media/logos" /* optional */,
+  region: "ap-south-1",
+  accessKeyId: "AKIAZRZV5R3N7OYQNHHA",
+  secretAccessKey: "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",
+};
+
+const ReactS3Client = new S3(config);
+
 const OrganisationPreview = (props) => {
   const dispatch = useDispatch();
-  const isMounted = useMounted();
+
   const { lgUp, onEdit, organisation } = props;
   const align = lgUp ? "horizontal" : "vertical";
-  const [organisationLogo, setOrganisationLogo] = useState();
   const [file, setFile] = useState();
   const [croppedImage, setCroppedImage] = useState();
 
@@ -55,58 +66,37 @@ const OrganisationPreview = (props) => {
   };
 
   const handleSaveCroppedImage = async (cropper) => {
-    const filename = `${organisation.user}_organisationLogo_${organisation._id}`;
     let logoBase64;
     let logo;
-    logoBase64 = await fetch(cropper.getCroppedCanvas().toDataURL());
-    logo = await logoBase64.blob();
-    await Storage.put(filename, logo);
+    if (values.logo) {
+      logoBase64 = await fetch(cropper.getCroppedCanvas().toDataURL());
+      logo = await logoBase64.blob();
+    }
 
-    let editedOrganisation = {
-      _id: organisation._id,
-      _version: organisation._version,
-      logo: filename,
-    };
-
-    await organisationApi.updateOrganisation(editedOrganisation, dispatch);
-    setOrganisationLogo(logo);
+    ReactS3Client.uploadFile(logo, `${organisation._id}/logo`)
+      .then(async (data) => {
+        console.log(data);
+        let updatedOrganisation = await organisationApi.updateOrganisation(
+          { _id: organisation._id, logo: data },
+          dispatch
+        );
+        console.log(updatedOrganisation);
+      })
+      .catch((err) => console.error(err));
   };
 
-  const getOrganisationLogo = useCallback(async () => {
-    try {
-      setOrganisationLogo(null);
-      const logo = await Storage.get(organisation.logo);
-
-      if (isMounted()) {
-        if (organisation.logo) {
-          setOrganisationLogo(logo);
-        } else {
-          setOrganisationLogo(null);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }, [isMounted]);
-
-  useEffect(() => {
-    try {
-      getOrganisationLogo();
-    } catch (error) {
-      console.log(error);
-    }
-  }, [organisation]);
+  console.log(organisation);
 
   return (
     <>
-      {organisationLogo && (
+      {organisation.logo && (
         <img
           style={{ width: "100%", height: "auto" }}
-          src={organisationLogo}
+          src={`${organisation.logo.location}?${Math.random()}`}
           alt="Business Logo"
         />
       )}
-      {!organisationLogo && (
+      {!organisation.logo && (
         <OrganisationLogoDropzone
           accept="image/*"
           file={file}
@@ -278,15 +268,24 @@ const OrganisationForm = (props) => {
     onSubmit: async (values, helpers) => {
       try {
         // NOTE: Make API request
-        const filename = `${organisation.user}_organisationLogo_${organisation._id}`;
         let logoBase64;
         let logo;
         if (values.logo) {
           logoBase64 = await fetch(values.logo);
           logo = await logoBase64.blob();
-          values.logo = filename;
-          await Storage.put(filename, logo);
+          values.logo = null;
         }
+
+        ReactS3Client.uploadFile(logo, `${organisation._id}/logo`)
+          .then(async (data) => {
+            console.log(data);
+            let updatedOrganisation = await organisationApi.updateOrganisation(
+              { _id: organisation._id, logo: data },
+              dispatch
+            );
+            console.log(updatedOrganisation);
+          })
+          .catch((err) => console.error(err));
 
         await organisationApi.updateOrganisation(values, dispatch);
 

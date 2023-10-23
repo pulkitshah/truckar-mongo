@@ -17,8 +17,8 @@ class InvoiceApi {
     try {
       console.log(params);
       const response = await axios.get(`/api/invoice/${params}`);
-      console.log(response);
       let invoices = response.data[0].rows;
+      console.log(invoices);
       let count = response.data[0].count;
       return {
         status: response.status,

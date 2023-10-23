@@ -727,6 +727,8 @@ const OrderForm = (props) => {
         if (values.purchaseAdvance)
           editedOrder.purchaseAdvance = parseFloat(values.purchaseAdvance);
 
+        console.log(editedOrder);
+
         let { data } = await orderApi.updateOrder(editedOrder, dispatch);
         console.log(data);
         data.deliveries = [];

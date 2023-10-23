@@ -91,18 +91,20 @@ let lookups = [
       preserveNullAndEmptyArrays: true,
     },
   },
+  { $unwind: "$deliveries" },
   {
     $lookup: {
       from: "deliveries",
       let: {
-        id: "$_id",
+        id: { $toObjectId: "$deliveries._id" },
+        deliveries: "$deliveries",
       },
+
       pipeline: [
+        { $match: { $expr: { $eq: ["$_id", "$$id"] } } },
         {
-          $match: {
-            $expr: {
-              $eq: ["$invoice", "$$id"],
-            },
+          $replaceRoot: {
+            newRoot: { $mergeObjects: ["$$deliveries", "$$ROOT"] },
           },
         },
         {

@@ -77,6 +77,7 @@ export const InvoiceEditForm = ({
           invoiceFormat: values.invoiceFormat,
           customer: values.customer._id,
           billingAddress: values.billingAddress._id,
+          deliveries: values.deliveries,
           taxes: values.taxes,
           account: account._id,
           _version: invoice._version,
@@ -85,19 +86,19 @@ export const InvoiceEditForm = ({
 
         await invoiceApi.updateInvoice(editedInvoice, dispatch);
 
-        editedInvoice.deliveries = values.deliveries.map(async (delivery) => {
-          let updatedDelivery = {
-            _id: delivery._id,
-            invoice: invoice._id,
-            particular: delivery.particular,
-            invoiceCharges: delivery.extraCharges || [],
-            _version: delivery._version,
-          };
+        // editedInvoice.deliveries = values.deliveries.map(async (delivery) => {
+        //   let updatedDelivery = {
+        //     _id: delivery._id,
+        //     invoice: invoice._id,
+        //     particular: delivery.particular,
+        //     invoiceCharges: delivery.extraCharges || [],
+        //     _version: delivery._version,
+        //   };
 
-          console.log(
-            await deliveryApi.updateDelivery(updatedDelivery, dispatch)
-          );
-        });
+        //   console.log(
+        //     await deliveryApi.updateDelivery(updatedDelivery, dispatch)
+        //   );
+        // });
         onCancel();
 
         gridApi.refreshInfiniteCache();

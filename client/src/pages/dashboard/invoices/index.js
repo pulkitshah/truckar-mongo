@@ -26,7 +26,7 @@ import { Plus as PlusIcon } from "../../../icons/plus";
 import { Search as SearchIcon } from "../../../icons/search";
 import { gtm } from "../../../lib/gtm";
 import { useDispatch, useSelector } from "../../../store";
-import { partyApi } from "../../../api/party-api";
+import { organisationApi } from "../../../api/organisation-api";
 
 const InvoiceListInner = styled("div", {
   shouldForwardProp: (prop) => prop !== "open",
@@ -179,7 +179,6 @@ const InvoiceList = () => {
           onClose={handleCloseDrawer}
           onOpen={handleOpenDrawer}
           open={drawer.isOpen}
-          lr={drawer.lr}
           gridApi={gridApi}
           invoice={drawer.invoice}
         />

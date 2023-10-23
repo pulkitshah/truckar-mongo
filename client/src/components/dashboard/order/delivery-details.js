@@ -12,7 +12,7 @@ import {
 import { DistanceMatrixService } from "@react-google-maps/api";
 import { Trash as TrashIcon } from "../../../icons/trash";
 import { Plus as PlusIcon } from "../../../icons/plus";
-// import GoogleMaps from "./google-places-autocomplete";
+import GoogleMaps from "./google-places-autocomplete";
 
 const DeliveryForm = ({ sx, formik, ...rest }) => {
   const [noOfDeliveries, setNoOfDeliveries] = React.useState(1);
@@ -126,7 +126,7 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                         sx={{ mb: 2 }}
                       >
                         <Grid item md={5} xs={12} className="col" key={index}>
-                          {/* <GoogleMaps
+                          <GoogleMaps
                             label={"Loading"}
                             error={errorLoading}
                             touched={touchedLoading}
@@ -137,10 +137,10 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                             index={index}
                             type="loading"
                             formik={formik}
-                          /> */}
+                          />
                         </Grid>
                         <Grid item md={5} xs={12} className="col">
-                          {/* <GoogleMaps
+                          <GoogleMaps
                             label={"Unloading"}
                             error={errorUnloading}
                             touched={touchedUnloading}
@@ -151,30 +151,8 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                             index={index}
                             type="unloading"
                             formik={formik}
-                          /> */}
+                          />
                         </Grid>
-                        {/* <Grid item md={2} xs={12} className="col">
-                          {delivery.loading.description &&
-                            delivery.unloading.description && (
-                              <DistanceMatrixService
-                                options={{
-                                  origins: [delivery.loading.description],
-                                  destinations: [
-                                    delivery.unloading.description,
-                                  ],
-                                  travelMode: "DRIVING",
-                                }}
-                                // required
-                                callback={distanceCallback}
-                              />
-                            )}
-                          <Typography variant="h6">
-                            {getDistance(
-                              delivery.loading.description,
-                              delivery.unloading.description
-                            )}
-                          </Typography>
-                        </Grid> */}
                         <Grid item className="col">
                           <Button
                             disabled={index < 1}

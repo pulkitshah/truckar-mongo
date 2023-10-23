@@ -23,13 +23,6 @@ deliverySchema = new mongoose.Schema({
   status: {
     type: String,
   },
-  particular: {
-    type: Array,
-  },
-
-  invoiceCharges: {
-    type: Array,
-  },
 
   lr: {
     type: mongoose.Schema.Types.ObjectId,
