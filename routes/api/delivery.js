@@ -294,6 +294,53 @@ let lookups = [
       preserveNullAndEmptyArrays: true,
     },
   },
+  {
+    $lookup: {
+      from: "invoices",
+      let: {
+        id: "$_id",
+        delivery: { $toObjectId: "$deliveries._id" },
+      },
+      pipeline: [
+        {
+          $unwind: "$deliveries", // Unwind the nested array to access its elements individually
+        },
+        {
+          $match: {
+            $expr: {
+              $eq: ["$deliveries._id", "$$id"],
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "organisations",
+            let: {
+              id: "$organisation",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", "$$id"],
+                  },
+                },
+              },
+            ],
+            as: "organisation",
+          },
+        },
+        {
+          $unwind: {
+            path: "$organisation",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ],
+      as: "invoices",
+    },
+  },
+  // { $unwind: "$invoices" },
 ];
 
 // @route   POST api/delivery

@@ -367,6 +367,34 @@ export const deliveriesTable = (account) => {
       },
     },
     {
+      field: "salesInvoice",
+      headerName: "Sale Bill No",
+      width: 90,
+      cellRenderer: (params) => {
+        if (params.data) {
+          if (params.data.invoices.length) {
+            console.log(params.data.invoices);
+            return params.data.invoices
+              .map(
+                (invoice) =>
+                  `${invoice.organisation.initials}-${invoice.invoiceNo}`
+              )
+              .join(" - ");
+          } else {
+            return (
+              <Link
+                color="primary"
+                href={`/dashboard/sales/new?deliveryId=${params.data._id}&orderId=${params.data.order._id}`}
+                variant="body"
+              >
+                Make Invoice
+              </Link>
+            );
+          }
+        }
+      },
+    },
+    {
       field: "orderNo",
       headerName: "Order No",
       width: 120,
