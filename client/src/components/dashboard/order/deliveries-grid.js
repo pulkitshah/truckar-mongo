@@ -55,6 +55,9 @@ const DeliveriesGrid = ({ onOpenDrawer }) => {
               .getSelectedNodes()
               .map((node) => onOpenDrawer(node.data.order, gridApi));
           }}
+          pagination={true}
+          paginationAutoPageSize={true}
+          maxConcurrentDatasourceRequests={5}
         />
       </div>
     </div>

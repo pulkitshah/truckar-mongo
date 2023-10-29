@@ -1,0 +1,115 @@
+const organisation = [
+  {
+    _id: "602f9ac51b3bce50fd687833",
+    account: "600ac7953ee4670344b0a81f",
+    name: "Prime Trucking",
+    city: "Rajkot",
+    __v: 2,
+    gstin: "24AMGPA6537Q1ZR",
+    pan: "AMGPA6537Q1Z",
+    initials: "PT",
+    addressLine1: "20, Ahiya complex, Opp.jimmy tower, Gondal road",
+    addressLine2: "",
+    invoiceTermsAndConditions:
+      "1. Please mention the invoice number on your cheque issued.\n2. Delay payment will attract interest @ 3% per month.\n3. Liability to pay G.S.T under goods transport service is of the recipient of the service.\n4. Subject to Rajkot Jurisdiction\n5. E. &  O. E. ",
+    logo: {
+      bucket: "truckarprod",
+      key: "media/logos/602f9ac51b3bce50fd687833/logo.png",
+      location:
+        "https://truckarprod.s3-ap-south-1.amazonaws.com/media/logos/602f9ac51b3bce50fd687833/logo.png",
+      status: 204,
+    },
+    bankAccountNumber: "",
+    bankBranchName: "",
+    bankIFSC: "",
+    bankName: "",
+    contact: "+91 7698500001",
+    email: "tprimeservices@gmail.com",
+  },
+  {
+    _id: "610bcc5c8b5d870015845d42",
+    account: "610bbf45de9a2f36ceedd79e",
+    name: "MCL FREIGHT",
+    initials: "MCL",
+    addressLine1: "Office No 506 5th Floor, Silk Route",
+    pan: "AVYPP6798H",
+    gstin: "24AVYPP6798H1ZG",
+    city: "RAJKOT",
+    __v: 0,
+    addressLine2:
+      "Dr. Ambedkar Chowk, 150 Feet Road, Mavadi, Rajkot Gujarat 360004",
+    bankAccountNumber: "624805500690",
+    bankBranchName: "ICICI BANK KALAWAD ROAD",
+    bankIFSC: "ICIC0006248",
+    bankName: "ICICI BANK RAJKOT",
+    invoiceTermsAndConditions:
+      "Enclosed Original sign by Ack\nPlease make all payments by A/c payee cheque/DD drawn in favour of MCL Freight only against official money receipt.\nInterest @18% per annum will be charged on all outstanding bills.",
+    logo: {
+      bucket: "truckarprod",
+      key: "media/logos/610bcc5c8b5d870015845d42/logo.jpeg",
+      location:
+        "https://truckarprod.s3-ap-south-1.amazonaws.com/media/logos/610bcc5c8b5d870015845d42/logo.jpeg",
+      status: 204,
+    },
+    contact: "+91 9924204096 +91 9374404096",
+    email: "bkp.mclrkt@gmail.com, ravimclrkt@gmail.com",
+  },
+  {
+    _id: "600efe882a0ad35ed7058c52",
+    account: "600ac7953ee4670344b0a81f",
+    name: "Prime Logistics",
+    gstin: "24AAUFP8519P1Z8",
+    city: "Rajkot",
+    date: "2021-01-25T17:23:20.746Z",
+    __v: 1,
+    pan: "AAUFP8519P1Z",
+    initials: "PL",
+    addressLine1: "20, Ahiya complex, Opp.jimmy tower, Gondal road",
+    addressLine2: "",
+    logo: {
+      bucket: "truckarprod",
+      key: "media/logos/600efe882a0ad35ed7058c52/logo.jpeg",
+      location:
+        "https://truckarprod.s3-ap-south-1.amazonaws.com/media/logos/600efe882a0ad35ed7058c52/logo.jpeg",
+      status: 204,
+    },
+    invoiceTermsAndConditions:
+      "1. Please mention the invoice number on your cheque issued.\n2. Delay payment will attract interest @ 3% per month.\n3. Liability to pay G.S.T under goods transport service is of the recipient of the service.\n4. Subject to Rajkot Jurisdiction\n5. E. &  O. E. ",
+    bankAccountNumber: "2013450391",
+    bankBranchName: "Nath Vihar, Rajkot",
+    bankIFSC: "KKBK0000831",
+    bankName: "Kotak Bank",
+    contact: "+91 7698500001",
+    email: "tprimeservices@gmail.com",
+  },
+  {
+    _id: "610bd7de8b5d870015845d47",
+    account: "610bbf45de9a2f36ceedd79e",
+    name: "MAULIK CARGO AND LOGISTICS",
+    initials: "MAULIK",
+    addressLine1: "Office No 506 5th Floor, Silk Route",
+    addressLine2:
+      "Dr. Ambedkar Chowk, 150 Feet Ring Road, Mavadi, Rajkot Gujarat 360004",
+    city: "RAJKOT",
+    contact: "+91 9924204096 +91 9374404096",
+    email: "bkp.mclrkt@gmail.com, ravimclrkt@gmail.com",
+    pan: "AAPFM4573M",
+    gstin: "24AAPFM4573M1ZO",
+    invoiceTermsAndConditions:
+      "Enclosed Original sign by Ack\nPlease make all payments by A/c payee cheque/DD drawn in favor of Maulik cargo and logistics only against official money receipt.\nInterest @18% per annum will be charged on all outstanding bills.",
+    bankAccountNumber: "575011021162",
+    bankBranchName: "GYMKHANA ROAD RAJKOT",
+    bankIFSC: "KKBK0002795",
+    bankName: "Kotak Mahindra Bank Rajkot",
+    logo: {
+      bucket: "truckarprod",
+      key: "media/logos/610bd7de8b5d870015845d47/logo.jpeg",
+      location:
+        "https://truckarprod.s3-ap-south-1.amazonaws.com/media/logos/610bd7de8b5d870015845d47/logo.jpeg",
+      status: 204,
+    },
+    __v: 0,
+  },
+];
+
+module.exports = organisation;

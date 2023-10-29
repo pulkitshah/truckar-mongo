@@ -6,6 +6,22 @@ const auth = require("../../middlleware/auth");
 
 const router = express.Router();
 
+const importdata = require("../../data/done - drivers");
+
+// @route   POST api/driver/insertmany
+// @desc    Create many Vehicles
+// @access  Private
+
+router.post("/insertmany", auth, async (req, res) => {
+  try {
+    addresses = await Driver.insertMany(importdata);
+    res.json(importdata);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 // @route   POST api/driver
 // @desc    Create Driver
 // @access  Privates

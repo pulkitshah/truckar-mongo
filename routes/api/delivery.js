@@ -5,38 +5,40 @@ const Delivery = require("../../models/Delivery");
 const auth = require("../../middlleware/auth");
 
 const router = express.Router();
+const importdata = require("../../data/deliveries");
+console.log(importdata);
 
 let lookups = [
   // each blog has a single user (author) so flatten it using $unwind
   { $unwind: "$account" },
-  {
-    $lookup: {
-      from: "parties",
-      let: {
-        id: "$customer",
-      },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $eq: ["$_id", "$$id"],
-            },
-          },
-        },
-        {
-          $project: {
-            name: 1,
-            city: 1,
-            mobile: 1,
-            isTransporter: 1,
-            _id: 1,
-          },
-        },
-      ],
-      as: "customer",
-    },
-  },
-  { $unwind: "$customer" },
+  // {
+  //   $lookup: {
+  //     from: "parties",
+  //     let: {
+  //       id: "$customer",
+  //     },
+  //     pipeline: [
+  //       {
+  //         $match: {
+  //           $expr: {
+  //             $eq: ["$_id", "$$id"],
+  //           },
+  //         },
+  //       },
+  //       {
+  //         $project: {
+  //           name: 1,
+  //           // city: 1,
+  //           mobile: 1,
+  //           // isTransporter: 1,
+  //           _id: 1,
+  //         },
+  //       },
+  //     ],
+  //     as: "customer",
+  //   },
+  // },
+  // { $unwind: "$customer" },
   {
     $lookup: {
       from: "orders",
@@ -98,7 +100,7 @@ let lookups = [
                   name: 1,
                   city: 1,
                   mobile: 1,
-                  isTransporter: 1,
+                  // isTransporter: 1,
                   _id: 1,
                 },
               },
@@ -112,30 +114,30 @@ let lookups = [
             preserveNullAndEmptyArrays: true,
           },
         },
-        {
-          $lookup: {
-            from: "vehicles",
-            let: {
-              id: "$vehicle",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-            ],
-            as: "vehicle",
-          },
-        },
-        {
-          $unwind: {
-            path: "$vehicle",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
+        // {
+        //   $lookup: {
+        //     from: "vehicles",
+        //     let: {
+        //       id: "$vehicle",
+        //     },
+        //     pipeline: [
+        //       {
+        //         $match: {
+        //           $expr: {
+        //             $eq: ["$_id", "$$id"],
+        //           },
+        //         },
+        //       },
+        //     ],
+        //     as: "vehicle",
+        //   },
+        // },
+        // {
+        //   $unwind: {
+        //     path: "$vehicle",
+        //     preserveNullAndEmptyArrays: true,
+        //   },
+        // },
         {
           $lookup: {
             from: "drivers",
@@ -160,34 +162,34 @@ let lookups = [
             preserveNullAndEmptyArrays: true,
           },
         },
-        {
-          $lookup: {
-            from: "deliveries",
-            let: {
-              id: "$_id",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$order", "$$id"],
-                  },
-                },
-              },
-              {
-                $project: {
-                  loading: 1,
-                  unloading: 1,
-                  lrNo: 1,
-                  billQuantity: 1,
-                  unloadingQuantity: 1,
-                  status: 1,
-                },
-              },
-            ],
-            as: "deliveries",
-          },
-        },
+        // {
+        //   $lookup: {
+        //     from: "deliveries",
+        //     let: {
+        //       id: "$_id",
+        //     },
+        //     pipeline: [
+        //       {
+        //         $match: {
+        //           $expr: {
+        //             $eq: ["$order", "$$id"],
+        //           },
+        //         },
+        //       },
+        //       {
+        //         $project: {
+        //           loading: 1,
+        //           unloading: 1,
+        //           lrNo: 1,
+        //           billQuantity: 1,
+        //           unloadingQuantity: 1,
+        //           status: 1,
+        //         },
+        //       },
+        //     ],
+        //     as: "deliveries",
+        //   },
+        // },
       ],
       as: "order",
     },
@@ -343,6 +345,20 @@ let lookups = [
   // { $unwind: "$invoices" },
 ];
 
+// @route   POST api/order/insertmany
+// @desc    Create many Vehicles
+// @access  Private
+
+router.post("/insertmany", auth, async (req, res) => {
+  try {
+    await Delivery.insertMany(importdata);
+    res.json(importdata);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 // @route   POST api/delivery
 // @desc    Create Delivery
 // @access  Private
@@ -442,10 +458,11 @@ router.get("/deliveriesbyorder/:id", auth, async (req, res) => {
  */
 
 router.get("/:id", auth, async (req, res) => {
+  console.log(req.params.id);
   const {
     account,
-    startRow,
-    endRow,
+    startRow = 0,
+    endRow = 100,
     filter = {},
     sort = { order: -1 },
   } = JSON.parse(req.params.id);
@@ -466,14 +483,11 @@ router.get("/:id", auth, async (req, res) => {
   //   throw new Error("endRow must be number");
   // }
 
-  let matches = { account: new mongoose.Types.ObjectId(account) };
-
-  let query = [
-    // filter the results by our accountId
-    {
-      $match: Object.assign(matches),
-    },
-  ];
+  let query = [];
+  if (account)
+    query.push({
+      $match: Object.assign({ account: new mongoose.Types.ObjectId(account) }),
+    });
 
   // filter according to filterModel object
   // if (filter.orderNo) {

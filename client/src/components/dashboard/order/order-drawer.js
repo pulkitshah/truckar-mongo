@@ -228,7 +228,7 @@ const OrderPreview = (props) => {
           <DeliveryDetailsGrid order={order} gridApi={gridApi} />
         </Box>
         {console.log(order)}
-        {(!(typeof order.vehicle === "object") || order.vehicle === null) && (
+        {!Boolean(order.vehicle) && (
           <>
             <Divider sx={{ my: 3 }} />
             <Box
@@ -376,6 +376,7 @@ const OrderPreview = (props) => {
               {({ remove, push }) => (
                 <Box sx={{ mt: 4 }} {...props}>
                   <Grid container spacing={3}>
+                    {console.log(formik.values.orderExpenses)}
                     <Grid item xs={12}>
                       {formik.values.orderExpenses.length > 0 &&
                         formik.values.orderExpenses.map((delivery, index) => {

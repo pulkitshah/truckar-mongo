@@ -33,11 +33,6 @@ deliverySchema = new mongoose.Schema({
     ref: "customer",
   },
 
-  invoice: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "invoice",
-  },
-
   order: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "order",

@@ -4,7 +4,23 @@ const { check, validationResult } = require("express-validator/check");
 const Party = require("../../models/Party");
 const auth = require("../../middlleware/auth");
 
+const importdata = require("../../data/done- party");
+
 const router = express.Router();
+
+// @route   POST api/party/insertmany
+// @desc    Create many parties
+// @access  Private
+
+router.post("/insertmany", auth, async (req, res) => {
+  try {
+    parties = await Party.insertMany(importdata);
+    res.json(importdata);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server Error");
+  }
+});
 
 // @route   POST api/party
 // @desc    Create Party

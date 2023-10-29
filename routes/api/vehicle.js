@@ -5,6 +5,21 @@ const Vehicle = require("../../models/Vehicle");
 const auth = require("../../middlleware/auth");
 
 const router = express.Router();
+const importdata = require("../../data/done - vehicles");
+
+// @route   POST api/vehicle/insertmany
+// @desc    Create many Vehicles
+// @access  Private
+
+router.post("/insertmany", auth, async (req, res) => {
+  try {
+    addresses = await Vehicle.insertMany(importdata);
+    res.json(importdata);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server Error");
+  }
+});
 
 // @route   POST api/vehicle
 // @desc    Create Vehicle

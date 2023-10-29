@@ -1,0 +1,65 @@
+[
+  {
+    "_id": "610bbf45de9a2f36ceedd79e",
+    "createdBy": "610bbf45de9a2f36ceedd79e",
+    "name": "Brijesh Kumar Pandey",
+    "email": "bkp.mclrkt@gmail.com",
+    "password": "$2a$10$18R2gtm8BYRGutBdorJH9ObgHEEokztI.ae7ITI3uyO3QvPdldW4y",
+    "tokens": [],
+    "branchIds": [],
+    "date": "2021-08-05T10:36:53.174Z",
+    "__v": 1,
+    "accountType": {
+      "commissionAgent": true,
+      "trader": true,
+      "vehicleOwner": false
+    },
+    "marketName": "MCL Freight",
+    "mobile": "9924204096",
+    "waId": "919924204096",
+    "defaultCharges": [
+      {
+        "expenseAmount": "50",
+        "expenseName": "statisticalCharges",
+        "expenseDisplay": "lorryReceipt"
+      },
+      {
+        "expenseDisplay": "lorryReceipt",
+        "expenseAmount": "25",
+        "expenseName": "misc"
+      }
+    ],
+    "extraDeliveryCharge": [
+      {
+        "expenseAmount": "50",
+        "expenseName": "statisticalCharges",
+        "expenseDisplay": "lorryReceipt"
+      },
+      {
+        "expenseDisplay": "lorryReceipt",
+        "expenseAmount": "25",
+        "expenseName": "misc"
+      },
+      {
+        "expenseDisplay": "invoice",
+        "expenseAmount": "2500",
+        "expenseName": "Extra Delivery Charge"
+      }
+    ]
+  },
+  {
+    "defaultCharges": [],
+    "extraDeliveryCharge": [],
+    "_id": "610bd35c8b5d870015845d46",
+    "waId": "919067223628",
+    "name": "SUSHANT",
+    "email": "sushantpandey478@gmail.com",
+    "mobile": "9067223628",
+    "password": "$2a$10$nXGBwmUptp6uhe7v58DPs.DGBpAksZcfBJH57ja7GgVNr35Wuw1Ai",
+    "createdBy": "610bbf45de9a2f36ceedd79e",
+    "tokens": [],
+    "branchIds": [],
+    "date": "2021-08-05T12:02:36.086Z",
+    "__v": 0
+  }
+]

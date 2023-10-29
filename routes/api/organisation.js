@@ -6,6 +6,22 @@ const auth = require("../../middlleware/auth");
 
 const router = express.Router();
 
+const importdata = require("../../data/done - organisation");
+
+// @route   POST api/organisation/insertmany
+// @desc    Create many parties
+// @access  Private
+
+router.post("/insertmany", auth, async (req, res) => {
+  try {
+    addresses = await Organisation.insertMany(importdata);
+    res.json(importdata);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 // @route   POST api/organisation
 // @desc    Create Organisation
 // @access  Private

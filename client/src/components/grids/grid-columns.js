@@ -119,7 +119,11 @@ export const partyTable = [
     headerName: "City",
     width: 250,
     valueGetter: (params) => {
-      return `${params.row.city.description}`;
+      if (params.row.city) {
+        return `${params.row.city.description}`;
+      } else {
+        console.log(params.row);
+      }
     },
   },
   {

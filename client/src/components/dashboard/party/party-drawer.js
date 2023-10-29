@@ -117,7 +117,7 @@ const PartyPreview = (props) => {
           align={align}
           disableGutters
           label="City"
-          value={party.city.description}
+          value={party.city ? party.city.description : ""}
         />
         <PropertyListItem
           align={align}
