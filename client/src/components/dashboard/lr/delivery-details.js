@@ -2,6 +2,7 @@ import React from "react";
 import { v4 as uuidv4 } from "uuid";
 import { FormikProvider, FieldArray, getIn } from "formik";
 import {
+  Card,
   Grid,
   Typography,
   Button,
@@ -19,68 +20,67 @@ const DeliveryForm = ({ sx, formik, order, user, ...rest }) => {
   return (
     <React.Fragment>
       <FormikProvider value={formik}>
-        <FieldArray name="deliveryDetails" error={formik.errors}>
+        <FieldArray name="deliveries" error={formik.errors}>
           {() => (
             <React.Fragment>
-              {formik.values.deliveryDetails.length > 0 &&
-                formik.values.deliveryDetails.map((delivery, index) => {
-                  const loading = `deliveryDetails[${index}].loading`;
-                  const touchedLoading = getIn(formik.touched, loading);
-                  const errorLoading = getIn(formik.errors, loading);
-
-                  const unloading = `deliveryDetails[${index}].unloading`;
-                  const touchedUnloading = getIn(formik.touched, unloading);
-                  const errorUnloading = getIn(formik.errors, unloading);
-
+              {formik.values.deliveries.length > 0 &&
+                formik.values.deliveries.map((delivery, index) => {
                   return (
                     <React.Fragment>
                       {index > 0 && <Divider sx={{ mb: 2 }} />}
-
                       <Grid
                         container
                         spacing={1}
                         className="row"
                         key={index}
-                        alignItems={"center"}
                         sx={{ my: 2 }}
                       >
-                        <Grid item md={5} xs={12} className="col" key={index}>
-                          <GoogleMaps
-                            label={"Loading"}
-                            error={errorLoading}
-                            touched={touchedLoading}
-                            name={loading}
-                            setFieldValue={formik.setFieldValue}
-                            handleBlur={formik.handleBlur}
-                            values={formik.values}
-                            index={index}
-                            type="loading"
-                            formik={formik}
-                          />
+                        <Grid item xs={12} className="col" key={index}>
+                          <Card sx={{ p: 2, my: 3 }}>
+                            <Grid container justify="space-between" spacing={3}>
+                              <Grid item textAlign={"center"} xs={4}>
+                                <Typography variant="h5" color="textPrimary">
+                                  {
+                                    formik.values.deliveries[index].loading
+                                      .structured_formatting.main_text
+                                  }
+                                </Typography>
+                                <Typography
+                                  variant="overline"
+                                  color="textSecondary"
+                                >
+                                  Loading
+                                </Typography>
+                              </Grid>
+                              <Grid item textAlign={"center"} xs={4}>
+                                <Typography variant="h5" color="textPrimary">
+                                  {
+                                    formik.values.deliveries[index].unloading
+                                      .structured_formatting.main_text
+                                  }
+                                </Typography>
+                                <Typography
+                                  variant="overline"
+                                  color="textSecondary"
+                                >
+                                  Unloading
+                                </Typography>
+                              </Grid>
+                              <Grid item textAlign={"center"} xs={4}>
+                                <Typography variant="h5" color="textPrimary">
+                                  {`${formik.values.deliveries[index].billQuantity} ${formik.values.saleType.unit}`}
+                                </Typography>
+                                <Typography
+                                  variant="overline"
+                                  color="textSecondary"
+                                >
+                                  Bill Quantity
+                                </Typography>
+                              </Grid>
+                            </Grid>
+                          </Card>
                         </Grid>
-                        <Grid item md={5} xs={12} className="col">
-                          <GoogleMaps
-                            label={"Unloading"}
-                            error={errorUnloading}
-                            touched={touchedUnloading}
-                            name={loading}
-                            setFieldValue={formik.setFieldValue}
-                            handleBlur={formik.handleBlur}
-                            values={formik.values}
-                            index={index}
-                            type="unloading"
-                            formik={formik}
-                          />
-                        </Grid>
-                      </Grid>
-                      <Grid
-                        container
-                        spacing={1}
-                        className="row"
-                        alignItems={"center"}
-                        sx={{ my: 2 }}
-                      >
-                        <Grid item md={5} xs={12} className="col" key={index}>
+                        <Grid item md={6} xs={12} className="col" key={index}>
                           <AddressAutocomplete
                             type={"consignor"}
                             partyId={order.customer._id}
@@ -88,7 +88,7 @@ const DeliveryForm = ({ sx, formik, order, user, ...rest }) => {
                             formik={formik}
                           />
                         </Grid>
-                        <Grid item md={5} xs={12} className="col">
+                        <Grid item md={6} xs={12} className="col">
                           <AddressAutocomplete
                             type={"consignee"}
                             partyId={order.customer._id}
