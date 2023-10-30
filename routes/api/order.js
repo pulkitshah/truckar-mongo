@@ -231,9 +231,27 @@ router.get("/:id", auth, async (req, res) => {
             },
           },
           {
-            $project: {
-              vehicleNumber: 1,
-              _id: 1,
+            $lookup: {
+              from: "organisations",
+              let: {
+                id: "$organisation",
+              },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $eq: ["$_id", "$$id"],
+                    },
+                  },
+                },
+              ],
+              as: "organisation",
+            },
+          },
+          {
+            $unwind: {
+              path: "$organisation",
+              preserveNullAndEmptyArrays: true,
             },
           },
         ],

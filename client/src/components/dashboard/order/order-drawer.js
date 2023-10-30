@@ -227,7 +227,6 @@ const OrderPreview = (props) => {
         >
           <DeliveryDetailsGrid order={order} gridApi={gridApi} />
         </Box>
-        {console.log(order)}
         {!Boolean(order.vehicle) && (
           <>
             <Divider sx={{ my: 3 }} />
@@ -331,8 +330,6 @@ const OrderPreview = (props) => {
       </PropertyList>
       <Divider sx={{ my: 3 }} />
 
-      {console.log(typeof order.vehicle === "object")}
-
       {(!(typeof order.vehicle === "object") || order.vehicle === null) && (
         <React.Fragment>
           <Typography sx={{ my: 3 }} variant="h6">
@@ -376,7 +373,6 @@ const OrderPreview = (props) => {
               {({ remove, push }) => (
                 <Box sx={{ mt: 4 }} {...props}>
                   <Grid container spacing={3}>
-                    {console.log(formik.values.orderExpenses)}
                     <Grid item xs={12}>
                       {formik.values.orderExpenses.length > 0 &&
                         formik.values.orderExpenses.map((delivery, index) => {

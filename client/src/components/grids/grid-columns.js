@@ -256,7 +256,7 @@ export const orderTable = (account) => {
       valueGetter: (params) => {
         if (params.data) {
           if (params.data.vehicle) {
-            return "SELF";
+            return params.data.vehicle.organisation.name;
           } else {
             return params.data.transporter.name;
           }
@@ -556,7 +556,7 @@ export const deliveryDetailsTableForOrderDrawer = [
         return (
           <Link
             color="secondary"
-            href={`/dashboard/lrs/new?deliveryId=${params.row._id}&orderId=${params.row.order._id}`}
+            href={`/dashboard/lrs/new?deliveryId=${params.row.deliveries._id}&orderId=${params.row._id}`}
             variant="body"
           >
             Make LR
@@ -570,8 +570,8 @@ export const deliveryDetailsTableForOrderDrawer = [
     headerName: "Loading",
     width: 120,
     valueGetter: (params) => {
-      if (params.value) {
-        return params.value.structured_formatting.main_text;
+      if (params.row) {
+        return params.row.deliveries.loading.structured_formatting.main_text;
       }
     },
   },
@@ -580,8 +580,8 @@ export const deliveryDetailsTableForOrderDrawer = [
     headerName: "Unloading",
     width: 120,
     valueGetter: (params) => {
-      if (params.value) {
-        return params.value.structured_formatting.main_text;
+      if (params.row) {
+        return params.row.deliveries.unloading.structured_formatting.main_text;
       }
     },
   },
@@ -590,9 +590,9 @@ export const deliveryDetailsTableForOrderDrawer = [
     headerName: "Bill Wt",
     width: 90,
     valueFormatter: (params) => {
-      if (params.value) {
-        return `${params.value} ${
-          params.api.getRow(params.id).order.saleType.unit
+      if (params.api.getRow(params.id).deliveries.billQuantity) {
+        return `${params.api.getRow(params.id).deliveries.billQuantity} ${
+          params.api.getRow(params.id).saleType.unit
         }`;
       } else {
         return "-";
@@ -604,9 +604,9 @@ export const deliveryDetailsTableForOrderDrawer = [
     headerName: "Unloading Wt",
     width: 90,
     valueFormatter: (params) => {
-      if (params.value) {
-        return `${params.value} ${
-          params.api.getRow(params.id).order.saleType.unit
+      if (params.api.getRow(params.id).deliveries.unloadingQuantity) {
+        return `${params.api.getRow(params.id).deliveries.unloadingQuantity} ${
+          params.api.getRow(params.id).saleType.unit
         }`;
       } else {
         return "-";

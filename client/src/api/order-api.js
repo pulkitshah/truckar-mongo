@@ -7,7 +7,6 @@ class OrderApi {
   async getOrdersByAccount(params) {
     try {
       const response = await axios.get(`/api/order/${params}`);
-      console.log(response);
       let orders = response.data[0].rows;
       let count = response.data[0].count;
       return {

@@ -5,12 +5,11 @@ import { deliveryDetailsTableForOrderDrawer } from "../../grids/grid-columns";
 import { deliveryApi } from "../../../api/delivery-api";
 import { useMounted } from "../../../hooks/use-mounted";
 import { useAuth } from "../../../hooks/use-auth";
+import unwind from "../../../utils/unwind";
 
 const Table = ({ order, gridApi }) => {
-  const { account } = useAuth();
-  const isMounted = useMounted();
   const dispatch = useDispatch();
-  const [deliveries, setDeliveries] = useState();
+  const deliveries = unwind("deliveries", order);
 
   const updateDelivery = React.useCallback(async (newRow, error) => {
     try {
@@ -29,30 +28,6 @@ const Table = ({ order, gridApi }) => {
     }
   }, []);
 
-  const getDeliveriesByOrder = useCallback(async () => {
-    try {
-      let { data } = await deliveryApi.getDeliveriesByOrder(
-        account._id,
-        order._id
-      );
-
-      if (isMounted()) {
-        console.log(data);
-        setDeliveries(data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }, [isMounted, order]);
-
-  useEffect(() => {
-    try {
-      getDeliveriesByOrder();
-    } catch (error) {
-      console.log(error);
-    }
-  }, [order]);
-
   if (!deliveries) {
     return "...Loading";
   }
@@ -60,6 +35,7 @@ const Table = ({ order, gridApi }) => {
   return (
     <React.Fragment>
       <DataGrid
+        getRowId={(row) => row._id}
         rows={deliveries}
         autoHeight={true}
         columns={deliveryDetailsTableForOrderDrawer}
