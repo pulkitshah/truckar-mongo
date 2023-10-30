@@ -221,7 +221,7 @@ router.get("/:id", auth, async (req, res) => {
 
   if (filter.organisation) {
     const organisationQuery = createFilterAggPipeline({
-      organisation: filter.organisation,
+      "deliveries.lr.organisation": filter.organisation,
     });
     query.push(organisationQuery[0]);
   }

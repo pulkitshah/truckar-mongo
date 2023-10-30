@@ -681,7 +681,6 @@ export const lrTable = (account) => {
       headerName: "Customer",
       width: 250,
       valueGetter: (params) => {
-        console.log(params.data);
         if (params.data !== undefined) {
           return params.data.customer.name;
         }
