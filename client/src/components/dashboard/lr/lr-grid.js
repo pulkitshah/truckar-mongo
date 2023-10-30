@@ -36,9 +36,11 @@ const Table = ({ onOpenDrawer }) => {
             if (checkJsonString(c)) {
               return JSON.parse(c)._id;
             } else {
-              return c._id;
+              return c;
             }
           });
+
+          console.log(filter.organisation);
 
           filter.organisation = {
             filterType: "set",

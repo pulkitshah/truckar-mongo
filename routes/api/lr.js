@@ -34,7 +34,6 @@ let lookups = [
       preserveNullAndEmptyArrays: true,
     },
   },
-  { $unwind: "$deliveries" },
   {
     $match: {
       "deliveries.lr": {
@@ -211,7 +210,19 @@ router.get("/:id", auth, async (req, res) => {
     {
       $match: Object.assign(matches),
     },
+    { $unwind: "$deliveries" },
   ];
+
+  if (filter.organisation) {
+    console.log(filter.organisation);
+    query.push({
+      $match: {
+        "deliveries.lr.organisation": { $in: filter.organisation.values },
+      },
+    });
+  }
+
+  query = [...query, ...lookups];
 
   // filter according to filterModel object
   if (filter.lrNo) {
@@ -219,21 +230,7 @@ router.get("/:id", auth, async (req, res) => {
     query.push(lrNoQuery[0]);
   }
 
-  if (filter.organisation) {
-    const organisationQuery = createFilterAggPipeline({
-      "deliveries.lr.organisation": filter.organisation,
-    });
-    query.push(organisationQuery[0]);
-  }
-
-  // if (filter.vehicleNumber) {
-  //   const vehicleNumberQuery = createFilterAggPipeline({
-  //     vehicleNumber: filter.vehicleNumber,
-  //   });
-  //   query.push(vehicleNumberQuery[0]);
-  // }
-
-  query = [...query, ...lookups];
+  // console.log(query);
 
   if (sort) {
     // maybe we want to sort by blog title or something
