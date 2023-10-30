@@ -52,7 +52,7 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
   return (
     <React.Fragment>
       <FormikProvider value={formik}>
-        <FieldArray name="deliveryDetails" error={formik.errors}>
+        <FieldArray name="deliveries" error={formik.errors}>
           {({ remove, push }) => (
             <React.Fragment>
               <Grid
@@ -75,6 +75,7 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                     onClick={() => {
                       setNoOfDeliveries(noOfDeliveries + 1);
                       push({
+                        _id: uuidv4(),
                         loading: {},
                         unloading: {},
                         billQuantity: "",
@@ -87,24 +88,24 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                 </Grid>
               </Grid>
 
-              {formik.values.deliveryDetails.length > 0 &&
-                formik.values.deliveryDetails.map((delivery, index) => {
-                  const loading = `deliveryDetails[${index}].loading`;
+              {formik.values.deliveries.length > 0 &&
+                formik.values.deliveries.map((delivery, index) => {
+                  const loading = `deliveries[${index}].loading`;
                   const touchedLoading = getIn(formik.touched, loading);
                   const errorLoading = getIn(formik.errors, loading);
 
-                  const unloading = `deliveryDetails[${index}].unloading`;
+                  const unloading = `deliveries[${index}].unloading`;
                   const touchedUnloading = getIn(formik.touched, unloading);
                   const errorUnloading = getIn(formik.errors, unloading);
 
-                  const billQuantity = `deliveryDetails[${index}].billQuantity`;
+                  const billQuantity = `deliveries[${index}].billQuantity`;
                   const touchedBillQuantity = getIn(
                     formik.touched,
                     billQuantity
                   );
                   const errorBillQuantity = getIn(formik.errors, billQuantity);
 
-                  const unloadingQuantity = `deliveryDetails[${index}].unloadingQuantity`;
+                  const unloadingQuantity = `deliveries[${index}].unloadingQuantity`;
                   const touchedUnloadingQuantity = getIn(
                     formik.touched,
                     unloadingQuantity
@@ -187,7 +188,7 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                             variant="outlined"
                             onChange={(event) => {
                               formik.setFieldValue(
-                                `deliveryDetails[${index}].billQuantity`,
+                                `deliveries[${index}].billQuantity`,
                                 event.target.value
                               );
                             }}
@@ -203,9 +204,7 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                             name="billQuantity"
                             label="Bill Quantity"
                             fullWidth
-                            value={
-                              formik.values.deliveryDetails[index].billQuantity
-                            }
+                            value={formik.values.deliveries[index].billQuantity}
                           />
                         </Grid>
                         <Grid item md={5} xs={12} className="col">
@@ -221,7 +220,7 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                             variant="outlined"
                             onChange={(event) => {
                               formik.setFieldValue(
-                                `deliveryDetails[${index}].unloadingQuantity`,
+                                `deliveries[${index}].unloadingQuantity`,
                                 event.target.value
                               );
                             }}
@@ -238,8 +237,7 @@ const DeliveryForm = ({ sx, formik, ...rest }) => {
                             label="Unloading Quantity"
                             fullWidth
                             value={
-                              formik.values.deliveryDetails[index]
-                                .unloadingQuantity
+                              formik.values.deliveries[index].unloadingQuantity
                             }
                           />
                         </Grid>

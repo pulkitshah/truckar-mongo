@@ -87,7 +87,7 @@ export const OrderCreateForm = (props) => {
       }
     }),
     saleType: Yup.object().required("Sale is required"),
-    saleRate: Yup.string().required("Sale Rate is required"),
+    saleRate: Yup.number().required("Sale Rate is required"),
   };
 
   if (typeof selectedVehicle === "object" && selectedVehicle !== null) {
@@ -98,12 +98,12 @@ export const OrderCreateForm = (props) => {
     validationShape.purchaseType = Yup.string().required(
       "Purchase is required"
     );
-    validationShape.purchaseRate = Yup.string().required(
+    validationShape.purchaseRate = Yup.number().required(
       "Purchase Rate is required"
     );
   }
 
-  validationShape.deliveryDetails = Yup.array().of(
+  validationShape.deliveries = Yup.array().of(
     Yup.object().shape({
       loading: Yup.object()
         .required("Loading Point is Required")
@@ -162,8 +162,9 @@ export const OrderCreateForm = (props) => {
       purchaseRate: order.purchaseRate || "",
       purchaseAdvance: order.purchaseAdvance || "",
       minimumPurchaseGuarantee: order.minimumPurchaseGuarantee || null,
-      deliveryDetails: [
+      deliveries: [
         {
+          _id: uuidv4(),
           loading: {},
           unloading: {},
           billQuantity: "",
@@ -173,6 +174,7 @@ export const OrderCreateForm = (props) => {
     },
     validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
+      console.log(values);
       try {
         const newOrder = {
           orderNo: parseInt(values.orderNo),
@@ -180,6 +182,7 @@ export const OrderCreateForm = (props) => {
           customer: values.customer,
           saleRate: values.saleRate,
           saleType: values.saleType,
+          deliveries: values.deliveries,
           orderExpenses: account.orderExpensesSettings,
           account: account,
         };
@@ -215,25 +218,8 @@ export const OrderCreateForm = (props) => {
         }
 
         let { data } = await orderApi.createOrder(newOrder, dispatch);
+        console.log(data);
 
-        values.deliveryDetails.map(async (del) => {
-          let newDelivery = {
-            loading: del.loading,
-            unloading: del.unloading,
-            order: data,
-            customer: values.customer,
-            account: account,
-          };
-
-          if (del.billQuantity) {
-            newDelivery.billQuantity = del.billQuantity;
-          }
-          if (del.unloadingQuantity) {
-            newDelivery.unloadingQuantity = del.unloadingQuantity;
-          }
-          await deliveryApi.createDelivery(newDelivery, dispatch);
-        });
-        // sendOrderConfirmationMessageToOwner(order, account);
         toast.success("Order created!");
         router.push("/dashboard/orders");
       } catch (err) {
@@ -253,22 +239,21 @@ export const OrderCreateForm = (props) => {
     setAddresses((addresses) => ({
       ...addresses,
       ...{
-        origin: formik.values.deliveryDetails[0].loading.description,
+        origin: formik.values.deliveries[0].loading.description,
       },
     }));
 
     // Setting Destination
     if (
-      formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-        .unloading.description
+      formik.values.deliveries[formik.values.deliveries.length - 1].unloading
+        .description
     ) {
       setAddresses((addresses) => ({
         ...addresses,
         ...{
           destination:
-            formik.values.deliveryDetails[
-              formik.values.deliveryDetails.length - 1
-            ].unloading.description,
+            formik.values.deliveries[formik.values.deliveries.length - 1]
+              .unloading.description,
         },
       }));
     }
@@ -277,7 +262,7 @@ export const OrderCreateForm = (props) => {
 
     let waypoints = [];
 
-    formik.values.deliveryDetails.map((delivery) => {
+    formik.values.deliveries.map((delivery) => {
       if (delivery.loading.description) {
         waypoints.push({
           location: delivery.loading.description,
@@ -293,14 +278,13 @@ export const OrderCreateForm = (props) => {
 
     waypoints = waypoints.filter(
       (waypoint) =>
-        waypoint.location !==
-        formik.values.deliveryDetails[0].loading.description
+        waypoint.location !== formik.values.deliveries[0].loading.description
     );
     waypoints = waypoints.filter(
       (waypoint) =>
         waypoint.location !==
-        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading.description
+        formik.values.deliveries[formik.values.deliveries.length - 1].unloading
+          .description
     );
 
     waypoints = [
@@ -308,13 +292,13 @@ export const OrderCreateForm = (props) => {
     ];
 
     setAddresses({
-      origin: formik.values.deliveryDetails[0].loading.description,
+      origin: formik.values.deliveries[0].loading.description,
       destination:
-        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading.description,
+        formik.values.deliveries[formik.values.deliveries.length - 1].unloading
+          .description,
       waypoints: waypoints,
     });
-  }, [formik.values.deliveryDetails]);
+  }, [formik.values.deliveries]);
 
   return (
     <form onSubmit={formik.handleSubmit} {...props}>

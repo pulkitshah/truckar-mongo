@@ -6,11 +6,11 @@ const auth = require("../../middlleware/auth");
 
 const router = express.Router();
 const importdata = require("../../data/deliveries");
-console.log(importdata);
+const Order = require("../../models/Order");
 
 let lookups = [
   // each blog has a single user (author) so flatten it using $unwind
-  { $unwind: "$account" },
+  { $unwind: "$deliveries" },
   // {
   //   $lookup: {
   //     from: "parties",
@@ -39,309 +39,148 @@ let lookups = [
   //   },
   // },
   // { $unwind: "$customer" },
-  {
-    $lookup: {
-      from: "orders",
-      let: {
-        id: "$order",
-      },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $eq: ["$_id", "$$id"],
-            },
-          },
-        },
-        {
-          $lookup: {
-            from: "parties",
-            let: {
-              id: "$customer",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-              {
-                $project: {
-                  name: 1,
-                  city: 1,
-                  mobile: 1,
-                  isTransporter: 1,
-                  _id: 1,
-                },
-              },
-            ],
-            as: "customer",
-          },
-        },
-        { $unwind: "$customer" },
-        {
-          $lookup: {
-            from: "parties",
-            let: {
-              id: "$transporter",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-              {
-                $project: {
-                  name: 1,
-                  city: 1,
-                  mobile: 1,
-                  // isTransporter: 1,
-                  _id: 1,
-                },
-              },
-            ],
-            as: "transporter",
-          },
-        },
-        {
-          $unwind: {
-            path: "$transporter",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        // {
-        //   $lookup: {
-        //     from: "vehicles",
-        //     let: {
-        //       id: "$vehicle",
-        //     },
-        //     pipeline: [
-        //       {
-        //         $match: {
-        //           $expr: {
-        //             $eq: ["$_id", "$$id"],
-        //           },
-        //         },
-        //       },
-        //     ],
-        //     as: "vehicle",
-        //   },
-        // },
-        // {
-        //   $unwind: {
-        //     path: "$vehicle",
-        //     preserveNullAndEmptyArrays: true,
-        //   },
-        // },
-        {
-          $lookup: {
-            from: "drivers",
-            let: {
-              id: "$driver",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-            ],
-            as: "driver",
-          },
-        },
-        {
-          $unwind: {
-            path: "$driver",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        // {
-        //   $lookup: {
-        //     from: "deliveries",
-        //     let: {
-        //       id: "$_id",
-        //     },
-        //     pipeline: [
-        //       {
-        //         $match: {
-        //           $expr: {
-        //             $eq: ["$order", "$$id"],
-        //           },
-        //         },
-        //       },
-        //       {
-        //         $project: {
-        //           loading: 1,
-        //           unloading: 1,
-        //           lrNo: 1,
-        //           billQuantity: 1,
-        //           unloadingQuantity: 1,
-        //           status: 1,
-        //         },
-        //       },
-        //     ],
-        //     as: "deliveries",
-        //   },
-        // },
-      ],
-      as: "order",
-    },
-  },
-  {
-    $unwind: {
-      path: "$order",
-      preserveNullAndEmptyArrays: true,
-    },
-  },
-  {
-    $lookup: {
-      from: "lrs",
-      let: {
-        id: "$lr",
-      },
-      pipeline: [
-        {
-          $match: {
-            $expr: {
-              $eq: ["$_id", "$$id"],
-            },
-          },
-        },
-        {
-          $lookup: {
-            from: "organisations",
-            let: {
-              id: "$organisation",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-            ],
-            as: "organisation",
-          },
-        },
-        {
-          $unwind: {
-            path: "$organisation",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: "addresses",
-            let: {
-              id: "$consignor",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-            ],
-            as: "consignor",
-          },
-        },
-        {
-          $unwind: {
-            path: "$consignor",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: "addresses",
-            let: {
-              id: "$consignee",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-            ],
-            as: "consignee",
-          },
-        },
-        {
-          $unwind: {
-            path: "$consignee",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-      ],
-      as: "lr",
-    },
-  },
-  {
-    $unwind: {
-      path: "$lr",
-      preserveNullAndEmptyArrays: true,
-    },
-  },
-  {
-    $lookup: {
-      from: "invoices",
-      let: {
-        id: "$_id",
-        delivery: { $toObjectId: "$deliveries._id" },
-      },
-      pipeline: [
-        {
-          $unwind: "$deliveries", // Unwind the nested array to access its elements individually
-        },
-        {
-          $match: {
-            $expr: {
-              $eq: ["$deliveries._id", "$$id"],
-            },
-          },
-        },
-        {
-          $lookup: {
-            from: "organisations",
-            let: {
-              id: "$organisation",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-            ],
-            as: "organisation",
-          },
-        },
-        {
-          $unwind: {
-            path: "$organisation",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-      ],
-      as: "invoices",
-    },
-  },
+  // {
+  //   $lookup: {
+  //     from: "lrs",
+  //     let: {
+  //       id: "$lr",
+  //     },
+  //     pipeline: [
+  //       {
+  //         $match: {
+  //           $expr: {
+  //             $eq: ["$_id", "$$id"],
+  //           },
+  //         },
+  //       },
+  //       {
+  //         $lookup: {
+  //           from: "organisations",
+  //           let: {
+  //             id: "$organisation",
+  //           },
+  //           pipeline: [
+  //             {
+  //               $match: {
+  //                 $expr: {
+  //                   $eq: ["$_id", "$$id"],
+  //                 },
+  //               },
+  //             },
+  //           ],
+  //           as: "organisation",
+  //         },
+  //       },
+  //       {
+  //         $unwind: {
+  //           path: "$organisation",
+  //           preserveNullAndEmptyArrays: true,
+  //         },
+  //       },
+  //       {
+  //         $lookup: {
+  //           from: "addresses",
+  //           let: {
+  //             id: "$consignor",
+  //           },
+  //           pipeline: [
+  //             {
+  //               $match: {
+  //                 $expr: {
+  //                   $eq: ["$_id", "$$id"],
+  //                 },
+  //               },
+  //             },
+  //           ],
+  //           as: "consignor",
+  //         },
+  //       },
+  //       {
+  //         $unwind: {
+  //           path: "$consignor",
+  //           preserveNullAndEmptyArrays: true,
+  //         },
+  //       },
+  //       {
+  //         $lookup: {
+  //           from: "addresses",
+  //           let: {
+  //             id: "$consignee",
+  //           },
+  //           pipeline: [
+  //             {
+  //               $match: {
+  //                 $expr: {
+  //                   $eq: ["$_id", "$$id"],
+  //                 },
+  //               },
+  //             },
+  //           ],
+  //           as: "consignee",
+  //         },
+  //       },
+  //       {
+  //         $unwind: {
+  //           path: "$consignee",
+  //           preserveNullAndEmptyArrays: true,
+  //         },
+  //       },
+  //     ],
+  //     as: "lr",
+  //   },
+  // },
+  // {
+  //   $unwind: {
+  //     path: "$lr",
+  //     preserveNullAndEmptyArrays: true,
+  //   },
+  // },
+  // {
+  //   $lookup: {
+  //     from: "invoices",
+  //     let: {
+  //       id: "$_id",
+  //       delivery: { $toObjectId: "$deliveries._id" },
+  //     },
+  //     pipeline: [
+  //       {
+  //         $unwind: "$deliveries", // Unwind the nested array to access its elements individually
+  //       },
+  //       {
+  //         $match: {
+  //           $expr: {
+  //             $eq: ["$deliveries._id", "$$id"],
+  //           },
+  //         },
+  //       },
+  //       {
+  //         $lookup: {
+  //           from: "organisations",
+  //           let: {
+  //             id: "$organisation",
+  //           },
+  //           pipeline: [
+  //             {
+  //               $match: {
+  //                 $expr: {
+  //                   $eq: ["$_id", "$$id"],
+  //                 },
+  //               },
+  //             },
+  //           ],
+  //           as: "organisation",
+  //         },
+  //       },
+  //       {
+  //         $unwind: {
+  //           path: "$organisation",
+  //           preserveNullAndEmptyArrays: true,
+  //         },
+  //       },
+  //     ],
+  //     as: "invoices",
+  //   },
+  // },
   // { $unwind: "$invoices" },
 ];
 
@@ -485,9 +324,20 @@ router.get("/:id", auth, async (req, res) => {
 
   let query = [];
   if (account)
-    query.push({
-      $match: Object.assign({ account: new mongoose.Types.ObjectId(account) }),
-    });
+    query.push(
+      {
+        $match: Object.assign({
+          account: new mongoose.Types.ObjectId(account),
+        }),
+      },
+      {
+        $match: {
+          "deliveries.0": {
+            $exists: true,
+          },
+        },
+      }
+    );
 
   // filter according to filterModel object
   // if (filter.orderNo) {
@@ -537,7 +387,7 @@ router.get("/:id", auth, async (req, res) => {
     }
   );
 
-  const deliveries = await Delivery.aggregate(query);
+  const deliveries = await Order.aggregate(query);
   res.json(deliveries);
 });
 

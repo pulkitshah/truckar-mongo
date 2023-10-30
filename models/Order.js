@@ -31,6 +31,9 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "driver",
   },
+  deliveries: {
+    type: Array,
+  },
   orderExpenses: {
     type: Array,
   },

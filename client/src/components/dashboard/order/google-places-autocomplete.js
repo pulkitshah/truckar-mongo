@@ -21,16 +21,14 @@ export default function GoogleMaps({
   type,
 }) {
   const [value, setValue] = React.useState(
-    values.deliveryDetails[index][type]
-      ? values.deliveryDetails[index][type]
-      : null
+    values.deliveries[index][type] ? values.deliveries[index][type] : null
   );
   const [inputValue, setInputValue] = React.useState("");
   const [options, setOptions] = React.useState([]);
 
   React.useEffect(() => {
-    setValue(values.deliveryDetails[index][type]);
-  }, [values.deliveryDetails.length]);
+    setValue(values.deliveries[index][type]);
+  }, [values.deliveries.length]);
 
   const fetch = React.useMemo(
     () =>
@@ -87,7 +85,7 @@ export default function GoogleMaps({
 
   return (
     <Autocomplete
-      id={`deliveryDetails[${index}].${type}`}
+      id={`deliveries[${index}].${type}`}
       autoSelect={true}
       disableClearable
       onBlur={handleBlur}
@@ -111,7 +109,7 @@ export default function GoogleMaps({
             { placeId: newValue.place_id },
             function (results, status) {
               if (status === window.google.maps.GeocoderStatus.OK) {
-                formik.setFieldValue(`deliveryDetails[${index}].${type}`, {
+                formik.setFieldValue(`deliveries[${index}].${type}`, {
                   latitude: results[0].geometry.location.lat(),
                   longitude: results[0].geometry.location.lng(),
                   description: newValue.description,
@@ -125,27 +123,27 @@ export default function GoogleMaps({
                 });
 
                 // formik.setFieldValue(
-                //   `deliveryDetails[${index}].${type}.latitude`,
+                //   `deliveries[${index}].${type}.latitude`,
                 //   results[0].geometry.location.lat()
                 // );
                 // formik.setFieldValue(
-                //   `deliveryDetails[${index}].${type}.longitude`,
+                //   `deliveries[${index}].${type}.longitude`,
                 //   results[0].geometry.location.lng()
                 // );
                 // formik.setFieldValue(
-                //   `deliveryDetails[${index}].${type}.description`,
+                //   `deliveries[${index}].${type}.description`,
                 //   newValue.description
                 // );
                 // formik.setFieldValue(
-                //   `deliveryDetails[${index}].${type}.structured_formatting`,
+                //   `deliveries[${index}].${type}.structured_formatting`,
                 //   newValue.structured_formatting
                 // );
                 // formik.setFieldValue(
-                //   `deliveryDetails[${index}].${type}.place_id`,
+                //   `deliveries[${index}].${type}.place_id`,
                 //   newValue.place_id
                 // );
                 // formik.setFieldValue(
-                //   `deliveryDetails[${index}].${type}.address_components`,
+                //   `deliveries[${index}].${type}.address_components`,
                 //   results[0].address_components.map((add) => {
                 //     return add.long_name;
                 //   })

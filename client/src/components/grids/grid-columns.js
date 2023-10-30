@@ -335,8 +335,7 @@ export const deliveriesTable = (account) => {
       valueGetter: (params) => {
         // console.log(params.data);
         if (params.data) {
-          if (!params.data.order) console.log(params.data);
-          return moment(params.data.order.saleDate).format("DD-MM-YY");
+          return moment(params.data.saleDate).format("DD-MM-YY");
         }
       },
     },
@@ -360,7 +359,7 @@ export const deliveriesTable = (account) => {
             return (
               <Link
                 color="primary"
-                href={`/dashboard/lrs/new?deliveryId=${params.data._id}&orderId=${params.data.order._id}`}
+                href={`/dashboard/lrs/new?deliveryId=${params.data.deliveries._id}&orderId=${params.data._id}`}
                 variant="body"
               >
                 Make LR
@@ -370,34 +369,35 @@ export const deliveriesTable = (account) => {
         }
       },
     },
-    {
-      field: "salesInvoice",
-      headerName: "Sale Bill No",
-      width: 90,
-      cellRenderer: (params) => {
-        if (params.data) {
-          if (params.data.invoices.length) {
-            console.log(params.data.invoices);
-            return params.data.invoices
-              .map(
-                (invoice) =>
-                  `${invoice.organisation.initials}-${invoice.invoiceNo}`
-              )
-              .join(" - ");
-          } else {
-            return (
-              <Link
-                color="primary"
-                href={`/dashboard/sales/new?deliveryId=${params.data._id}&orderId=${params.data.order._id}`}
-                variant="body"
-              >
-                Make Invoice
-              </Link>
-            );
-          }
-        }
-      },
-    },
+    // {
+    //   field: "salesInvoice",
+    //   headerName: "Sale Bill No",
+    //   width: 90,
+    //   cellRenderer: (params) => {
+    //     console.log(params.data);
+    //     if (params.data) {
+    //       if (params.data.deliveries.invoices.length) {
+    //         console.log(params.data.deliveries.invoices);
+    //         return params.data.deliveries.invoices
+    //           .map(
+    //             (invoice) =>
+    //               `${invoice.organisation.initials}-${invoice.invoiceNo}`
+    //           )
+    //           .join(" - ");
+    //       } else {
+    //         return (
+    //           <Link
+    //             color="primary"
+    //             href={`/dashboard/sales/new?deliveryId=${params.data.deliveries._id}&orderId=${params.data._id}`}
+    //             variant="body"
+    //           >
+    //             Make Invoice
+    //           </Link>
+    //         );
+    //       }
+    //     }
+    //   },
+    // },
     {
       field: "orderNo",
       headerName: "Order No",
@@ -405,7 +405,7 @@ export const deliveriesTable = (account) => {
       valueGetter: (params) => {
         // console.log(params.data);
         if (params.data) {
-          return params.data.order.orderNo;
+          return params.data.orderNo;
         }
       },
     },
@@ -415,7 +415,7 @@ export const deliveriesTable = (account) => {
       width: 150,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.order.vehicleNumber;
+          return params.data.vehicleNumber;
         }
       },
     },
@@ -425,10 +425,10 @@ export const deliveriesTable = (account) => {
       width: 200,
       valueGetter: (params) => {
         if (params.data) {
-          if (params.data.order.vehicle) {
+          if (params.data.vehicle) {
             return "SELF";
           } else {
-            return params.data.order.transporter.name;
+            return params.data.transporter.name;
           }
         }
       },
@@ -439,7 +439,7 @@ export const deliveriesTable = (account) => {
       width: 200,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.order.customer.name;
+          return params.data.customer.name;
         }
       },
     },
@@ -478,7 +478,7 @@ export const deliveriesTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.loading.structured_formatting.main_text;
+          return params.data.deliveries.loading.structured_formatting.main_text;
         }
       },
     },
@@ -488,7 +488,8 @@ export const deliveriesTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.unloading.structured_formatting.main_text;
+          return params.data.deliveries.unloading.structured_formatting
+            .main_text;
         }
       },
     },
@@ -498,7 +499,7 @@ export const deliveriesTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return `Rs. ${params.data.order.saleRate} / ${getOrderUnit(
+          return `Rs. ${params.data.saleRate} / ${getOrderUnit(
             params.data.order
           )}`;
         } else {
@@ -513,7 +514,7 @@ export const deliveriesTable = (account) => {
       editable: true,
       valueFormatter: (params) => {
         if (params.value) {
-          return `${params.value} ${params.data.order.saleType.unit}`;
+          return `${params.value} ${params.data.saleType.unit}`;
         } else {
           return "-";
         }
@@ -526,7 +527,7 @@ export const deliveriesTable = (account) => {
       editable: true,
       valueFormatter: (params) => {
         if (params.value) {
-          return `${params.value} ${params.data.order.saleType.unit}`;
+          return `${params.value} ${params.data.saleType.unit}`;
         } else {
           return "-";
         }

@@ -7,8 +7,7 @@ const createFilterAggPipeline = require("../../utils/getAggregationPipeline");
 const getFiscalYearTimestamps = require("../../utils/getFiscalYear");
 
 const router = express.Router();
-const importdata = require("../../data/done - orders");
-
+const importdata = require("../../data/orders");
 // @route   POST api/order/insertmany
 // @desc    Create many Vehicles
 // @access  Private
@@ -129,16 +128,6 @@ router.get("/:id", auth, async (req, res) => {
   let lookups = [
     {
       $lookup: {
-        from: "accounts",
-        localField: "account",
-        foreignField: "_id",
-        as: "account",
-      },
-    },
-    // each blog has a single user (author) so flatten it using $unwind
-    { $unwind: "$account" },
-    {
-      $lookup: {
         from: "parties",
         let: {
           id: "$customer",
@@ -255,34 +244,6 @@ router.get("/:id", auth, async (req, res) => {
       $unwind: {
         path: "$vehicle",
         preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "deliveries",
-        let: {
-          id: "$_id",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$order", "$$id"],
-              },
-            },
-          },
-          {
-            $project: {
-              loading: 1,
-              unloading: 1,
-              lrNo: 1,
-              billQuantity: 1,
-              unloadingQuantity: 1,
-              status: 1,
-            },
-          },
-        ],
-        as: "deliveries",
       },
     },
   ];
