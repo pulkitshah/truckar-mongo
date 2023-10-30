@@ -10,7 +10,6 @@ import {
   InputAdornment,
   TextField,
 } from "@mui/material";
-import GoogleMaps from "./google-places-autocomplete";
 import AddressAutocomplete from "../autocompletes/address-autocomplete/address-autocomplete";
 
 const DeliveryForm = ({ sx, formik, order, user, ...rest }) => {

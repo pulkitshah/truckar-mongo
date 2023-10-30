@@ -621,9 +621,9 @@ export const lrTable = (account) => {
       field: "lrDate",
       headerName: "Date",
       width: 130,
-      cellRenderer: (params) => {
-        if (params.value !== undefined) {
-          return moment(params.data.lrDate).format("DD-MM-YY");
+      valueGetter: (params) => {
+        if (params.data !== undefined) {
+          return moment(params.data.deliveries.lr.lrDate).format("DD-MM-YY");
         }
       },
     },
@@ -631,13 +631,9 @@ export const lrTable = (account) => {
       field: "lrNo",
       headerName: "LR No",
       width: 100,
-      cellRenderer: (params) => {
-        if (params.value !== undefined) {
-          return (
-            <Link href={`/dashboard/lrs/${params.data._id}`} passHref>
-              {`${params.data.organisation.initials}-${params.data.lrNo}`}
-            </Link>
-          );
+      valueGetter: (params) => {
+        if (params.data !== undefined) {
+          return `${params.data.deliveries.lr.organisation.initials} - ${params.data.deliveries.lr.lrNo}`;
         }
       },
       filter: "agNumberColumnFilter",
@@ -654,7 +650,7 @@ export const lrTable = (account) => {
       width: 80,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.organisation.name;
+          return `${params.data.deliveries.lr.organisation.name}`;
         }
       },
       filter: "agSetColumnFilter",
@@ -676,7 +672,7 @@ export const lrTable = (account) => {
       width: 80,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.order.orderNo;
+          return params.data.orderNo;
         }
       },
     },
@@ -685,8 +681,9 @@ export const lrTable = (account) => {
       headerName: "Customer",
       width: 250,
       valueGetter: (params) => {
-        if (params.data) {
-          return params.data.order.customer.name;
+        console.log(params.data);
+        if (params.data !== undefined) {
+          return params.data.customer.name;
         }
       },
     },
@@ -696,7 +693,7 @@ export const lrTable = (account) => {
       width: 150,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.order.vehicleNumber;
+          return params.data.vehicleNumber;
         }
       },
     },
@@ -706,7 +703,7 @@ export const lrTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.delivery.loading.structured_formatting.main_text;
+          return params.data.deliveries.loading.structured_formatting.main_text;
         }
       },
     },
@@ -716,7 +713,8 @@ export const lrTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.delivery.unloading.structured_formatting.main_text;
+          return params.data.deliveries.unloading.structured_formatting
+            .main_text;
         }
       },
     },
@@ -726,7 +724,7 @@ export const lrTable = (account) => {
       width: 250,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.consignor.name;
+          return params.data.deliveries.lr.consignor.name;
         }
       },
     },
@@ -736,7 +734,7 @@ export const lrTable = (account) => {
       width: 250,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.consignee.name;
+          return params.data.deliveries.lr.consignee.name;
         }
       },
     },
@@ -746,7 +744,7 @@ export const lrTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.delivery.invoiceId
+          return params.data.deliveries.invoiceId
             ? `${params.data.delivery.invoice.organisation.initials}-${params.data.delivery.invoice.invoiceNo}`
             : "Not Issued";
         }

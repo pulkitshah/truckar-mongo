@@ -55,8 +55,6 @@ const Table = ({ onOpenDrawer }) => {
           })
         );
 
-        console.log(data);
-
         params.successCallback(data, count);
       },
     };

@@ -140,13 +140,6 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
 
         let { data } = await lrApi.createLr(newLr, dispatch);
         console.log(data);
-        await deliveryApi.updateDelivery(
-          {
-            _id: delivery._id,
-            lr: data,
-          },
-          dispatch
-        );
 
         toast.success("LR (Lorry Receipt) created!");
         router.push("/dashboard/lrs");

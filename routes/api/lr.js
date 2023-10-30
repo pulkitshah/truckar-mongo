@@ -5,8 +5,117 @@ const Lr = require("../../models/Lr");
 const auth = require("../../middlleware/auth");
 const createFilterAggPipeline = require("../../utils/getAggregationPipeline");
 const getFiscalYearTimestamps = require("../../utils/getFiscalYear");
+const Order = require("../../models/Order");
 
 const router = express.Router();
+
+let lookups = [
+  {
+    $lookup: {
+      from: "parties",
+      let: {
+        id: { $toObjectId: "$customer" },
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+      ],
+      as: "customer",
+    },
+  },
+  {
+    $unwind: {
+      path: "$customer",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  { $unwind: "$deliveries" },
+  {
+    $match: {
+      "deliveries.lr": {
+        $exists: true,
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "addresses",
+      let: {
+        id: { $toObjectId: "$deliveries.lr.consignor" },
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+      ],
+      as: "deliveries.lr.consignor",
+    },
+  },
+  {
+    $unwind: {
+      path: "$deliveries.lr.consignor",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
+      from: "addresses",
+      let: {
+        id: { $toObjectId: "$deliveries.lr.consignee" },
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+      ],
+      as: "deliveries.lr.consignee",
+    },
+  },
+  {
+    $unwind: {
+      path: "$deliveries.lr.consignee",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+
+  {
+    $lookup: {
+      from: "organisations",
+      let: {
+        id: { $toObjectId: "$deliveries.lr.organisation" },
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+      ],
+      as: "deliveries.lr.organisation",
+    },
+  },
+  {
+    $unwind: {
+      path: "$deliveries.lr.organisation",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+];
 
 // @route   POST api/lr
 // @desc    Create Lr
@@ -21,6 +130,10 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
+      const order = await Order.findOne({
+        _id: req.body.order,
+      });
+
       // Get fields
       const updates = Object.keys(req.body);
       const lrFields = {};
@@ -29,9 +142,18 @@ router.post(
 
       try {
         // Create
-        lr = new Lr(lrFields);
-        await lr.save();
-        res.send(lr);
+        order.deliveries = order.deliveries.map((delivery) => {
+          if (delivery._id === req.body.delivery) {
+            return {
+              ...delivery,
+              lr: lrFields,
+            };
+          } else {
+            return delivery;
+          }
+        });
+        await order.save();
+        res.send(order);
       } catch (error) {
         console.log(error.message);
         res.status(500).send("Server Error");
@@ -111,168 +233,6 @@ router.get("/:id", auth, async (req, res) => {
   //   query.push(vehicleNumberQuery[0]);
   // }
 
-  let lookups = [
-    {
-      $lookup: {
-        from: "accounts",
-        localField: "account",
-        foreignField: "_id",
-        as: "account",
-      },
-    },
-    // each blog has a single user (author) so flatten it using $unwind
-    { $unwind: "$account" },
-    {
-      $lookup: {
-        from: "addresses",
-        let: {
-          id: "$consignor",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-        ],
-        as: "consignor",
-      },
-    },
-    {
-      $unwind: {
-        path: "$consignor",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "addresses",
-        let: {
-          id: "$consignee",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-        ],
-        as: "consignee",
-      },
-    },
-    {
-      $unwind: {
-        path: "$consignee",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-
-    {
-      $lookup: {
-        from: "organisations",
-        let: {
-          id: "$organisation",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-        ],
-        as: "organisation",
-      },
-    },
-    {
-      $unwind: {
-        path: "$organisation",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "deliveries",
-        let: {
-          id: "$delivery",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-        ],
-        as: "delivery",
-      },
-    },
-    {
-      $unwind: {
-        path: "$delivery",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "orders",
-        let: {
-          id: "$order",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-          {
-            $lookup: {
-              from: "parties",
-              let: {
-                id: "$customer",
-              },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $eq: ["$_id", "$$id"],
-                    },
-                  },
-                },
-                {
-                  $project: {
-                    name: 1,
-                    city: 1,
-                    mobile: 1,
-                    isTransporter: 1,
-                    _id: 1,
-                  },
-                },
-              ],
-              as: "customer",
-            },
-          },
-          { $unwind: "$customer" },
-        ],
-        as: "order",
-      },
-    },
-    {
-      $unwind: {
-        path: "$order",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-  ];
-
   query = [...query, ...lookups];
 
   if (sort) {
@@ -299,7 +259,7 @@ router.get("/:id", auth, async (req, res) => {
     }
   );
 
-  const lrs = await Lr.aggregate(query);
+  const lrs = await Order.aggregate(query);
   res.json(lrs);
 });
 

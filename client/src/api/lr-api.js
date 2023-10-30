@@ -13,9 +13,7 @@ import { slice } from "../slices/lrs";
 class LrApi {
   async getLrsByAccount(params) {
     try {
-      console.log(params);
       const response = await axios.get(`/api/lr/${params}`);
-      console.log(response);
       let lrs = response.data[0].rows;
       let count = response.data[0].count;
       return {
