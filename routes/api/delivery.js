@@ -13,6 +13,32 @@ let lookups = [
   { $unwind: "$deliveries" },
   {
     $lookup: {
+      from: "organisations",
+      let: {
+        id: {
+          $toObjectId: "$deliveries.lr.organisation",
+        },
+        deliveries: "$deliveries",
+      },
+
+      pipeline: [
+        {
+          $match: {
+            $expr: { $eq: ["$_id", "$$id"] },
+          },
+        },
+      ],
+      as: "deliveries.lr.organisation",
+    },
+  },
+  {
+    $unwind: {
+      path: "$deliveries.lr.organisation",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
       from: "parties",
       let: {
         id: "$customer",
@@ -66,7 +92,12 @@ let lookups = [
       as: "transporter",
     },
   },
-  { $unwind: "$transporter" },
+  {
+    $unwind: {
+      path: "$transporter",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
   {
     $lookup: {
       from: "vehicles",

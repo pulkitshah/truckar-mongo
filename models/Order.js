@@ -16,10 +16,6 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "party",
   },
-  deliveries: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "delivery",
-  },
   vehicleNumber: {
     type: String,
   },

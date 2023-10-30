@@ -10,6 +10,57 @@ const router = express.Router();
 const importdata = require("../../data/orders");
 
 let lookups = [
+  { $unwind: "$deliveries" },
+  {
+    $lookup: {
+      from: "organisations",
+      let: {
+        id: {
+          $toObjectId: "$deliveries.lr.organisation",
+        },
+        deliveries: "$deliveries",
+      },
+
+      pipeline: [
+        {
+          $match: {
+            $expr: { $eq: ["$_id", "$$id"] },
+          },
+        },
+      ],
+      as: "deliveries.lr.organisation",
+    },
+  },
+  {
+    $unwind: {
+      path: "$deliveries.lr.organisation",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $group: {
+      _id: "$_id",
+      orderNo: { $first: "$orderNo" },
+      saleDate: { $first: "$saleDate" },
+      customer: { $first: "$customer" },
+      vehicleNumber: { $first: "$vehicleNumber" },
+      vehicle: { $first: "$vehicle" },
+      driver: { $first: "$driver" },
+      orderExpenses: { $first: "$orderExpenses" },
+      saleType: { $first: "$saleType" },
+      saleRate: { $first: "$saleRate" },
+      minimumSaleGuarantee: { $first: "$minimumSaleGuarantee" },
+      saleAdvance: { $first: "$saleAdvance" },
+      purchaseType: { $first: "$purchaseType" },
+      purchaseRate: { $first: "$purchaseRate" },
+      minimumPurchaseGuarantee: { $first: "$minimumPurchaseGuarantee" },
+      purchaseAdvance: { $first: "$purchaseAdvance" },
+      transporter: { $first: "$transporter" },
+      createdDate: { $first: "$createdDate" },
+      account: { $first: "$account" },
+      deliveries: { $push: "$deliveries" },
+    },
+  },
   {
     $lookup: {
       from: "parties",

@@ -81,7 +81,6 @@ class DeliveryApi {
   async getDeliveriesByAccount(params) {
     try {
       const response = await axios.get(`/api/delivery/${params}`);
-      console.log(response);
       let deliveries = response.data[0].rows;
       let count = response.data[0].count;
       return {

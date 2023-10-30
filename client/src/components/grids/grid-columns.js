@@ -344,15 +344,16 @@ export const deliveriesTable = (account) => {
       headerName: "LR",
       width: 90,
       cellRenderer: (params) => {
+        console.log(params.data);
         if (params.data) {
-          if (params.data.lr) {
+          if (Object.keys(params.data.deliveries.lr).length) {
             return (
               <Link
                 color="secondary"
-                href={`/dashboard/lrs/${params.data.lr._id}`}
+                href={`/dashboard/lrs/?deliveryId=${params.data.deliveries._id}&orderId=${params.data._id}`}
                 variant="body"
               >
-                {`${params.data.lr.organisation.initials}-${params.data.lr.lrNo}`}
+                {`${params.data.deliveries.lr.organisation.initials}-${params.data.deliveries.lr.lrNo}`}
               </Link>
             );
           } else {
@@ -542,14 +543,14 @@ export const deliveryDetailsTableForOrderDrawer = [
     headerName: "LR",
     width: 90,
     renderCell: (params) => {
-      if (params.row.lr) {
+      if (Object.keys(params.row.deliveries.lr).length) {
         return (
           <Link
             color="secondary"
-            href={`/dashboard/lrs/${params.row.lr._id}`}
+            href={`/dashboard/lrs/?deliveryId=${params.row.deliveries._id}&orderId=${params.row._id}`}
             variant="body"
           >
-            {`${params.row.lr.organisation.initials}-${params.row.lr.lrNo}`}
+            {`${params.row.deliveries.lr.organisation.initials}-${params.row.deliveries.lr.lrNo}`}
           </Link>
         );
       } else {
