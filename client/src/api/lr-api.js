@@ -141,7 +141,6 @@ class LrApi {
     try {
       const response = await axios.patch(`/api/lr/`, editedLr);
       let lr = response.data;
-      console.log(lr);
 
       return {
         status: response.status,

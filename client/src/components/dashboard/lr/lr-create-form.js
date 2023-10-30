@@ -108,11 +108,11 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
       try {
         console.log(values);
         const newLr = {
+          order: order._id,
+          delivery: values.deliveryId,
           lrFormat: values.lrFormat,
           lrNo: parseInt(values.lrNo),
           lrDate: values.lrDate.format(),
-          order: order._id,
-          delivery: values.deliveryId,
           organisation: values.organisation._id,
           consignee: values.consignee._id,
           consignor: values.consignor._id,
@@ -133,7 +133,6 @@ export const LrCreateForm = ({ order, deliveryId, lr = {} }) => {
           gstPayableBy: values.gstPayableBy,
           lrFormat: account.lrFormat,
           lrCharges: account.lrSettings[0].lrCharges,
-          account: account._id,
         };
 
         console.log(newLr);
