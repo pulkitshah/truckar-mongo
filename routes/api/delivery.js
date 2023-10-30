@@ -11,34 +11,110 @@ const Order = require("../../models/Order");
 let lookups = [
   // each blog has a single user (author) so flatten it using $unwind
   { $unwind: "$deliveries" },
-  // {
-  //   $lookup: {
-  //     from: "parties",
-  //     let: {
-  //       id: "$customer",
-  //     },
-  //     pipeline: [
-  //       {
-  //         $match: {
-  //           $expr: {
-  //             $eq: ["$_id", "$$id"],
-  //           },
-  //         },
-  //       },
-  //       {
-  //         $project: {
-  //           name: 1,
-  //           // city: 1,
-  //           mobile: 1,
-  //           // isTransporter: 1,
-  //           _id: 1,
-  //         },
-  //       },
-  //     ],
-  //     as: "customer",
-  //   },
-  // },
-  // { $unwind: "$customer" },
+  {
+    $lookup: {
+      from: "parties",
+      let: {
+        id: "$customer",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+        {
+          $project: {
+            name: 1,
+            city: 1,
+            mobile: 1,
+            // isTransporter: 1,
+            _id: 1,
+          },
+        },
+      ],
+      as: "customer",
+    },
+  },
+  { $unwind: "$customer" },
+  {
+    $lookup: {
+      from: "parties",
+      let: {
+        id: "$transporter",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+        {
+          $project: {
+            name: 1,
+            city: 1,
+            mobile: 1,
+            // isTransporter: 1,
+            _id: 1,
+          },
+        },
+      ],
+      as: "transporter",
+    },
+  },
+  { $unwind: "$transporter" },
+  {
+    $lookup: {
+      from: "vehicles",
+      let: {
+        id: "$vehicle",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "organisations",
+            let: {
+              id: "$organisation",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", "$$id"],
+                  },
+                },
+              },
+            ],
+            as: "organisation",
+          },
+        },
+        {
+          $unwind: {
+            path: "$organisation",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ],
+      as: "vehicle",
+    },
+  },
+  {
+    $unwind: {
+      path: "$vehicle",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
   // {
   //   $lookup: {
   //     from: "lrs",
@@ -296,22 +372,13 @@ router.get("/deliveriesbyorder/:id", auth, async (req, res) => {
  */
 
 router.get("/:id", auth, async (req, res) => {
-  console.log(req.params.id);
   const {
     account,
     startRow = 0,
     endRow = 100,
     filter = {},
-    sort = { order: -1 },
+    sort = { saleDate: -1, orderNo: -1 },
   } = JSON.parse(req.params.id);
-
-  console.log({
-    account,
-    startRow,
-    endRow,
-    filter,
-    sort,
-  });
 
   // if (!(accountId instanceof mongoose.Types.ObjectId)) {
   //   throw new Error("accountId must be ObjectId");

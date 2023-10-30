@@ -4,6 +4,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import { useAuth } from "../../../hooks/use-auth";
 import { deliveryApi } from "../../../api/delivery-api";
 import { deliveriesTable } from "../../grids/grid-columns";
+import { orderApi } from "../../../api/order-api";
 
 const DeliveriesGrid = ({ onOpenDrawer }) => {
   const { account } = useAuth();
@@ -50,14 +51,13 @@ const DeliveriesGrid = ({ onOpenDrawer }) => {
           rowModelType={"infinite"}
           onGridReady={onGridReady}
           rowSelection="multiple"
-          onSelectionChanged={(event) => {
-            event.api
-              .getSelectedNodes()
-              .map((node) => onOpenDrawer(node.data.order, gridApi));
+          onSelectionChanged={async (event) => {
+            event.api.getSelectedNodes().map(async (node) => {
+              let response = await orderApi.getOrderById(node.data._id);
+
+              onOpenDrawer(response.data, gridApi);
+            });
           }}
-          pagination={true}
-          paginationAutoPageSize={true}
-          maxConcurrentDatasourceRequests={5}
         />
       </div>
     </div>

@@ -426,7 +426,7 @@ export const deliveriesTable = (account) => {
       valueGetter: (params) => {
         if (params.data) {
           if (params.data.vehicle) {
-            return "SELF";
+            return params.data.vehicle.organisation.name;
           } else {
             return params.data.transporter.name;
           }

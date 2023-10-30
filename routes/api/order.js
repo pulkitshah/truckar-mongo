@@ -8,6 +8,148 @@ const getFiscalYearTimestamps = require("../../utils/getFiscalYear");
 
 const router = express.Router();
 const importdata = require("../../data/orders");
+
+let lookups = [
+  {
+    $lookup: {
+      from: "parties",
+      let: {
+        id: "$customer",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+        {
+          $project: {
+            name: 1,
+            city: 1,
+            mobile: 1,
+            isTransporter: 1,
+            _id: 1,
+          },
+        },
+      ],
+      as: "customer",
+    },
+  },
+  { $unwind: "$customer" },
+  {
+    $lookup: {
+      from: "parties",
+      let: {
+        id: "$transporter",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: { $eq: ["$_id", "$$id"] },
+          },
+        },
+        {
+          $project: {
+            name: 1,
+            city: 1,
+            mobile: 1,
+            isTransporter: 1,
+            _id: 1,
+          },
+        },
+      ],
+      as: "transporter",
+    },
+  },
+  {
+    $unwind: {
+      path: "$transporter",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
+      from: "drivers",
+      let: {
+        id: "$driver",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+        {
+          $project: {
+            name: 1,
+            mobile: 1,
+            _id: 1,
+          },
+        },
+      ],
+      as: "driver",
+    },
+  },
+  {
+    $unwind: {
+      path: "$driver",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
+      from: "vehicles",
+      let: {
+        id: "$vehicle",
+      },
+      pipeline: [
+        {
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "organisations",
+            let: {
+              id: "$organisation",
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", "$$id"],
+                  },
+                },
+              },
+            ],
+            as: "organisation",
+          },
+        },
+        {
+          $unwind: {
+            path: "$organisation",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ],
+      as: "vehicle",
+    },
+  },
+  {
+    $unwind: {
+      path: "$vehicle",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+];
+
 // @route   POST api/order/insertmany
 // @desc    Create many Vehicles
 // @access  Private
@@ -125,147 +267,6 @@ router.get("/:id", auth, async (req, res) => {
     query.push(vehicleNumberQuery[0]);
   }
 
-  let lookups = [
-    {
-      $lookup: {
-        from: "parties",
-        let: {
-          id: "$customer",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-          {
-            $project: {
-              name: 1,
-              city: 1,
-              mobile: 1,
-              isTransporter: 1,
-              _id: 1,
-            },
-          },
-        ],
-        as: "customer",
-      },
-    },
-    { $unwind: "$customer" },
-    {
-      $lookup: {
-        from: "parties",
-        let: {
-          id: "$transporter",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ["$_id", "$$id"] },
-            },
-          },
-          {
-            $project: {
-              name: 1,
-              city: 1,
-              mobile: 1,
-              isTransporter: 1,
-              _id: 1,
-            },
-          },
-        ],
-        as: "transporter",
-      },
-    },
-    {
-      $unwind: {
-        path: "$transporter",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "drivers",
-        let: {
-          id: "$driver",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-          {
-            $project: {
-              name: 1,
-              mobile: 1,
-              _id: 1,
-            },
-          },
-        ],
-        as: "driver",
-      },
-    },
-    {
-      $unwind: {
-        path: "$driver",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $lookup: {
-        from: "vehicles",
-        let: {
-          id: "$vehicle",
-        },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $eq: ["$_id", "$$id"],
-              },
-            },
-          },
-          {
-            $lookup: {
-              from: "organisations",
-              let: {
-                id: "$organisation",
-              },
-              pipeline: [
-                {
-                  $match: {
-                    $expr: {
-                      $eq: ["$_id", "$$id"],
-                    },
-                  },
-                },
-              ],
-              as: "organisation",
-            },
-          },
-          {
-            $unwind: {
-              path: "$organisation",
-              preserveNullAndEmptyArrays: true,
-            },
-          },
-        ],
-        as: "vehicle",
-      },
-    },
-    {
-      $unwind: {
-        path: "$vehicle",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-  ];
-
   query = [...query, ...lookups];
 
   if (sort) {
@@ -308,167 +309,6 @@ router.get("/id/:id", async (req, res) => {
       // filter the results by our accountId
       {
         $match: Object.assign(matches),
-      },
-    ];
-
-    let lookups = [
-      {
-        $lookup: {
-          from: "accounts",
-          localField: "account",
-          foreignField: "_id",
-          as: "account",
-        },
-      },
-      // each blog has a single user (author) so flatten it using $unwind
-      { $unwind: "$account" },
-      {
-        $lookup: {
-          from: "parties",
-          let: {
-            id: "$customer",
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$_id", "$$id"],
-                },
-              },
-            },
-            {
-              $project: {
-                name: 1,
-                city: 1,
-                mobile: 1,
-                isTransporter: 1,
-                _id: 1,
-              },
-            },
-          ],
-          as: "customer",
-        },
-      },
-      { $unwind: "$customer" },
-      {
-        $lookup: {
-          from: "parties",
-          let: {
-            id: "$transporter",
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ["$_id", "$$id"] },
-              },
-            },
-            {
-              $project: {
-                name: 1,
-                city: 1,
-                mobile: 1,
-                isTransporter: 1,
-                _id: 1,
-              },
-            },
-          ],
-          as: "transporter",
-        },
-      },
-      {
-        $unwind: {
-          path: "$transporter",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "drivers",
-          let: {
-            id: "$driver",
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$_id", "$$id"],
-                },
-              },
-            },
-            {
-              $project: {
-                name: 1,
-                mobile: 1,
-                _id: 1,
-              },
-            },
-          ],
-          as: "driver",
-        },
-      },
-      {
-        $unwind: {
-          path: "$driver",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "vehicles",
-          let: {
-            id: "$vehicle",
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$_id", "$$id"],
-                },
-              },
-            },
-            {
-              $project: {
-                vehicleNumber: 1,
-                _id: 1,
-              },
-            },
-          ],
-          as: "vehicle",
-        },
-      },
-      {
-        $unwind: {
-          path: "$vehicle",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          from: "deliveries",
-          let: {
-            id: "$_id",
-          },
-          pipeline: [
-            {
-              $match: {
-                $expr: {
-                  $eq: ["$order", "$$id"],
-                },
-              },
-            },
-            {
-              $project: {
-                loading: { structured_formatting: { main_text: 1 } },
-                unloading: { structured_formatting: { main_text: 1 } },
-                lrNo: 1,
-                billQuantity: 1,
-                unloadingQuantity: 1,
-                status: 1,
-              },
-            },
-          ],
-          as: "deliveries",
-        },
       },
     ];
 
