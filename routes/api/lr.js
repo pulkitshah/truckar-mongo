@@ -104,8 +104,6 @@ router.get("/:id", auth, async (req, res) => {
     query.push(organisationQuery[0]);
   }
 
-  console.log(query);
-
   // if (filter.vehicleNumber) {
   //   const vehicleNumberQuery = createFilterAggPipeline({
   //     vehicleNumber: filter.vehicleNumber,
@@ -553,7 +551,6 @@ router.get("/validateDuplicateLrNo/:id", auth, async (req, res) => {
       organisation: organisation,
     };
 
-    console.log(query);
     const lr = await Lr.findOne(query);
     console.log(lr);
 

@@ -87,7 +87,7 @@ router.get("/validateDuplicateVehicleNumber/:id", auth, async (req, res) => {
     if (vehicleNumber) {
       query.vehicleNumber = { $regex: `^${vehicleNumber}$`, $options: "i" };
     }
-    console.log(query);
+
     const vehicle = await Vehicle.findOne(query);
     res.json(vehicle);
   } catch (error) {

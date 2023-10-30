@@ -88,7 +88,6 @@ router.get("/validateDuplicateName/:id", auth, async (req, res) => {
     if (name) {
       query.name = { $regex: `^${name}$`, $options: "i" };
     }
-    console.log(query);
     const driver = await Driver.findOne(query);
     res.json(driver);
   } catch (error) {

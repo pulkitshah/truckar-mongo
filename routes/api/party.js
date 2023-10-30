@@ -68,7 +68,7 @@ router.get("/:id", auth, async (req, res) => {
       // query.name = new RegExp(`.*${value}*.`, "i");
     }
     const parties = await Party.find(query);
-    console.log(query);
+
     res.json(parties);
   } catch (error) {
     console.log(error.message);
@@ -89,7 +89,7 @@ router.get("/validateDuplicateMobile/:id", auth, async (req, res) => {
     if (value) {
       query.mobile = value;
     }
-    console.log(query);
+
     const party = await Party.findOne(query);
     res.json(party);
   } catch (error) {

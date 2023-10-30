@@ -9,7 +9,7 @@ import unwind from "../../../utils/unwind";
 
 const Table = ({ order, gridApi }) => {
   const dispatch = useDispatch();
-  const deliveries = unwind("deliveries", order);
+  let deliveries = unwind("deliveries", order);
 
   const updateDelivery = React.useCallback(async (newRow, error) => {
     try {
@@ -35,7 +35,7 @@ const Table = ({ order, gridApi }) => {
   return (
     <React.Fragment>
       <DataGrid
-        getRowId={(row) => row._id}
+        getRowId={(row) => row.deliveries._id}
         rows={deliveries}
         autoHeight={true}
         columns={deliveryDetailsTableForOrderDrawer}

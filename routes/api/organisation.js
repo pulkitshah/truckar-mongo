@@ -96,7 +96,6 @@ router.get(
           $options: "i",
         };
       }
-      console.log(query);
       const organisation = await Organisation.findOne(query);
       res.json(organisation);
     } catch (error) {

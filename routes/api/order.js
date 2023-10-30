@@ -268,8 +268,6 @@ router.get("/:id", auth, async (req, res) => {
 
   query = [...query, ...lookups];
 
-  console.log(query);
-
   if (sort) {
     // maybe we want to sort by blog title or something
     query.push({ $sort: sort });
@@ -493,7 +491,7 @@ router.get("/id/:id", async (req, res) => {
 });
 
 // @route   PATCH api/order
-// @desc    Create Order
+// @desc    Update Order
 // @access  Private
 router.patch(
   "/",
@@ -509,14 +507,17 @@ router.patch(
         .populate("driver")
         .populate("vehicle");
 
-      console.log(req.body);
-
       if (!order) {
         return res.status(404).send("No order to update");
       }
 
       updates.forEach((update) => (order[update] = req.body[update]));
       await order.save();
+
+      await order.populate("customer");
+      await order.populate("transporter");
+      await order.populate("driver");
+      await order.populate("vehicle");
 
       res.send(order);
     } catch (error) {
@@ -542,8 +543,6 @@ router.get("/validateDuplicateOrderNo/:id", auth, async (req, res) => {
         $lte: timestamps.current.end,
       },
     };
-
-    // console.log(query);
     const order = await Order.findOne(query);
     console.log(order);
 

@@ -274,7 +274,6 @@ router.get("/deliveriesbyorder/:id", auth, async (req, res) => {
       })
       .populate("order");
 
-    console.log(query);
     res.json(deliveries);
   } catch (error) {
     console.log(error.message);
@@ -360,8 +359,6 @@ router.get("/:id", auth, async (req, res) => {
   // }
 
   query = [...query, ...lookups];
-
-  // console.log(query);
 
   if (sort) {
     // maybe we want to sort by blog title or something
@@ -465,8 +462,6 @@ router.get("/deliveriesbycustomer/:id", auth, async (req, res) => {
   // }
 
   query = [...lookups, ...query];
-
-  // console.log(query);
 
   if (sort) {
     // maybe we want to sort by blog title or something

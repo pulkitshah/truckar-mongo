@@ -90,6 +90,7 @@ const OrderPreview = (props) => {
   const dispatch = useDispatch();
 
   const formik = useFormik({
+    enableReinitialize: true,
     initialValues: {
       _id: order._id,
       orderExpenses: order.orderExpenses ? order.orderExpenses : [],
@@ -605,7 +606,7 @@ const OrderForm = (props) => {
     );
   }
 
-  validationShape.deliveryDetails = Yup.array().of(
+  validationShape.deliveries = Yup.array().of(
     Yup.object().shape({
       loading: Yup.object()
         .required("Loading Point is Required")
@@ -640,8 +641,6 @@ const OrderForm = (props) => {
     })
   );
 
-  console.log(order.deliveries);
-
   const formik = useFormik({
     initialValues: {
       _id: order._id,
@@ -665,7 +664,7 @@ const OrderForm = (props) => {
       purchaseRate: order.purchaseRate || "",
       purchaseAdvance: order.purchaseAdvance || "",
       minimumPurchaseGuarantee: order.minimumPurchaseGuarantee || null,
-      deliveryDetails: order.deliveries || [
+      deliveries: order.deliveries || [
         {
           _id: uuidv4(),
           loading: "",
@@ -687,7 +686,7 @@ const OrderForm = (props) => {
           saleRate: parseFloat(values.saleRate),
           saleType: values.saleType,
           account: account._id,
-          // deliveries: (values.deliveryDetails),
+          deliveries: values.deliveries,
           _version: values._version,
         };
 
@@ -728,50 +727,6 @@ const OrderForm = (props) => {
 
         let { data } = await orderApi.updateOrder(editedOrder, dispatch);
         console.log(data);
-        data.deliveries = [];
-
-        values.deliveryDetails.map(async (del) => {
-          console.log(del);
-          if (del._id) {
-            let editedDelivery = {
-              _id: del._id,
-              loading: del.loading,
-              unloading: del.unloading,
-              order: data._id,
-              _version: del._version,
-            };
-
-            if (del.billQuantity) {
-              editedDelivery.billQuantity = del.billQuantity;
-            }
-            if (del.unloadingQuantity) {
-              editedDelivery.unloadingQuantity = del.unloadingQuantity;
-            }
-
-            console.log(editedDelivery);
-
-            let response = await deliveryApi.updateDelivery(editedDelivery);
-            data.deliveries.push(response.data);
-          } else {
-            let newDelivery = {
-              loading: del.loading,
-              unloading: del.unloading,
-              order: data._id,
-              account: account._id,
-            };
-
-            if (del.billQuantity) {
-              newDelivery.billQuantity = del.billQuantity;
-            }
-            if (del.unloadingQuantity) {
-              newDelivery.unloadingQuantity = del.unloadingQuantity;
-            }
-
-            let response = await deliveryApi.createDelivery(newDelivery);
-
-            data.deliveries.push(response.data);
-          }
-        });
 
         onOpen(data, gridApi);
         gridApi.refreshInfiniteCache();
@@ -794,22 +749,21 @@ const OrderForm = (props) => {
     setAddresses((addresses) => ({
       ...addresses,
       ...{
-        origin: formik.values.deliveryDetails[0].loading.description,
+        origin: formik.values.deliveries[0].loading.description,
       },
     }));
 
     // Setting Destination
     if (
-      formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-        .unloading.description
+      formik.values.deliveries[formik.values.deliveries.length - 1].unloading
+        .description
     ) {
       setAddresses((addresses) => ({
         ...addresses,
         ...{
           destination:
-            formik.values.deliveryDetails[
-              formik.values.deliveryDetails.length - 1
-            ].unloading.description,
+            formik.values.deliveries[formik.values.deliveries.length - 1]
+              .unloading.description,
         },
       }));
     }
@@ -818,7 +772,7 @@ const OrderForm = (props) => {
 
     let waypoints = [];
 
-    formik.values.deliveryDetails.map((delivery) => {
+    formik.values.deliveries.map((delivery) => {
       if (delivery.loading.description) {
         waypoints.push({
           location: delivery.loading.description,
@@ -834,14 +788,13 @@ const OrderForm = (props) => {
 
     waypoints = waypoints.filter(
       (waypoint) =>
-        waypoint.location !==
-        formik.values.deliveryDetails[0].loading.description
+        waypoint.location !== formik.values.deliveries[0].loading.description
     );
     waypoints = waypoints.filter(
       (waypoint) =>
         waypoint.location !==
-        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading.description
+        formik.values.deliveries[formik.values.deliveries.length - 1].unloading
+          .description
     );
 
     waypoints = [
@@ -849,13 +802,13 @@ const OrderForm = (props) => {
     ];
 
     setAddresses({
-      origin: formik.values.deliveryDetails[0].loading.description,
+      origin: formik.values.deliveries[0].loading.description,
       destination:
-        formik.values.deliveryDetails[formik.values.deliveryDetails.length - 1]
-          .unloading.description,
+        formik.values.deliveries[formik.values.deliveries.length - 1].unloading
+          .description,
       waypoints: waypoints,
     });
-  }, [formik.values.deliveryDetails]);
+  }, [formik.values.deliveries]);
 
   return (
     <>
