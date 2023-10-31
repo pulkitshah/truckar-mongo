@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
-import * as Yup from "yup";
-import { useFormik, getIn, FieldArray, FormikProvider } from "formik";
-import { v4 as uuidv4 } from "uuid";
-import toast from "react-hot-toast";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import moment from "moment";
-import { Storage } from "aws-amplify";
-import InvoicePDFs from "./InvoicePDFs";
+
+import InvoicePDFs, { invoiceFormats } from "./InvoicePDFs";
 
 import {
   Box,
@@ -43,10 +39,10 @@ const InvoicePreview = (props) => {
   const align = lgUp ? "horizontal" : "vertical";
   const [logo, setLogo] = useState();
   const { account } = useAuth();
-  const dispatch = useDispatch();
+
+  invoice.account = account;
 
   console.log(invoice);
-
   return (
     <>
       <Box

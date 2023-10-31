@@ -30,8 +30,6 @@ export const DeliveryCard = (props) => {
     particular: invoiceDelivery.particular,
   };
 
-  console.log(delivery);
-
   const mdDown = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
   return (

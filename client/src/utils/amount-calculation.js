@@ -82,7 +82,7 @@ export var calculateAmountForDelivery2 = (trips, delivery, type) => {
       amount =
         parseFloat(delivery.billQuantity) * parseFloat(delivery.saleRate);
     } else {
-      if (order._id === delivery._id) {
+      if (_id === delivery._id) {
         amount = parseFloat(delivery.saleRate);
       } else {
         amount = parseFloat(0);
@@ -779,8 +779,8 @@ export var calculateAmountForDelivery = (delivery, type) => {
                 parseFloat(delivery.delivery.billQuantity || 1)) /
               parseFloat(sumOfBillQuantity || delivery.deliveries.length);
           }
-          console.log("amount");
-          console.log(amount);
+          // console.log("amount");
+          // console.log(amount);
           break;
         case "fixed":
           amount = parseFloat(delivery.saleRate);
@@ -905,7 +905,7 @@ export var calculateAmountForDelivery = (delivery, type) => {
 export var getInvoiceWeight = (delivery, type) => {
   let sumOfBillQuantity = 0;
   let deliveryArray = [];
-  delivery.order.deliveries.map((del) => {
+  delivery.deliveries.map((del) => {
     if (Boolean(del.billQuantity)) {
       deliveryArray.push(`${del.billQuantity} MT`);
       return (sumOfBillQuantity =
@@ -920,8 +920,7 @@ export var getInvoiceWeight = (delivery, type) => {
   let guarantee = false;
   let deliveryString = [];
   if (
-    parseFloat(sumOfBillQuantity) <
-    parseFloat(delivery.order.minimumSaleGuarantee)
+    parseFloat(sumOfBillQuantity) < parseFloat(delivery.minimumSaleGuarantee)
   ) {
     deliveryString = deliveryArray.join(" + ");
   } else {
@@ -931,9 +930,9 @@ export var getInvoiceWeight = (delivery, type) => {
     case "sale":
       if (
         parseFloat(sumOfBillQuantity) <
-        parseFloat(delivery.order.minimumSaleGuarantee)
+        parseFloat(delivery.minimumSaleGuarantee)
       ) {
-        weight = parseFloat(delivery.order.minimumSaleGuarantee);
+        weight = parseFloat(delivery.minimumSaleGuarantee);
         guarantee = true;
       } else {
         weight = parseFloat(delivery.billQuantity);
@@ -942,9 +941,9 @@ export var getInvoiceWeight = (delivery, type) => {
     case "purchase":
       if (
         parseFloat(sumOfBillQuantity) <
-        parseFloat(delivery.order.minimumPurchaseGuarantee)
+        parseFloat(delivery.minimumPurchaseGuarantee)
       ) {
-        weight = parseFloat(delivery.order.minimumPurchaseGuarantee);
+        weight = parseFloat(delivery.minimumPurchaseGuarantee);
         guarantee = true;
       } else {
         weight = parseFloat(delivery.billQuantity);

@@ -235,7 +235,24 @@ const InvoicePDF = ({ invoice, logo }) => {
       <Page size="A4" style={styles.page}>
         <View style={{ display: "flex" }}>
           <View>
-            <Image src={logo} style={styles.logo} />
+            {Boolean(invoice.organisation.logo) ? (
+              <Image
+                source={{
+                  uri: invoice.organisation.logo.location,
+                  method: "GET",
+                  headers: {
+                    Pragma: "no-cache",
+                    "Cache-Control": "no-cache",
+                  },
+                  body: "",
+                }}
+                style={styles.logo}
+              />
+            ) : (
+              <Text style={[styles.h1]}>
+                {lr.organisation.name.toUpperCase()}
+              </Text>
+            )}
           </View>
           <View style={styles.header}>
             <View style={[styles.width33]}>

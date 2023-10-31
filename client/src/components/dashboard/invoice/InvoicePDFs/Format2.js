@@ -227,8 +227,8 @@ const InvoicePDF = ({ invoice, logo }) => {
   let advance = 0;
   console.log(invoice);
   let totalTaxPercentage =
-    invoice.taxes && JSON.parse(invoice.taxes)
-      ? JSON.parse(invoice.taxes).reduce((a, b) => {
+    invoice.taxes && invoice.taxes
+      ? invoice.taxes.reduce((a, b) => {
           return a + (parseFloat(b.value) || 0);
         }, 0)
       : 0;
@@ -238,11 +238,38 @@ const InvoicePDF = ({ invoice, logo }) => {
       <Page size="A4" style={styles.page}>
         <View style={{ display: "flex" }}>
           <View>
-            <Image src={logo} style={styles.logo} />
+            {Boolean(invoice.organisation.logo) ? (
+              <Image
+                source={{
+                  uri: invoice.organisation.logo.location,
+                  method: "GET",
+                  headers: {
+                    Pragma: "no-cache",
+                    "Cache-Control": "no-cache",
+                  },
+                  body: "",
+                }}
+                style={styles.logo}
+              />
+            ) : (
+              <Text style={[styles.h1]}>
+                {lr.organisation.name.toUpperCase()}
+              </Text>
+            )}
           </View>
           <View style={styles.header}>
-            <View style={[styles.width33]}>
-              <Text style={styles.body1}>Registered Address:</Text>
+            <View
+              style={[
+                styles.width33,
+                styles.box,
+                styles.topBorder,
+                styles.bottomBorder,
+                styles.leftBorder,
+              ]}
+            >
+              <Text style={[styles.body1, styles.bold, styles.underlined]}>
+                Registered Address:
+              </Text>
               <Text style={styles.body1}>
                 {invoice.organisation.addressLine1}
               </Text>
@@ -255,7 +282,7 @@ const InvoicePDF = ({ invoice, logo }) => {
               </Text>
               <Text style={styles.body1}>
                 {" "}
-                Contact No: +91 {invoice.user.mobile}
+                Contact No: +91 {invoice.organisation.contact}
               </Text>
               <Text style={styles.body1}> </Text>
               <Text style={styles.body1}>
@@ -300,7 +327,7 @@ const InvoicePDF = ({ invoice, logo }) => {
                 <Text style={styles.body1}>
                   {invoice.billingAddress &&
                     invoice.billingAddress.city &&
-                    JSON.parse(invoice.billingAddress.city).description}
+                    invoice.billingAddress.city.description}
                 </Text>
                 <Text style={styles.body1}>
                   {" "}
@@ -387,15 +414,23 @@ const InvoicePDF = ({ invoice, logo }) => {
               </View>
             </View>
 
-            {invoice.deliveries.map((delivery, index) => {
+            {invoice.deliveries.map((invoiceDelivery, index) => {
+              const delivery = {
+                ...invoiceDelivery.order,
+                delivery: invoiceDelivery.order.deliveries.find(
+                  (e) => e._id === invoiceDelivery.delivery
+                ),
+                invoiceCharges: invoiceDelivery.invoiceCharges,
+                particular: invoiceDelivery.particular,
+              };
+
               subtotalAmount =
                 subtotalAmount + calculateAmountForDelivery(delivery, "sale");
               advance =
                 advance +
                 parseFloat(
-                  delivery.order.saleAdvance
-                    ? delivery.order.saleAdvance /
-                        delivery.order.deliveries.length
+                  delivery.saleAdvance
+                    ? delivery.saleAdvance / delivery.deliveries.length
                     : 0
                 );
               return (
@@ -408,19 +443,19 @@ const InvoicePDF = ({ invoice, logo }) => {
                   </View>
                   <View style={[styles.dateCell, styles.rightBorder]}>
                     <Text style={[styles.tableCellText]}>
-                      {moment(delivery.order.saleDate).format("DD-MM-YY")}
+                      {moment(delivery.saleDate).format("DD-MM-YY")}
                     </Text>
                   </View>
 
                   <View style={[styles.vehicleNumberCell, styles.rightBorder]}>
                     <Text style={[styles.tableCellText]}>
-                      {delivery.order.vehicleNumber}
+                      {delivery.vehicleNumber}
                     </Text>
                   </View>
                   <View style={[styles.locationCell, styles.rightBorder]}>
                     <Text style={[styles.tableCellText]}>
                       {
-                        JSON.parse(delivery.loading).structured_formatting
+                        delivery.delivery.loading.structured_formatting
                           .main_text
                       }
                     </Text>
@@ -428,7 +463,7 @@ const InvoicePDF = ({ invoice, logo }) => {
                   <View style={[styles.locationCell, styles.rightBorder]}>
                     <Text style={[styles.tableCellText]}>
                       {
-                        JSON.parse(delivery.unloading).structured_formatting
+                        delivery.delivery.unloading.structured_formatting
                           .main_text
                       }
                     </Text>
@@ -436,44 +471,39 @@ const InvoicePDF = ({ invoice, logo }) => {
                   <View style={[styles.lrNoCell, styles.rightBorder]}>
                     {delivery.lr && (
                       <Text style={[styles.tableCellText]}>
-                        {`${delivery.lr.organisation.initials} - ${delivery.lr.lrNo}`}
+                        {`${delivery.delivery.lr.organisation.initials} - ${delivery.lr.lrNo}`}
                       </Text>
                     )}
                   </View>
                   <View style={[styles.weightCell, styles.rightBorder]}>
                     <Text style={[styles.tableCellText]}>
-                      {delivery.lr && delivery.lr.chargedWeight
-                        ? delivery.lr.chargedWeight
-                        : delivery.billQuantity
-                        ? `${delivery.billQuantity} ${
-                            JSON.parse(delivery.order.saleType).unit
-                          } `
-                        : `${delivery.order.minimumSaleGuarantee || 0} ${
-                            JSON.parse(delivery.order.saleType).unit
+                      {delivery.delivery.lr &&
+                      delivery.delivery.lr.chargedWeight
+                        ? delivery.delivery.lr.chargedWeight
+                        : delivery.delivery.billQuantity
+                        ? `${delivery.delivery.billQuantity} ${delivery.saleType.unit} `
+                        : `${delivery.minimumSaleGuarantee || 0} ${
+                            delivery.saleType.unit
                           }`}
                     </Text>
                   </View>
                   <View style={[styles.rateCell, styles.rightBorder]}>
                     <Text style={[styles.tableCellText]}>
-                      {JSON.parse(delivery.order.saleType).value === "quantity"
-                        ? `Rs ${delivery.order.saleRate} / ${
-                            JSON.parse(delivery.order.saleType).unit
-                          }`
-                        : `Rs ${delivery.order.saleRate} (Fixed)`}
+                      {delivery.saleType.value === "quantity"
+                        ? `Rs ${delivery.saleRate} / ${delivery.saleType.unit}`
+                        : `Rs ${delivery.saleRate} (Fixed)`}
                     </Text>
                     {getInvoiceWeight(delivery, "sale").guarantee && (
                       <Text style={[styles.tableCellText]}>
                         {`( G - ${getInvoiceWeight(delivery, "sale").weight} ${
-                          JSON.parse(delivery.order.saleType).unit
+                          delivery.saleType.unit
                         })`}
                       </Text>
                     )}
                   </View>
                   <View style={[styles.othersCell, styles.rightBorder]}>
                     <Text style={[styles.tableCellText]}>{`Rs. ${formatNumber(
-                      getSumOfInvoiceCharges(
-                        JSON.parse(delivery.invoiceCharges)
-                      )
+                      getSumOfInvoiceCharges(delivery.invoiceCharges)
                     )} `}</Text>
                   </View>
                   <View style={[styles.freightCell, styles.rightBorder]}>
@@ -487,9 +517,8 @@ const InvoicePDF = ({ invoice, logo }) => {
                     <Text style={[styles.tableCellText]}>
                       {"Rs " +
                         formatNumber(
-                          delivery.order.saleAdvance
-                            ? delivery.order.saleAdvance /
-                                delivery.order.deliveries.length
+                          delivery.saleAdvance
+                            ? delivery.saleAdvance / delivery.deliveries.length
                             : 0
                         )}
                     </Text>
@@ -497,7 +526,7 @@ const InvoicePDF = ({ invoice, logo }) => {
                 </View>
               );
             })}
-            {invoice.taxes && JSON.parse(invoice.taxes).length > 0 && (
+            {invoice.taxes && invoice.taxes.length > 0 && (
               <View style={[styles.tableRow]}>
                 <View style={[styles.amountInWordsCell, styles.rightBorder]}>
                   <Text style={[styles.amountInWordsCellText]}>
@@ -543,7 +572,7 @@ const InvoicePDF = ({ invoice, logo }) => {
               </View>
             )}
             {invoice.taxes &&
-              JSON.parse(invoice.taxes).map((tax) => {
+              invoice.taxes.map((tax) => {
                 return (
                   <View style={[styles.tableRow]}>
                     <View
@@ -586,7 +615,7 @@ const InvoicePDF = ({ invoice, logo }) => {
               <View style={[styles.tableRow]}>
                 <View style={[styles.amountInWordsCell, styles.rightBorder]}>
                   <Text style={[styles.amountInWordsCellText]}>
-                    {!(invoice.taxes && JSON.parse(invoice.taxes).length > 0) &&
+                    {!(invoice.taxes && invoice.taxes.length > 0) &&
                       `Invoice Amount in Words: ${numWords(
                         Math.round(subtotalAmount)
                       ).replace(/\w\S*/g, function (txt) {
@@ -626,15 +655,13 @@ const InvoicePDF = ({ invoice, logo }) => {
                   <View
                     style={[
                       styles.advanceCell,
-                      !(
-                        invoice.taxes && JSON.parse(invoice.taxes).length > 0
-                      ) && styles.bottomBorder,
+                      !(invoice.taxes && invoice.taxes.length > 0) &&
+                        styles.bottomBorder,
                     ]}
                   >
                     <Text style={[styles.tableCellText]}>
-                      {!(
-                        invoice.taxes && JSON.parse(invoice.taxes).length > 0
-                      ) && "Rs " + formatNumber(advance)}
+                      {!(invoice.taxes && invoice.taxes.length > 0) &&
+                        "Rs " + formatNumber(advance)}
                     </Text>
                   </View>
                 }
