@@ -838,72 +838,79 @@ export const orderTableForCreateInvoice = [
     field: "initials",
     headerName: "🚚",
     checkboxSelection: true,
+    width: 60,
   },
   {
     field: "orderNo",
     headerName: "Order No",
+    width: 100,
     valueFormatter: (params) => {
-      return params.data && params.data.order.orderNo;
+      return params.data && params.data.orderNo;
     },
   },
   {
     field: "saleDate",
     headerName: "Sale Date",
+    width: 100,
     valueFormatter: (params) => {
-      return (
-        params.data && moment(params.data.order.saleDate).format("DD-MM-YY")
-      );
+      return params.data && moment(params.data.saleDate).format("DD-MM-YY");
     },
   },
   {
     field: "vehicleNumber",
     headerName: "Vehicle Number",
+    width: 150,
     valueGetter: (params) => {
-      return params.data && params.data.order.vehicleNumber;
+      return params.data && params.data.vehicleNumber;
     },
   },
   {
     field: "loading",
     headerName: "Loading From",
+    width: 160,
     valueGetter: (params) => {
-      return params.data && params.data.loading.structured_formatting.main_text;
+      return (
+        params.data &&
+        params.data.deliveries.loading.structured_formatting.main_text
+      );
     },
   },
   {
     field: "loading",
     headerName: "Unloading At",
+    width: 160,
     valueGetter: (params) => {
       return (
-        params.data && params.data.unloading.structured_formatting.main_text
+        params.data &&
+        params.data.deliveries.unloading.structured_formatting.main_text
       );
     },
   },
   {
     field: "billWeight",
     headerName: "Bill Weight",
+    width: 120,
     editable: true,
     valueSetter: (params) => {
       return true;
     },
     valueGetter: (params) => {
-      return params.data && params.data.billQuantity;
+      return params.data && params.data.deliveries.billQuantity;
     },
     valueFormatter: (params) => {
-      return (
-        params.value && `${params.value} ${params.data.order.saleType.unit}`
-      );
+      return params.value && `${params.value} ${params.data.saleType.unit}`;
     },
   },
   {
     field: "saleRate",
     headerName: "Sale Rate",
+    width: 150,
     valueGetter: (params) => {
-      return params.data && params.data.order.saleRate;
+      return params.data && params.data.saleRate;
     },
     valueFormatter: (params) => {
       return (
-        params.value &&
-        `Rs. ${params.value} / ${params.data.order.saleType.unit}`
+        params.value && `Rs. ${params.value} / ${params.data.saleType.unit}`
       );
     },
   },

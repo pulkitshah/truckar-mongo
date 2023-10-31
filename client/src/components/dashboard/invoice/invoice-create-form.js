@@ -228,8 +228,8 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
           <CardContent>
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Typography variant="h6">Orders</Typography>
-                <Box sx={{ mt: 3, px: 3, height: "30vh", width: "100%" }}>
+                <Typography variant="h6">Deliveries</Typography>
+                <Box sx={{ mt: 3, px: 3, height: "40vh", width: "100%" }}>
                   <OrderDetailsGrid formik={formik} />
                 </Box>
               </Grid>

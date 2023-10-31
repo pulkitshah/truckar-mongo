@@ -148,102 +148,6 @@ let lookups = [
   },
   // {
   //   $lookup: {
-  //     from: "lrs",
-  //     let: {
-  //       id: "$lr",
-  //     },
-  //     pipeline: [
-  //       {
-  //         $match: {
-  //           $expr: {
-  //             $eq: ["$_id", "$$id"],
-  //           },
-  //         },
-  //       },
-  //       {
-  //         $lookup: {
-  //           from: "organisations",
-  //           let: {
-  //             id: "$organisation",
-  //           },
-  //           pipeline: [
-  //             {
-  //               $match: {
-  //                 $expr: {
-  //                   $eq: ["$_id", "$$id"],
-  //                 },
-  //               },
-  //             },
-  //           ],
-  //           as: "organisation",
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$organisation",
-  //           preserveNullAndEmptyArrays: true,
-  //         },
-  //       },
-  //       {
-  //         $lookup: {
-  //           from: "addresses",
-  //           let: {
-  //             id: "$consignor",
-  //           },
-  //           pipeline: [
-  //             {
-  //               $match: {
-  //                 $expr: {
-  //                   $eq: ["$_id", "$$id"],
-  //                 },
-  //               },
-  //             },
-  //           ],
-  //           as: "consignor",
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$consignor",
-  //           preserveNullAndEmptyArrays: true,
-  //         },
-  //       },
-  //       {
-  //         $lookup: {
-  //           from: "addresses",
-  //           let: {
-  //             id: "$consignee",
-  //           },
-  //           pipeline: [
-  //             {
-  //               $match: {
-  //                 $expr: {
-  //                   $eq: ["$_id", "$$id"],
-  //                 },
-  //               },
-  //             },
-  //           ],
-  //           as: "consignee",
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$consignee",
-  //           preserveNullAndEmptyArrays: true,
-  //         },
-  //       },
-  //     ],
-  //     as: "lr",
-  //   },
-  // },
-  // {
-  //   $unwind: {
-  //     path: "$lr",
-  //     preserveNullAndEmptyArrays: true,
-  //   },
-  // },
-  // {
-  //   $lookup: {
   //     from: "invoices",
   //     let: {
   //       id: "$_id",
@@ -291,89 +195,6 @@ let lookups = [
   // { $unwind: "$invoices" },
 ];
 
-// @route   POST api/delivery
-// @desc    Create Delivery
-// @access  Private
-router.post("/", auth, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    // Get fields
-    const updates = Object.keys(req.body);
-    const deliveryFields = {};
-    deliveryFields.createdBy = req.user.id;
-    updates.forEach((update) => (deliveryFields[update] = req.body[update]));
-
-    try {
-      // Create
-      delivery = new Delivery(deliveryFields);
-      await delivery.save();
-      res.send(delivery);
-    } catch (error) {
-      console.log(error.message);
-      res.status(500).send("Server Error");
-    }
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send("Server Error");
-  }
-});
-
-// @route   PATCH api/delivery
-// @desc    Update Delivery
-// @access  Private
-router.patch("/", auth, async (req, res) => {
-  const updates = Object.keys(req.body);
-  try {
-    const delivery = await Delivery.findOne({
-      _id: req.body._id,
-    }).populate("order");
-
-    if (!delivery) {
-      return res.status(404).send("No order to update");
-    }
-
-    updates.forEach((update) => (delivery[update] = req.body[update]));
-    await delivery.save();
-
-    res.send(delivery);
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send("Server Error");
-  }
-});
-
-// @route   GET api/delivery/deliveriesbyorder
-// @desc    Get Deliveries created from account for an order
-// @access  Private
-
-router.get("/deliveriesbyorder/:id", auth, async (req, res) => {
-  const { account, order } = JSON.parse(req.params.id);
-  try {
-    const query = {
-      account,
-      order,
-    };
-    const deliveries = await Delivery.find(query)
-      .populate({
-        path: "lr",
-        populate: {
-          path: "organisation",
-          model: "organisation",
-        },
-      })
-      .populate("order");
-
-    res.json(deliveries);
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send("Server Error");
-  }
-});
-
 // @route   GET api/orders/
 // @desc    Get Orders created by user
 // @access  Private
@@ -396,14 +217,6 @@ router.get("/:id", auth, async (req, res) => {
     filter = {},
     sort = { saleDate: -1, orderNo: -1 },
   } = JSON.parse(req.params.id);
-
-  // if (!(accountId instanceof mongoose.Types.ObjectId)) {
-  //   throw new Error("accountId must be ObjectId");
-  // } else if (typeof startRow !== "number") {
-  //   throw new Error("startRow must be number");
-  // } else if (typeof endRow !== "number") {
-  //   throw new Error("endRow must be number");
-  // }
 
   let query = [];
   if (account)
@@ -472,8 +285,8 @@ router.get("/:id", auth, async (req, res) => {
   res.json(deliveries);
 });
 
-// @route   GET api/orders/
-// @desc    Get Orders created by user
+// @route   GET api/deliveries/deliveriesbycustomer/:id
+// @desc    Get Deliveries by a customer
 // @access  Private
 
 /**
@@ -493,7 +306,7 @@ router.get("/deliveriesbycustomer/:id", auth, async (req, res) => {
     startRow,
     endRow,
     filter = {},
-    sort = { order: -1 },
+    sort = { saleDate: -1, orderNo: -1 },
   } = JSON.parse(req.params.id);
 
   console.log({
@@ -505,17 +318,9 @@ router.get("/deliveriesbycustomer/:id", auth, async (req, res) => {
     sort,
   });
 
-  // if (!(accountId instanceof mongoose.Types.ObjectId)) {
-  //   throw new Error("accountId must be ObjectId");
-  // } else if (typeof startRow !== "number") {
-  //   throw new Error("startRow must be number");
-  // } else if (typeof endRow !== "number") {
-  //   throw new Error("endRow must be number");
-  // }
-
   let matches = {
     account: new mongoose.Types.ObjectId(account),
-    "order.customer._id": new mongoose.Types.ObjectId(customer),
+    customer: new mongoose.Types.ObjectId(customer),
   };
 
   let query = [
@@ -545,7 +350,9 @@ router.get("/deliveriesbycustomer/:id", auth, async (req, res) => {
   //   query.push(vehicleNumberQuery[0]);
   // }
 
-  query = [...lookups, ...query];
+  query = [...query, ...lookups];
+
+  console.log(query);
 
   if (sort) {
     // maybe we want to sort by blog title or something
@@ -571,7 +378,7 @@ router.get("/deliveriesbycustomer/:id", auth, async (req, res) => {
     }
   );
 
-  const deliveries = await Delivery.aggregate(query);
+  const deliveries = await Order.aggregate(query);
   res.json(deliveries);
 });
 

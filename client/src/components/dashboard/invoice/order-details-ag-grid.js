@@ -31,7 +31,7 @@ const OrderDetailsGrid = ({ formik }) => {
           filter,
         })
       );
-
+      console.log(data);
       if (data) {
         dataRef.current = [...dataRef.current, ...data];
         // supply rows for requested block to grid
@@ -62,7 +62,7 @@ const OrderDetailsGrid = ({ formik }) => {
   console.log(formik.values);
 
   return (
-    <div style={{ width: "100%", height: "70%" }}>
+    <div style={{ width: "100%", height: "100%" }}>
       <div
         style={{ width: "100%", height: "100%" }}
         className="ag-theme-balham"
@@ -70,7 +70,7 @@ const OrderDetailsGrid = ({ formik }) => {
         <AgGridReact
           ref={gridRef}
           columnDefs={orderTableForCreateInvoice}
-          getRowId={(params) => params.data._id}
+          getRowId={(params) => params.data.deliveries._id}
           rowModelType={"serverSide"}
           onGridReady={onGridReady}
           rowSelection={"multiple"}
