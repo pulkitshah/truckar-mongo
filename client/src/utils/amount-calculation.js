@@ -764,9 +764,11 @@ export var calculateAmountForDelivery = (delivery, type) => {
     case "sale":
       switch (delivery.saleType.value) {
         case "quantity":
-          amount =
-            parseFloat(delivery.delivery.billQuantity) *
-            parseFloat(delivery.saleRate);
+          if (delivery.delivery.billQuantity) {
+            amount =
+              parseFloat(delivery.delivery.billQuantity) *
+              parseFloat(delivery.saleRate);
+          }
           if (
             parseFloat(sumOfBillQuantity) <
             parseFloat(delivery.minimumSaleGuarantee || 0)
@@ -777,7 +779,8 @@ export var calculateAmountForDelivery = (delivery, type) => {
                 parseFloat(delivery.delivery.billQuantity || 1)) /
               parseFloat(sumOfBillQuantity || delivery.deliveries.length);
           }
-
+          console.log("amount");
+          console.log(amount);
           break;
         case "fixed":
           amount = parseFloat(delivery.saleRate);

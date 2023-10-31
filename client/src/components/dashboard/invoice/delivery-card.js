@@ -19,7 +19,18 @@ import {
 } from "../../../utils/amount-calculation";
 
 export const DeliveryCard = (props) => {
-  const { delivery, index, ...other } = props;
+  const { invoiceDelivery, index, ...other } = props;
+
+  const delivery = {
+    ...invoiceDelivery.order,
+    delivery: invoiceDelivery.order.deliveries.find(
+      (e) => e._id === invoiceDelivery.delivery
+    ),
+    invoiceCharges: invoiceDelivery.invoiceCharges,
+    particular: invoiceDelivery.particular,
+  };
+
+  console.log(delivery);
 
   const mdDown = useMediaQuery((theme) => theme.breakpoints.down("md"));
 
@@ -44,21 +55,21 @@ export const DeliveryCard = (props) => {
                 <Box>
                   <Typography variant="body2">Order No</Typography>
                   <Typography sx={{ mb: 3 }} variant="body2">
-                    {delivery.order?.orderNo}
+                    {delivery.orderNo}
                   </Typography>
                 </Box>
                 <Box>
                   <Typography variant="body2">LR No</Typography>
                   <Typography sx={{ mb: 3 }} variant="body2">
-                    {delivery.lr
-                      ? `${delivery.lr.organisation.initials} - ${delivery.lr.lrNo}`
+                    {delivery.delivery.lr
+                      ? `${delivery.delivery.lr.organisation.initials} - ${delivery.delivery.lr.lrNo}`
                       : "N/A"}
                   </Typography>
                 </Box>
                 <Box>
                   <Typography variant="body2">Sale Date</Typography>
                   <Typography sx={{ mb: 3 }} variant="body2">
-                    {moment(delivery.order?.saleDate).format("DD/MM/YYYY")}
+                    {moment(delivery.saleDate).format("DD/MM/YYYY")}
                   </Typography>
                 </Box>
                 {!mdDown && (
@@ -66,20 +77,30 @@ export const DeliveryCard = (props) => {
                     <Box>
                       <Typography variant="body2">From</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {delivery.loading.structured_formatting.main_text}
+                        {
+                          delivery.delivery.loading.structured_formatting
+                            .main_text
+                        }
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="body2">To</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {delivery.unloading.structured_formatting.main_text}
+                        {
+                          delivery.delivery.unloading.structured_formatting
+                            .main_text
+                        }
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="body2">Bill Quantity</Typography>
-                      {delivery.billQuantity && (
+                      {delivery.delivery.billQuantity ? (
                         <Typography sx={{ mb: 3 }} variant="body2">
-                          {`${delivery.billQuantity} ${delivery.order.saleType.unit}`}
+                          {`${delivery.delivery.billQuantity} ${delivery.saleType.unit}`}
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ mb: 3 }} variant="body2">
+                          {" N/A"}
                         </Typography>
                       )}
                     </Box>
@@ -99,19 +120,33 @@ export const DeliveryCard = (props) => {
                     <Box>
                       <Typography variant="body2">From</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {delivery.loading.structured_formatting.main_text}
+                        {
+                          delivery.delivery.loading.structured_formatting
+                            .main_text
+                        }
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="body2">To</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {delivery.unloading.structured_formatting.main_text}
+                        {
+                          delivery.delivery.unloading.structured_formatting
+                            .main_text
+                        }
                       </Typography>
                     </Box>
                     <Box>
                       <Typography variant="body2">Bill Quantity</Typography>
                       <Typography sx={{ mb: 3 }} variant="body2">
-                        {`${delivery.billQuantity} ${delivery.order.saleType.unit}`}
+                        {delivery.delivery.billQuantity ? (
+                          <Typography sx={{ mb: 3 }} variant="body2">
+                            {`${delivery.delivery.billQuantity} ${delivery.saleType.unit}`}
+                          </Typography>
+                        ) : (
+                          <Typography sx={{ mb: 3 }} variant="body2">
+                            {" N/A"}
+                          </Typography>
+                        )}
                       </Typography>
                     </Box>
                   </Box>
@@ -135,36 +170,38 @@ export const DeliveryCard = (props) => {
                 </Typography>
               </Grid>
 
-              {delivery.invoiceCharges.map((extraCharge, indexExtraCharge) => {
-                return (
-                  <React.Fragment>
-                    <Grid
-                      item
-                      md={10}
-                      xs={12}
-                      className="col"
-                      key={indexExtraCharge}
-                      sx={{ mt: 2 }}
-                    >
-                      <Box>
-                        <Typography variant="body2">Extra Charges</Typography>
-                        <Typography sx={{ mb: 3 }} variant="body2">
-                          {`${extraCharge.particular} `}
-                        </Typography>
-                      </Box>
-                    </Grid>
+              {delivery.invoiceCharges.map(
+                (invoiceCharge, indexInvoiceCharge) => {
+                  return (
+                    <React.Fragment>
+                      <Grid
+                        item
+                        md={10}
+                        xs={12}
+                        className="col"
+                        key={indexInvoiceCharge}
+                        sx={{ mt: 2 }}
+                      >
+                        <Box>
+                          <Typography variant="body2">Extra Charges</Typography>
+                          <Typography sx={{ mb: 3 }} variant="body2">
+                            {`${invoiceCharge.particular} `}
+                          </Typography>
+                        </Box>
+                      </Grid>
 
-                    <Grid item md={2} xs={12} className="col">
-                      <Box>
-                        <Typography variant="body2">Amount</Typography>
-                        <Typography variant="body2">
-                          {`Rs. ${extraCharge.amount} `}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  </React.Fragment>
-                );
-              })}
+                      <Grid item md={2} xs={12} className="col">
+                        <Box>
+                          <Typography variant="body2">Amount</Typography>
+                          <Typography variant="body2">
+                            {`Rs. ${invoiceCharge.amount} `}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </React.Fragment>
+                  );
+                }
+              )}
             </Grid>
           </Grid>
         </CardContent>

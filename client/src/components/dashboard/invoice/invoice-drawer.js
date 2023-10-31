@@ -45,22 +45,7 @@ const InvoicePreview = (props) => {
   const { account } = useAuth();
   const dispatch = useDispatch();
 
-  const getOrganisationLogo = useCallback(async () => {
-    try {
-      const logo = await Storage.get(invoice.organisation.logo);
-      setLogo(logo);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      getOrganisationLogo();
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
+  console.log(invoice);
 
   return (
     <>
@@ -199,7 +184,7 @@ const InvoicePreview = (props) => {
         Invoice Details
       </Typography>
       {invoice.deliveries.map((delivery, index) => {
-        return <DeliveryCard delivery={delivery} index={index} />;
+        return <DeliveryCard invoiceDelivery={delivery} index={index} />;
       })}
 
       <Dialog fullScreen open={viewPDF}>

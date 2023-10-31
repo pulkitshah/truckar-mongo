@@ -101,6 +101,99 @@ let lookups = [
             },
           },
         },
+        {
+          $unwind: {
+            path: "$deliveries",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: "organisations",
+            let: {
+              id: {
+                $toObjectId: "$deliveries.lr.organisation",
+              },
+            },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ["$_id", "$$id"],
+                  },
+                },
+              },
+            ],
+            as: "deliveries.lr.organisation",
+          },
+        },
+        {
+          $unwind: {
+            path: "$deliveries.lr.organisation",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+
+        {
+          $group: {
+            _id: "$_id",
+            orderNo: {
+              $first: "$orderNo",
+            },
+            saleDate: {
+              $first: "$saleDate",
+            },
+            createdDate: {
+              $first: "$createdDate",
+            },
+            customer: {
+              $first: "$customer",
+            },
+            vehicleNumber: {
+              $first: "$vehicleNumber",
+            },
+            vehicle: {
+              $first: "$vehicle",
+            },
+            driver: {
+              $first: "$driver",
+            },
+            deliveries: { $push: "$deliveries" },
+            orderExpenses: {
+              $first: "$orderExpenses",
+            },
+            transporter: {
+              $first: "$transporter",
+            },
+            saleType: {
+              $first: "$saleType",
+            },
+            saleRate: {
+              $first: "$saleRate",
+            },
+            minimumSaleGuarantee: {
+              $first: "$minimumSaleGuarantee",
+            },
+            saleAdvance: {
+              $first: "$saleAdvance",
+            },
+            purchaseType: {
+              $first: "$purchaseType",
+            },
+            purchaseRate: {
+              $first: "$purchaseRate",
+            },
+            minimumPurchaseGuarantee: {
+              $first: "$minimumPurchaseGuarantee",
+            },
+            purchaseAdvance: {
+              $first: "$purchaseAdvance",
+            },
+            account: {
+              $first: "$account",
+            },
+          },
+        },
       ],
       as: "deliveries.order",
     },
