@@ -59,7 +59,7 @@ export const DeliveryCard = (props) => {
                 <Box>
                   <Typography variant="body2">LR No</Typography>
                   <Typography sx={{ mb: 3 }} variant="body2">
-                    {delivery.delivery.lr
+                    {Object.keys(delivery.delivery.lr).length
                       ? `${delivery.delivery.lr.organisation.initials} - ${delivery.delivery.lr.lrNo}`
                       : "N/A"}
                   </Typography>
@@ -156,7 +156,7 @@ export const DeliveryCard = (props) => {
                 <Box>
                   <Typography variant="body2">Particulars</Typography>
                   <Typography variant="body2">
-                    {`${delivery.particular}`}
+                    {`${delivery.particular || ""}`}
                   </Typography>
                 </Box>
               </Grid>
@@ -183,7 +183,7 @@ export const DeliveryCard = (props) => {
                         <Box>
                           <Typography variant="body2">Extra Charges</Typography>
                           <Typography sx={{ mb: 3 }} variant="body2">
-                            {`${invoiceCharge.particular} `}
+                            {`${invoiceCharge.particular || ""} `}
                           </Typography>
                         </Box>
                       </Grid>

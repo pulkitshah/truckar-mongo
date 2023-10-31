@@ -43,6 +43,56 @@ let lookups = [
   },
   {
     $lookup: {
+      from: "addresses",
+      let: {
+        id: {
+          $toObjectId: "$delivery.lr.consignor",
+        },
+      },
+
+      pipeline: [
+        {
+          $match: {
+            $expr: { $eq: ["$_id", "$$id"] },
+          },
+        },
+      ],
+      as: "delivery.lr.consignor",
+    },
+  },
+  {
+    $unwind: {
+      path: "$delivery.lr.consignor",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
+      from: "addresses",
+      let: {
+        id: {
+          $toObjectId: "$delivery.lr.consignee",
+        },
+      },
+
+      pipeline: [
+        {
+          $match: {
+            $expr: { $eq: ["$_id", "$$id"] },
+          },
+        },
+      ],
+      as: "delivery.lr.consignee",
+    },
+  },
+  {
+    $unwind: {
+      path: "$delivery.lr.consignee",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $lookup: {
       from: "parties",
       let: {
         id: "$customer",

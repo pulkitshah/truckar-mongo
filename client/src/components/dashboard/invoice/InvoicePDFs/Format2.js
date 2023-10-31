@@ -469,10 +469,12 @@ const InvoicePDF = ({ invoice, logo }) => {
                     </Text>
                   </View>
                   <View style={[styles.lrNoCell, styles.rightBorder]}>
-                    {delivery.lr && (
+                    {Object.keys(delivery.delivery.lr).length ? (
                       <Text style={[styles.tableCellText]}>
-                        {`${delivery.delivery.lr.organisation.initials} - ${delivery.lr.lrNo}`}
+                        {`${delivery.delivery.lr.organisation.initials} - ${delivery.delivery.lr.lrNo}`}
                       </Text>
+                    ) : (
+                      <Text style={[styles.tableCellText]}></Text>
                     )}
                   </View>
                   <View style={[styles.weightCell, styles.rightBorder]}>
@@ -507,6 +509,7 @@ const InvoicePDF = ({ invoice, logo }) => {
                     )} `}</Text>
                   </View>
                   <View style={[styles.freightCell, styles.rightBorder]}>
+                    {console.log(calculateAmountForDelivery(delivery, "sale"))}
                     <Text style={[styles.tableCellText]}>
                       {`Rs. ${formatNumber(
                         calculateAmountForDelivery(delivery, "sale")

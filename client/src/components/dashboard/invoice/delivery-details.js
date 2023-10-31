@@ -68,7 +68,10 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                 <Box>
                                   <Typography variant="body2">LR No</Typography>
                                   <Typography sx={{ mb: 3 }} variant="body2">
-                                    {formik.values.deliveries[index].delivery.lr
+                                    {Object.keys(
+                                      formik.values.deliveries[index].delivery
+                                        .lr
+                                    ).length
                                       ? `${formik.values.deliveries[index].delivery.lr.organisation.initials} - ${formik.values.deliveries[index].delivery.lr.lrNo}`
                                       : "N/A"}
                                   </Typography>

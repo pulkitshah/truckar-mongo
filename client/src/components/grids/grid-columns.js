@@ -346,21 +346,21 @@ export const deliveriesTable = (account) => {
       cellRenderer: (params) => {
         console.log(params.data);
         if (params.data) {
-          if (Object.keys(params.data.deliveries.lr).length) {
+          if (Object.keys(params.data.delivery.lr).length) {
             return (
               <Link
                 color="secondary"
-                href={`/dashboard/lrs/?deliveryId=${params.data.deliveries._id}&orderId=${params.data._id}`}
+                href={`/dashboard/lrs/?deliveryId=${params.data.delivery._id}&orderId=${params.data._id}`}
                 variant="body"
               >
-                {`${params.data.deliveries.lr.organisation.initials}-${params.data.deliveries.lr.lrNo}`}
+                {`${params.data.delivery.lr.organisation.initials}-${params.data.delivery.lr.lrNo}`}
               </Link>
             );
           } else {
             return (
               <Link
                 color="primary"
-                href={`/dashboard/lrs/new?deliveryId=${params.data.deliveries._id}&orderId=${params.data._id}`}
+                href={`/dashboard/lrs/new?deliveryId=${params.data.delivery._id}&orderId=${params.data._id}`}
                 variant="body"
               >
                 Make LR
@@ -377,9 +377,9 @@ export const deliveriesTable = (account) => {
     //   cellRenderer: (params) => {
     //     console.log(params.data);
     //     if (params.data) {
-    //       if (params.data.deliveries.invoices.length) {
-    //         console.log(params.data.deliveries.invoices);
-    //         return params.data.deliveries.invoices
+    //       if (params.data.delivery.invoices.length) {
+    //         console.log(params.data.delivery.invoices);
+    //         return params.data.delivery.invoices
     //           .map(
     //             (invoice) =>
     //               `${invoice.organisation.initials}-${invoice.invoiceNo}`
@@ -389,7 +389,7 @@ export const deliveriesTable = (account) => {
     //         return (
     //           <Link
     //             color="primary"
-    //             href={`/dashboard/sales/new?deliveryId=${params.data.deliveries._id}&orderId=${params.data._id}`}
+    //             href={`/dashboard/sales/new?deliveryId=${params.data.delivery._id}&orderId=${params.data._id}`}
     //             variant="body"
     //           >
     //             Make Invoice
@@ -451,10 +451,12 @@ export const deliveriesTable = (account) => {
       width: 200,
       valueGetter: (params) => {
         if (params.data) {
-          if (params.data.lr) {
-            return params.data.lr.consignor.name;
-          } else {
-            return "N/A";
+          if (params.data.delivery.lr) {
+            if (params.data.delivery.lr.consignor) {
+              return params.data.delivery.lr.consignor.name;
+            } else {
+              return "N/A";
+            }
           }
         }
       },
@@ -465,10 +467,12 @@ export const deliveriesTable = (account) => {
       width: 200,
       valueGetter: (params) => {
         if (params.data) {
-          if (params.data.lr) {
-            return params.data.lr.consignee.name;
-          } else {
-            return "N/A";
+          if (params.data.delivery.lr) {
+            if (params.data.delivery.lr.consignee) {
+              return params.data.delivery.lr.consignee.name;
+            } else {
+              return "N/A";
+            }
           }
         }
       },
@@ -479,7 +483,8 @@ export const deliveriesTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.deliveries.loading.structured_formatting.main_text;
+          console.log(params.data);
+          return params.data.delivery.loading.structured_formatting.main_text;
         }
       },
     },
@@ -489,8 +494,7 @@ export const deliveriesTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return params.data.deliveries.unloading.structured_formatting
-            .main_text;
+          return params.data.delivery.unloading.structured_formatting.main_text;
         }
       },
     },
@@ -509,28 +513,46 @@ export const deliveriesTable = (account) => {
     {
       field: "billQuantity",
       headerName: "Bill Wt",
-      width: 90,
+      width: 120,
       editable: true,
-      valueFormatter: (params) => {
-        if (params.value) {
-          return `${params.value} ${params.data.saleType.unit}`;
+      valueGetter: (params) => {
+        if (params.data.delivery.billQuantity) {
+          return `Rs. ${params.data.delivery.billQuantity} / ${getOrderUnit(
+            params.data
+          )}`;
         } else {
           return "-";
         }
       },
+      // valueFormatter: (params) => {
+      //   if (params.value) {
+      //     return `${params.value} ${params.data.saleType.unit}`;
+      //   } else {
+      //     return "-";
+      //   }
+      // },
     },
     {
       field: "unloadingQuantity",
       headerName: "Unloading Wt",
       width: 120,
       editable: true,
-      valueFormatter: (params) => {
-        if (params.value) {
-          return `${params.value} ${params.data.saleType.unit}`;
+      valueGetter: (params) => {
+        if (params.data.delivery.unloadingQuantity) {
+          return `Rs. ${
+            params.data.delivery.unloadingQuantity
+          } / ${getOrderUnit(params.data)}`;
         } else {
           return "-";
         }
       },
+      // valueFormatter: (params) => {
+      //   if (params.value) {
+      //     return `${params.value} ${params.data.saleType.unit}`;
+      //   } else {
+      //     return "-";
+      //   }
+      // },
     },
   ];
 };

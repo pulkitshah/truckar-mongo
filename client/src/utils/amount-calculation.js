@@ -800,9 +800,10 @@ export var calculateAmountForDelivery = (delivery, type) => {
       }
 
       let invoiceAmount = 0;
-      if (delivery.delivery.invoiceCharges) {
+      console.log(delivery);
+      if (delivery.invoiceCharges) {
         invoiceAmount = parseFloat(
-          getSumOfInvoiceCharges(delivery.delivery.invoiceCharges || 0)
+          getSumOfInvoiceCharges(delivery.invoiceCharges || 0)
         );
       }
 
