@@ -89,6 +89,7 @@ const LrPreview = (props) => {
   let delivery = lr.deliveries;
 
   const formik = useFormik({
+    enableReinitialize: true,
     initialValues: {
       _id: lr.deliveries.lr._id,
       lrCharges: lr.deliveries.lr.lrCharges,
@@ -96,7 +97,6 @@ const LrPreview = (props) => {
     // validationSchema: Yup.object().shape(validationShape),
     onSubmit: async (values, helpers) => {
       try {
-        console.log(values);
         const editedLr = {
           _id: lr.deliveries.lr._id,
           lrCharges: values.lrCharges,
@@ -217,57 +217,61 @@ const LrPreview = (props) => {
           value={delivery.loading.description}
         />
 
-        <PropertyListItem align={align} disableGutters label="Consignor">
-          <Typography color="primary" variant="body2">
-            {lr.deliveries.lr.consignor.name}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignor.billingAddressLine1}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignor.billingAddressLine2}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignor.city &&
-              lr.deliveries.lr.consignor.city.description}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignor.pan &&
-              `PAN - ${lr.deliveries.lr.consignor.pan}`}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignor.gstin &&
-              `GSTIN - ${lr.deliveries.lr.consignor.gstin}`}
-          </Typography>
-        </PropertyListItem>
+        {lr.deliveries.lr.consignor && (
+          <PropertyListItem align={align} disableGutters label="Consignor">
+            <Typography color="primary" variant="body2">
+              {lr.deliveries.lr.consignor.name}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignor.billingAddressLine1}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignor.billingAddressLine2}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignor.city &&
+                lr.deliveries.lr.consignor.city.description}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignor.pan &&
+                `PAN - ${lr.deliveries.lr.consignor.pan}`}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignor.gstin &&
+                `GSTIN - ${lr.deliveries.lr.consignor.gstin}`}
+            </Typography>
+          </PropertyListItem>
+        )}
         <PropertyListItem
           align={align}
           disableGutters
           label="Unloading at"
           value={delivery.unloading.description}
         />
-        <PropertyListItem align={align} disableGutters label="Consignee">
-          <Typography color="primary" variant="body2">
-            {lr.deliveries.lr.consignee.name}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignee.billingAddressLine1}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignee.billingAddressLine2}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignee.city.description}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignee.pan &&
-              `PAN - ${lr.deliveries.lr.consignee.pan}`}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {lr.deliveries.lr.consignee.gstin &&
-              `GSTIN - ${lr.deliveries.lr.consignee.gstin}`}
-          </Typography>
-        </PropertyListItem>
+        {lr.deliveries.lr.consignee && (
+          <PropertyListItem align={align} disableGutters label="Consignee">
+            <Typography color="primary" variant="body2">
+              {lr.deliveries.lr.consignee.name}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignee.billingAddressLine1}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignee.billingAddressLine2}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignee.city.description}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignee.pan &&
+                `PAN - ${lr.deliveries.lr.consignee.pan}`}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {lr.deliveries.lr.consignee.gstin &&
+                `GSTIN - ${lr.deliveries.lr.consignee.gstin}`}
+            </Typography>
+          </PropertyListItem>
+        )}
         <Divider sx={{ my: 2 }} />
         {
           <form onSubmit={formik.handleSubmit} {...props}>

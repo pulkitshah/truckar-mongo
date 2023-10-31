@@ -183,7 +183,7 @@ router.get("/:id", auth, async (req, res) => {
     startRow,
     endRow,
     filter = {},
-    sort = { lrDate: -1, lrNo: -1 },
+    sort = { saleDate: -1, orderNo: -1 },
   } = JSON.parse(req.params.id);
 
   console.log({

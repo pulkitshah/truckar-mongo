@@ -5,7 +5,7 @@ const Delivery = require("../../models/Delivery");
 const auth = require("../../middlleware/auth");
 
 const router = express.Router();
-const importdata = require("../../data/deliveries");
+
 const Order = require("../../models/Order");
 
 let lookups = [
@@ -290,20 +290,6 @@ let lookups = [
   // },
   // { $unwind: "$invoices" },
 ];
-
-// @route   POST api/order/insertmany
-// @desc    Create many Vehicles
-// @access  Private
-
-router.post("/insertmany", auth, async (req, res) => {
-  try {
-    await Delivery.insertMany(importdata);
-    res.json(importdata);
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send("Server Error");
-  }
-});
 
 // @route   POST api/delivery
 // @desc    Create Delivery

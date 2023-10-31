@@ -207,8 +207,17 @@ let lookups = [
 
 router.post("/insertmany", auth, async (req, res) => {
   try {
+    importdata.map((i) => {
+      i.deliveries.map((del) => {
+        if (del.lr) {
+          if (!del.lr.lrCharges) {
+            console.log(i);
+          }
+        }
+      });
+    });
     addresses = await Order.insertMany(importdata);
-    res.json(importdata);
+    res.json(addresses);
   } catch (error) {
     console.log(error.message);
     res.status(500).send("Server Error");

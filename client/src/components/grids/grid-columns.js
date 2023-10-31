@@ -500,9 +500,7 @@ export const deliveriesTable = (account) => {
       width: 130,
       valueGetter: (params) => {
         if (params.data) {
-          return `Rs. ${params.data.saleRate} / ${getOrderUnit(
-            params.data.order
-          )}`;
+          return `Rs. ${params.data.saleRate} / ${getOrderUnit(params.data)}`;
         } else {
           return "-";
         }
@@ -723,7 +721,8 @@ export const lrTable = (account) => {
       headerName: "Consignor",
       width: 250,
       valueGetter: (params) => {
-        if (params.data) {
+        console.log(params.data);
+        if (params.data && params.data.deliveries.lr.consignor) {
           return params.data.deliveries.lr.consignor.name;
         }
       },
@@ -733,7 +732,7 @@ export const lrTable = (account) => {
       headerName: "Consignee",
       width: 250,
       valueGetter: (params) => {
-        if (params.data) {
+        if (params.data && params.data.deliveries.lr.consignee) {
           return params.data.deliveries.lr.consignee.name;
         }
       },

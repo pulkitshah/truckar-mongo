@@ -15,11 +15,11 @@ import {
   Grid,
   Typography,
 } from "@mui/material";
-import { userApi } from "../../../api/user-api";
+import { userApi } from "../../../api/account-api";
 import { LrFormatSettings } from "./lr-format-settings";
 
 export const LrSettings = (props) => {
-  const { user } = useAuth();
+  const { account } = useAuth();
   const { t } = useTranslation();
 
   return (
@@ -36,7 +36,7 @@ export const LrSettings = (props) => {
               </Typography>
             </Grid>
             <Grid item md={8} xs={12}>
-              {user.lrSettings.map((lrSetting, index) => {
+              {account.lrSettings.map((lrSetting, index) => {
                 return (
                   <>
                     {index > 0 && <Divider sx={{ my: 4 }} />}

@@ -171,22 +171,6 @@ export const AuthProvider = (props) => {
     return response;
   };
 
-  const update = async (editedUser, dispatch) => {
-    //////////////////////// GraphQL API ////////////////////////
-
-    const response = await authApi.update(editedUser);
-
-    const user = response.data.updateUser;
-
-    //////////////////////// GraphQL API ////////////////////////
-
-    // Dispatch - Reducer
-
-    dispatch(slice.actions.updateUser({ user }));
-
-    return response;
-  };
-
   return (
     <AuthContext.Provider
       value={{

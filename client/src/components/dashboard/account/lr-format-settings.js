@@ -7,12 +7,12 @@ import * as Yup from "yup";
 import { TextField } from "@mui/material";
 import { useAuth } from "../../../hooks/use-auth";
 import { useDispatch } from "../../../store";
-import { userApi } from "../../../api/user-api";
+import { accountApi, userApi } from "../../../api/account-api";
 import LrChargeForm from "./lr-charges-form";
 import LrFormatAutocomplete from "../autocompletes/lrFormat-autocomplete/lrFormat-autocomplete";
 
 export const LrFormatSettings = (props) => {
-  const { user } = useAuth();
+  const { account } = useAuth();
   const { lrSetting } = props;
 
   const dispatch = useDispatch();
@@ -34,7 +34,7 @@ export const LrFormatSettings = (props) => {
     },
     onSubmit: async (values, helpers) => {
       try {
-        user.lrSettings.map((lrSetting) => {
+        account.lrSettings.map((lrSetting) => {
           if (lrSetting.lrFormatFileName === values.lrFormatFileName) {
             newLrSettings.push(values);
           } else {
@@ -42,11 +42,11 @@ export const LrFormatSettings = (props) => {
           }
         });
 
-        await userApi.updateUser(
+        await accountApi.updateAccount(
           {
-            id: user.id,
-            lrSettings: JSON.stringify(newLrSettings),
-            _version: user._version,
+            id: account.id,
+            lrSettings: newLrSettings,
+            _version: account._version,
           },
           dispatch
         );
