@@ -721,7 +721,6 @@ export const lrTable = (account) => {
       headerName: "Consignor",
       width: 250,
       valueGetter: (params) => {
-        console.log(params.data);
         if (params.data && params.data.deliveries.lr.consignor) {
           return params.data.deliveries.lr.consignor.name;
         }

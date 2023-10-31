@@ -62,29 +62,13 @@ const statusOptions = [
 
 const LrPreview = (props) => {
   const { lgUp, onEdit, lr, gridApi } = props;
+  console.log(lr);
   const [viewPDF, setViewPDF] = useState(false);
-  const LrFormat = LrPDFs[lr ? lr.deliveries.lr.lrFormat : "standardLoose"];
+  const LrFormat = LrPDFs["standardLoose"];
   const align = lgUp ? "horizontal" : "vertical";
   const [logo, setLogo] = useState();
   const { account } = useAuth();
   const dispatch = useDispatch();
-
-  const getOrganisationLogo = useCallback(async () => {
-    try {
-      const logo = await Storage.get(lr.deliveries.lr.organisation.logo);
-      setLogo(logo);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      getOrganisationLogo();
-    } catch (error) {
-      console.log(error);
-    }
-  }, []);
 
   let delivery = lr.deliveries;
 
@@ -117,9 +101,6 @@ const LrPreview = (props) => {
       }
     },
   });
-
-  console.log("edited lr");
-  console.log(lr);
 
   return (
     <>
@@ -166,7 +147,17 @@ const LrPreview = (props) => {
           </Hidden>
           {logo && (
             <PDFDownloadLink
-              document={<LrFormat logo={logo} lr={lr} printRates={false} />}
+              document={
+                <LrFormat
+                  logo={logo}
+                  lr={{
+                    ...lr.deliveries.lr,
+                    delivery: lr.deliveries,
+                    order: lr,
+                  }}
+                  printRates={false}
+                />
+              }
               fileName={`Lr - ${lr.deliveries.lr.organisation.initials}-${lr.deliveries.lr.lrNo}`}
               style={{
                 textDecoration: "none",
@@ -198,7 +189,6 @@ const LrPreview = (props) => {
           label="LR Date"
           value={moment(lr.deliveries.lr.lrDate).format("DD/MM/YY")}
         />
-        {console.log(lr)}
         <PropertyListItem
           align={align}
           disableGutters
@@ -569,6 +559,7 @@ const LrPreview = (props) => {
             </Button>
           </Box>
           <Box flexGrow={1}>
+            {console.log(lr)}
             <PDFViewer
               width="100%"
               height="100%"
@@ -576,7 +567,11 @@ const LrPreview = (props) => {
                 border: "none",
               }}
             >
-              <LrFormat logo={logo} lr={lr} printRates={false} />
+              <LrFormat
+                logo={logo}
+                lr={{ ...lr.deliveries.lr, delivery: lr.deliveries, order: lr }}
+                printRates={false}
+              />
             </PDFViewer>
           </Box>
         </Box>

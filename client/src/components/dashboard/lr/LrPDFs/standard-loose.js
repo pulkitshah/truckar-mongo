@@ -155,6 +155,8 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
     return null;
   }
 
+  console.log(lr);
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -172,7 +174,24 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                 ]}
               >
                 <View>
-                  <Image src={logo} style={styles.logo} />
+                  {Boolean(lr.organisation.logo) ? (
+                    <Image
+                      source={{
+                        uri: lr.organisation.logo.location,
+                        method: "GET",
+                        headers: {
+                          Pragma: "no-cache",
+                          "Cache-Control": "no-cache",
+                        },
+                        body: "",
+                      }}
+                      style={styles.logo}
+                    />
+                  ) : (
+                    <Text style={[styles.h1]}>
+                      {lr.organisation.name.toUpperCase()}
+                    </Text>
+                  )}
                 </View>
                 <View
                   style={{
@@ -697,14 +716,13 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                         {lr.order.minimumSaleGuarantee &&
                           `${lr.order.minimumSaleGuarantee} MT`}
                       </Text>
-                      <Text></Text>
-                      {lr.chargedWeight && (
-                        <Text style={[styles.body1]}>
-                          {lr.chargedWeight && `${lr.chargedWeight}`}
-                        </Text>
-                      )}
+
+                      <Text style={[styles.body1]}>
+                        {lr.chargedWeight && `${lr.chargedWeight}`}
+                      </Text>
                     </View>
                   </View>
+
                   <View
                     style={[
                       styles.tableColumn,
@@ -726,6 +744,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                     </View>
                   </View>
                 </View>
+
                 <View style={[styles.tableTotal]}>
                   <View style={[{ display: "flex", flexDirection: "column" }]}>
                     <Text style={[styles.body1, styles.bold]}>
@@ -749,6 +768,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                   </View>
                 </View>
               </View>
+
               <View
                 style={{ flexGrow: 3, display: "flex", flexDirection: "row" }}
               >
@@ -970,7 +990,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
               </View>
             </View>
           </View>
-          {
+          {lr.organisation.lrTermsAndConditions && (
             <View
               style={[
                 styles.bottomBorder,
@@ -991,7 +1011,7 @@ const LrPDF = ({ lr, logo, printRates = false }) => {
                 </Text>
               </View>
             </View>
-          }
+          )}
         </View>
       </Page>
     </Document>
