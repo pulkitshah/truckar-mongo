@@ -11,16 +11,6 @@ const router = express.Router();
 let lookups = [
   {
     $lookup: {
-      from: "accounts",
-      localField: "account",
-      foreignField: "_id",
-      as: "account",
-    },
-  },
-  // each blog has a single user (author) so flatten it using $unwind
-  { $unwind: "$account" },
-  {
-    $lookup: {
       from: "addresses",
       let: {
         id: "$billingAddress",
@@ -91,172 +81,64 @@ let lookups = [
       preserveNullAndEmptyArrays: true,
     },
   },
-  { $unwind: "$deliveries" },
+  {
+    $unwind: {
+      path: "$deliveries",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
   {
     $lookup: {
-      from: "deliveries",
+      from: "orders",
       let: {
-        id: { $toObjectId: "$deliveries._id" },
-        deliveries: "$deliveries",
+        id: "$deliveries.order",
       },
-
       pipeline: [
-        { $match: { $expr: { $eq: ["$_id", "$$id"] } } },
         {
-          $replaceRoot: {
-            newRoot: { $mergeObjects: ["$$deliveries", "$$ROOT"] },
-          },
-        },
-        {
-          $lookup: {
-            from: "orders",
-            let: {
-              id: "$order",
+          $match: {
+            $expr: {
+              $eq: ["$_id", "$$id"],
             },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-              {
-                $lookup: {
-                  from: "deliveries",
-                  let: {
-                    id: "$_id",
-                  },
-                  pipeline: [
-                    {
-                      $match: {
-                        $expr: {
-                          $eq: ["$order", "$$id"],
-                        },
-                      },
-                    },
-                    {
-                      $project: {
-                        loading: 1,
-                        unloading: 1,
-                        lrNo: 1,
-                        billQuantity: 1,
-                        unloadingQuantity: 1,
-                        status: 1,
-                      },
-                    },
-                  ],
-                  as: "deliveries",
-                },
-              },
-            ],
-            as: "order",
-          },
-        },
-        {
-          $unwind: {
-            path: "$order",
-            preserveNullAndEmptyArrays: true,
-          },
-        },
-        {
-          $lookup: {
-            from: "lrs",
-            let: {
-              id: "$lr",
-            },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $eq: ["$_id", "$$id"],
-                  },
-                },
-              },
-              {
-                $lookup: {
-                  from: "organisations",
-                  let: {
-                    id: "$organisation",
-                  },
-                  pipeline: [
-                    {
-                      $match: {
-                        $expr: {
-                          $eq: ["$_id", "$$id"],
-                        },
-                      },
-                    },
-                  ],
-                  as: "organisation",
-                },
-              },
-              {
-                $unwind: {
-                  path: "$organisation",
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-              {
-                $lookup: {
-                  from: "addresses",
-                  let: {
-                    id: "$consignor",
-                  },
-                  pipeline: [
-                    {
-                      $match: {
-                        $expr: {
-                          $eq: ["$_id", "$$id"],
-                        },
-                      },
-                    },
-                  ],
-                  as: "consignor",
-                },
-              },
-              {
-                $unwind: {
-                  path: "$consignor",
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-              {
-                $lookup: {
-                  from: "addresses",
-                  let: {
-                    id: "$consignee",
-                  },
-                  pipeline: [
-                    {
-                      $match: {
-                        $expr: {
-                          $eq: ["$_id", "$$id"],
-                        },
-                      },
-                    },
-                  ],
-                  as: "consignee",
-                },
-              },
-              {
-                $unwind: {
-                  path: "$consignee",
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-            ],
-            as: "lr",
-          },
-        },
-        {
-          $unwind: {
-            path: "$lr",
-            preserveNullAndEmptyArrays: true,
           },
         },
       ],
-      as: "deliveries",
+      as: "deliveries.order",
+    },
+  },
+  {
+    $unwind: {
+      path: "$deliveries.order",
+      preserveNullAndEmptyArrays: true,
+    },
+  },
+  {
+    $group: {
+      _id: "$_id",
+      invoiceFormat: {
+        $first: "$invoiceFormat",
+      },
+      invoiceNo: {
+        $first: "$invoiceNo",
+      },
+      invoiceDate: {
+        $first: "$invoiceDate",
+      },
+      customer: {
+        $first: "$customer",
+      },
+      organisation: {
+        $first: "$organisation",
+      },
+      billingAddress: {
+        $first: "$billingAddress",
+      },
+      deliveries: { $push: "$deliveries" },
+      taxes: {
+        $first: "$taxes",
+      },
+      account: {
+        $first: "$account",
+      },
     },
   },
 ];
