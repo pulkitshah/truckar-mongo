@@ -59,6 +59,7 @@ const OrderDetailsGrid = ({ formik }) => {
       }),
     });
   }, []);
+  console.log("order-grid");
   console.log(formik.values);
 
   return (

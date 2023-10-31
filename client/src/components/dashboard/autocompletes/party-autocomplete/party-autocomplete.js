@@ -86,7 +86,6 @@ const PartyAutocomplete = ({ sx, formik, type }) => {
           return filtered;
         }}
         onChange={(event, newValue) => {
-          console.log(newValue);
           if (typeof newValue === "string") {
             toggleOpen(true);
             setDialogValue({

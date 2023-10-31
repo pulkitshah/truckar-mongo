@@ -286,6 +286,7 @@ router.post(
         order: delivery._id,
         delivery: delivery.delivery._id,
         particular: delivery.particular,
+        invoiceCharges: delivery.invoiceCharges,
       }));
 
       try {

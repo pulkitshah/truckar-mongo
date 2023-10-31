@@ -42,6 +42,8 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
           "Invoice No cannot be repeated in the fiscal year of invoice date in the same organisation.",
         test: async function (value) {
           try {
+            if (!this.parent.organisation) return false;
+
             const response = await invoiceApi.validateDuplicateInvoiceNo({
               invoiceNo: value,
               invoiceDate: this.parent.invoiceDate,
@@ -94,7 +96,7 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
         //     _id: delivery._id,
         //     invoice: data._id,
         //     particular: delivery.particular,
-        //     invoiceCharges: delivery.extraCharges || [],
+        //     invoiceCharges: delivery.invoiceCharges || [],
         //     _version: delivery._version,
         //   };
 
@@ -106,7 +108,7 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
         // });
 
         toast.success("Invoice created!");
-        // router.push("/dashboard/invoices");
+        router.push("/dashboard/invoices");
       } catch (err) {
         console.error(err);
         toast.error("Something went wrong!");

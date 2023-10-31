@@ -37,8 +37,6 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                   const touchedParticular = getIn(formik.touched, particular);
                   const errorParticular = getIn(formik.errors, particular);
 
-                  console.log(formik.values.deliveries[index].particular);
-
                   return (
                     <React.Fragment>
                       {index > 0 && <Divider sx={{ mb: 2 }} />}
@@ -48,7 +46,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                             container
                             spacing={1}
                             className="row"
-                            key={delivery.delivery.id}
+                            key={delivery.id}
                             justifyContent={"space-between"}
                             sx={{ mb: 2 }}
                           >
@@ -70,11 +68,8 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                 <Box>
                                   <Typography variant="body2">LR No</Typography>
                                   <Typography sx={{ mb: 3 }} variant="body2">
-                                    {Object.keys(
-                                      formik.values.deliveries[index].delivery
-                                        .lr
-                                    ).length
-                                      ? `${formik.values.deliveries[index].delivery.lr.organisation.initials}-${formik.values.deliveries[index].delivery.lr.lrNo}`
+                                    {formik.values.deliveries[index].delivery.lr
+                                      ? `${formik.values.deliveries[index].delivery.lr.organisation.initials} - ${formik.values.deliveries[index].delivery.lr.lrNo}`
                                       : "N/A"}
                                   </Typography>
                                 </Box>
@@ -84,7 +79,8 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                   </Typography>
                                   <Typography sx={{ mb: 3 }} variant="body2">
                                     {moment(
-                                      formik.values.deliveries[index]?.saleDate
+                                      formik.values.deliveries[index].order
+                                        ?.saleDate
                                     ).format("DD/MM/YYYY")}
                                   </Typography>
                                 </Box>
@@ -213,7 +209,10 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         sx={{ mb: 3 }}
                                         variant="body2"
                                       >
-                                        {`${formik.values.deliveries[index].delivery.billQuantity} ${formik.values.deliveries[index].saleType.unit}`}
+                                        {formik.values.deliveries[index]
+                                          .delivery.billQuantity
+                                          ? `${formik.values.deliveries[index].delivery.billQuantity} ${formik.values.deliveries[index].saleType.unit}`
+                                          : "N/A"}
                                       </Typography>
                                     </Box>
                                   </Box>
@@ -230,8 +229,8 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                     formik.setFieldValue(
                                       `deliveries[${index}].invoiceCharges`,
                                       [
-                                        ...formik.values.deliveries[index]
-                                          .invoiceCharges,
+                                        ...(formik.values.deliveries[index]
+                                          .invoiceCharges || []),
                                         {
                                           id: uuidv4(),
                                           particular: "",
@@ -258,6 +257,12 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                 xs={12}
                                 className="col"
                               >
+                                {console.log(
+                                  "formik.values.deliveries[index].particular"
+                                )}
+                                {console.log(
+                                  formik.values.deliveries[index].particular
+                                )}
                                 <TextField
                                   helperText={
                                     touchedParticular && errorParticular
@@ -279,7 +284,12 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                   name="particular"
                                   label="Particulars"
                                   fullWidth
-                                  value={delivery.particular}
+                                  value={
+                                    formik.values.deliveries[index].particular
+                                      ? formik.values.deliveries[index]
+                                          .particular
+                                      : ""
+                                  }
                                 />
                               </Grid>
 

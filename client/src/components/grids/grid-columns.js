@@ -845,7 +845,6 @@ export const orderTableForCreateInvoice = [
     headerName: "LR",
     width: 90,
     cellRenderer: (params) => {
-      console.log(params.data);
       if (params.data) {
         if (Object.keys(params.data.delivery.lr).length) {
           return (
