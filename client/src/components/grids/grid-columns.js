@@ -841,6 +841,37 @@ export const orderTableForCreateInvoice = [
     width: 60,
   },
   {
+    field: "lr",
+    headerName: "LR",
+    width: 90,
+    cellRenderer: (params) => {
+      console.log(params.data);
+      if (params.data) {
+        if (Object.keys(params.data.delivery.lr).length) {
+          return (
+            <Link
+              color="secondary"
+              href={`/dashboard/lrs/?deliveryId=${params.data.delivery._id}&orderId=${params.data._id}`}
+              variant="body"
+            >
+              {`${params.data.delivery.lr.organisation.initials}-${params.data.delivery.lr.lrNo}`}
+            </Link>
+          );
+        } else {
+          return (
+            <Link
+              color="primary"
+              href={`/dashboard/lrs/new?deliveryId=${params.data.delivery._id}&orderId=${params.data._id}`}
+              variant="body"
+            >
+              Make LR
+            </Link>
+          );
+        }
+      }
+    },
+  },
+  {
     field: "orderNo",
     headerName: "Order No",
     width: 100,
@@ -871,7 +902,7 @@ export const orderTableForCreateInvoice = [
     valueGetter: (params) => {
       return (
         params.data &&
-        params.data.deliveries.loading.structured_formatting.main_text
+        params.data.delivery.loading.structured_formatting.main_text
       );
     },
   },
@@ -882,7 +913,7 @@ export const orderTableForCreateInvoice = [
     valueGetter: (params) => {
       return (
         params.data &&
-        params.data.deliveries.unloading.structured_formatting.main_text
+        params.data.delivery.unloading.structured_formatting.main_text
       );
     },
   },
@@ -895,7 +926,7 @@ export const orderTableForCreateInvoice = [
       return true;
     },
     valueGetter: (params) => {
-      return params.data && params.data.deliveries.billQuantity;
+      return params.data && params.data.delivery.billQuantity;
     },
     valueFormatter: (params) => {
       return params.value && `${params.value} ${params.data.saleType.unit}`;

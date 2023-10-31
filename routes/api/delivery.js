@@ -9,14 +9,18 @@ const router = express.Router();
 const Order = require("../../models/Order");
 
 let lookups = [
-  // each blog has a single user (author) so flatten it using $unwind
-  { $unwind: "$deliveries" },
+  {
+    $addFields: {
+      delivery: "$deliveries",
+    },
+  },
+  { $unwind: "$delivery" },
   {
     $lookup: {
       from: "organisations",
       let: {
         id: {
-          $toObjectId: "$deliveries.lr.organisation",
+          $toObjectId: "$delivery.lr.organisation",
         },
         deliveries: "$deliveries",
       },
@@ -28,12 +32,12 @@ let lookups = [
           },
         },
       ],
-      as: "deliveries.lr.organisation",
+      as: "delivery.lr.organisation",
     },
   },
   {
     $unwind: {
-      path: "$deliveries.lr.organisation",
+      path: "$delivery.lr.organisation",
       preserveNullAndEmptyArrays: true,
     },
   },
@@ -300,6 +304,8 @@ router.get("/:id", auth, async (req, res) => {
  */
 
 router.get("/deliveriesbycustomer/:id", auth, async (req, res) => {
+  console.log(req.params.id);
+
   const {
     account,
     customer,
@@ -377,9 +383,12 @@ router.get("/deliveriesbycustomer/:id", auth, async (req, res) => {
       },
     }
   );
-
-  const deliveries = await Order.aggregate(query);
-  res.json(deliveries);
+  try {
+    const deliveries = await Order.aggregate(query);
+    res.json(deliveries);
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 // @route   GET api/deliveries/:InvoiceID

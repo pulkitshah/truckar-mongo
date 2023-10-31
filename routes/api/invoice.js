@@ -280,6 +280,14 @@ router.post(
       invoiceFields.createdBy = req.user.id;
       updates.forEach((update) => (invoiceFields[update] = req.body[update]));
 
+      console.log(invoiceFields);
+
+      invoiceFields.deliveries = invoiceFields.deliveries.map((delivery) => ({
+        order: delivery._id,
+        delivery: delivery.delivery._id,
+        particular: delivery.particular,
+      }));
+
       try {
         // Create
         invoice = new Invoice(invoiceFields);

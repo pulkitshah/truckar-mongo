@@ -55,7 +55,7 @@ const OrderDetailsGrid = ({ formik }) => {
     gridRef.current.api.setServerSideSelectionState({
       selectAll: false,
       toggledNodes: formik.values.deliveries.map((e) => {
-        return e._id;
+        return e.delivery._id;
       }),
     });
   }, []);
@@ -70,7 +70,7 @@ const OrderDetailsGrid = ({ formik }) => {
         <AgGridReact
           ref={gridRef}
           columnDefs={orderTableForCreateInvoice}
-          getRowId={(params) => params.data.deliveries._id}
+          getRowId={(params) => params.data.delivery._id}
           rowModelType={"serverSide"}
           onGridReady={onGridReady}
           rowSelection={"multiple"}
@@ -79,7 +79,21 @@ const OrderDetailsGrid = ({ formik }) => {
             gridRef.current.api
               .getServerSideSelectionState()
               .toggledNodes.map((node) => {
-                o.push(dataRef.current.find((del) => del._id === node));
+                if (
+                  formik.values.deliveries.find(
+                    (del) => del.delivery._id === node
+                  )
+                ) {
+                  o.push(
+                    formik.values.deliveries.find(
+                      (del) => del.delivery._id === node
+                    )
+                  );
+                } else {
+                  o.push(
+                    dataRef.current.find((del) => del.delivery._id === node)
+                  );
+                }
               });
             formik.setFieldValue("deliveries", o);
           }}

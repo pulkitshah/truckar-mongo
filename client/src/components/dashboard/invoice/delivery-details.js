@@ -37,6 +37,8 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                   const touchedParticular = getIn(formik.touched, particular);
                   const errorParticular = getIn(formik.errors, particular);
 
+                  console.log(formik.values.deliveries[index].particular);
+
                   return (
                     <React.Fragment>
                       {index > 0 && <Divider sx={{ mb: 2 }} />}
@@ -46,7 +48,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                             container
                             spacing={1}
                             className="row"
-                            key={delivery.id}
+                            key={delivery.delivery.id}
                             justifyContent={"space-between"}
                             sx={{ mb: 2 }}
                           >
@@ -62,17 +64,17 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                     Order No
                                   </Typography>
                                   <Typography sx={{ mb: 3 }} variant="body2">
-                                    {
-                                      formik.values.deliveries[index].order
-                                        ?.orderNo
-                                    }
+                                    {formik.values.deliveries[index]?.orderNo}
                                   </Typography>
                                 </Box>
                                 <Box>
                                   <Typography variant="body2">LR No</Typography>
                                   <Typography sx={{ mb: 3 }} variant="body2">
-                                    {formik.values.deliveries[index].lr
-                                      ? `${formik.values.deliveries[index].lr.organisation.initials} - ${formik.values.deliveries[index].lr.lrNo}`
+                                    {Object.keys(
+                                      formik.values.deliveries[index].delivery
+                                        .lr
+                                    ).length
+                                      ? `${formik.values.deliveries[index].delivery.lr.organisation.initials}-${formik.values.deliveries[index].delivery.lr.lrNo}`
                                       : "N/A"}
                                   </Typography>
                                 </Box>
@@ -82,8 +84,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                   </Typography>
                                   <Typography sx={{ mb: 3 }} variant="body2">
                                     {moment(
-                                      formik.values.deliveries[index].order
-                                        ?.saleDate
+                                      formik.values.deliveries[index]?.saleDate
                                     ).format("DD/MM/YYYY")}
                                   </Typography>
                                 </Box>
@@ -99,8 +100,8 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                       >
                                         {
                                           formik.values.deliveries[index]
-                                            .loading.structured_formatting
-                                            .main_text
+                                            .delivery.loading
+                                            .structured_formatting.main_text
                                         }
                                       </Typography>
                                     </Box>
@@ -114,8 +115,8 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                       >
                                         {
                                           formik.values.deliveries[index]
-                                            .unloading.structured_formatting
-                                            .main_text
+                                            .delivery.unloading
+                                            .structured_formatting.main_text
                                         }
                                       </Typography>
                                     </Box>
@@ -127,7 +128,10 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         sx={{ mb: 3 }}
                                         variant="body2"
                                       >
-                                        {`${formik.values.deliveries[index].billQuantity} ${formik.values.deliveries[index].order.saleType.unit}`}
+                                        {formik.values.deliveries[index]
+                                          .delivery.billQuantity
+                                          ? `${formik.values.deliveries[index].delivery.billQuantity} ${formik.values.deliveries[index].saleType.unit}`
+                                          : "N/A"}
                                       </Typography>
                                     </Box>
                                     {!drawer && (
@@ -140,11 +144,11 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                           }
                                           onClick={() => {
                                             formik.setFieldValue(
-                                              `deliveries[${index}].extraCharges`,
+                                              `deliveries[${index}].invoiceCharges`,
                                               [
-                                                ...formik.values.deliveries[
+                                                ...(formik.values.deliveries[
                                                   index
-                                                ].extraCharges,
+                                                ].invoiceCharges || []),
                                                 {
                                                   id: uuidv4(),
                                                   particular: "",
@@ -181,8 +185,8 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                       >
                                         {
                                           formik.values.deliveries[index]
-                                            .loading.structured_formatting
-                                            .main_text
+                                            .delivery.loading
+                                            .structured_formatting.main_text
                                         }
                                       </Typography>
                                     </Box>
@@ -196,8 +200,8 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                       >
                                         {
                                           formik.values.deliveries[index]
-                                            .unloading.structured_formatting
-                                            .main_text
+                                            .delivery.unloading
+                                            .structured_formatting.main_text
                                         }
                                       </Typography>
                                     </Box>
@@ -209,7 +213,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                         sx={{ mb: 3 }}
                                         variant="body2"
                                       >
-                                        {`${formik.values.deliveries[index].billQuantity} ${formik.values.deliveries[index].order.saleType.unit}`}
+                                        {`${formik.values.deliveries[index].delivery.billQuantity} ${formik.values.deliveries[index].saleType.unit}`}
                                       </Typography>
                                     </Box>
                                   </Box>
@@ -224,10 +228,10 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                   startIcon={<PlusIcon fontSize="small" />}
                                   onClick={() => {
                                     formik.setFieldValue(
-                                      `deliveries[${index}].extraCharges`,
+                                      `deliveries[${index}].invoiceCharges`,
                                       [
                                         ...formik.values.deliveries[index]
-                                          .extraCharges,
+                                          .invoiceCharges,
                                         {
                                           id: uuidv4(),
                                           particular: "",
@@ -275,9 +279,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                   name="particular"
                                   label="Particulars"
                                   fullWidth
-                                  value={
-                                    formik.values.deliveries[index].particular
-                                  }
+                                  value={delivery.particular}
                                 />
                               </Grid>
 
@@ -306,10 +308,10 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                 />
                               </Grid>
 
-                              {formik.values.deliveries[index].extraCharges &&
+                              {formik.values.deliveries[index].invoiceCharges &&
                                 formik.values.deliveries[
                                   index
-                                ].extraCharges.map(
+                                ].invoiceCharges.map(
                                   (extraCharge, indexExtraCharge) => {
                                     return (
                                       <React.Fragment>
@@ -334,7 +336,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                             variant="outlined"
                                             onChange={(event) => {
                                               formik.setFieldValue(
-                                                `deliveries[${index}].extraCharges[${indexExtraCharge}].particular`,
+                                                `deliveries[${index}].invoiceCharges[${indexExtraCharge}].particular`,
                                                 event.target.value
                                               );
                                             }}
@@ -345,8 +347,9 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                             fullWidth
                                             value={
                                               formik.values.deliveries[index]
-                                                .extraCharges[indexExtraCharge]
-                                                .particular
+                                                .invoiceCharges[
+                                                indexExtraCharge
+                                              ].particular
                                             }
                                           />
                                         </Grid>
@@ -361,7 +364,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                             variant="outlined"
                                             onChange={(event) => {
                                               formik.setFieldValue(
-                                                `deliveries[${index}].extraCharges[${indexExtraCharge}].amount`,
+                                                `deliveries[${index}].invoiceCharges[${indexExtraCharge}].amount`,
                                                 parseFloat(event.target.value)
                                               );
                                             }}
@@ -372,8 +375,9 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                             fullWidth
                                             value={
                                               formik.values.deliveries[index]
-                                                .extraCharges[indexExtraCharge]
-                                                .amount
+                                                .invoiceCharges[
+                                                indexExtraCharge
+                                              ].amount
                                             }
                                           />
                                         </Grid>
@@ -391,20 +395,20 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                             onClick={(event) => {
                                               console.log(
                                                 formik.values.deliveries[index]
-                                                  .extraCharges[
+                                                  .invoiceCharges[
                                                   indexExtraCharge
                                                 ]
                                               );
 
                                               let x = formik.values.deliveries[
                                                 index
-                                              ].extraCharges.filter(
+                                              ].invoiceCharges.filter(
                                                 (extraCharge) => {
                                                   if (
                                                     extraCharge.id ===
                                                     formik.values.deliveries[
                                                       index
-                                                    ].extraCharges[
+                                                    ].invoiceCharges[
                                                       indexExtraCharge
                                                     ].id
                                                   ) {
@@ -414,7 +418,7 @@ const DeliveryDetails = ({ sx, formik, drawer = false }) => {
                                                 }
                                               );
                                               formik.setFieldValue(
-                                                `deliveries[${index}].extraCharges`,
+                                                `deliveries[${index}].invoiceCharges`,
                                                 x
                                               );
                                             }}

@@ -48,7 +48,6 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
               organisation: this.parent.organisation._id,
               account: account._id,
             });
-            console.log(response);
             return response.data;
           } catch (error) {
             console.log(error);
@@ -107,7 +106,7 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
         // });
 
         toast.success("Invoice created!");
-        router.push("/dashboard/invoices");
+        // router.push("/dashboard/invoices");
       } catch (err) {
         console.error(err);
         toast.error("Something went wrong!");
@@ -186,7 +185,7 @@ export const InvoiceCreateForm = ({ invoice = {} }) => {
       <Card sx={{ mt: 3 }}>
         <CardContent>
           <Grid container spacing={3}>
-            <Grid sx={{ mb: 6 }} item md={4} xs={12}>
+            <Grid item md={4} xs={12}>
               <Typography sx={{ mb: 3 }} variant="h6">
                 Party details
               </Typography>

@@ -750,7 +750,7 @@ export var calculateAmountForOrder = (order, type, advance = false) => {
 export var calculateAmountForDelivery = (delivery, type) => {
   let sumOfBillQuantity = 0;
 
-  delivery.order.deliveries.map((delivery) => {
+  delivery.deliveries.map((delivery) => {
     if (Boolean(delivery.billQuantity)) {
       return (sumOfBillQuantity =
         sumOfBillQuantity + parseFloat(delivery.billQuantity));
@@ -762,25 +762,25 @@ export var calculateAmountForDelivery = (delivery, type) => {
 
   switch (type) {
     case "sale":
-      switch (delivery.order.saleType.value) {
+      switch (delivery.saleType.value) {
         case "quantity":
           amount =
-            parseFloat(delivery.billQuantity) *
-            parseFloat(delivery.order.saleRate);
+            parseFloat(delivery.delivery.billQuantity) *
+            parseFloat(delivery.saleRate);
           if (
             parseFloat(sumOfBillQuantity) <
-            parseFloat(delivery.order.minimumSaleGuarantee || 0)
+            parseFloat(delivery.minimumSaleGuarantee || 0)
           ) {
             amount =
-              (parseFloat(delivery.order.minimumSaleGuarantee || 0) *
-                parseFloat(delivery.order.saleRate) *
-                parseFloat(delivery.billQuantity || 1)) /
-              parseFloat(sumOfBillQuantity || delivery.order.deliveries.length);
+              (parseFloat(delivery.minimumSaleGuarantee || 0) *
+                parseFloat(delivery.saleRate) *
+                parseFloat(delivery.delivery.billQuantity || 1)) /
+              parseFloat(sumOfBillQuantity || delivery.deliveries.length);
           }
 
           break;
         case "fixed":
-          amount = parseFloat(delivery.order.saleRate);
+          amount = parseFloat(delivery.saleRate);
           break;
 
         default:
@@ -788,16 +788,18 @@ export var calculateAmountForDelivery = (delivery, type) => {
       }
 
       let lrAmount = 0;
-      if (delivery.lr) {
-        if (delivery.lr.lrCharges) {
-          lrAmount = parseFloat(getSumOfLrCharges(delivery.lr.lrCharges || 0));
+      if (delivery.delivery.lr) {
+        if (delivery.delivery.lr.lrCharges) {
+          lrAmount = parseFloat(
+            getSumOfLrCharges(delivery.delivery.lr.lrCharges || 0)
+          );
         }
       }
 
       let invoiceAmount = 0;
-      if (delivery.invoiceCharges) {
+      if (delivery.delivery.invoiceCharges) {
         invoiceAmount = parseFloat(
-          getSumOfInvoiceCharges(delivery.invoiceCharges || 0)
+          getSumOfInvoiceCharges(delivery.delivery.invoiceCharges || 0)
         );
       }
 

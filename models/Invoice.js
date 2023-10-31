@@ -22,15 +22,18 @@ invoiceSchema = new mongoose.Schema({
   },
   deliveries: [
     {
-      delivery: {
+      order: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "delivery",
+        ref: "order",
+      },
+      delivery: {
+        type: String,
       },
       invoiceCharges: {
         type: Array,
       },
       particular: {
-        type: Array,
+        type: String,
       },
     },
   ],
