@@ -37,6 +37,7 @@
     "mongodb": "^5.2.0",
     "mongoose": "^7.0.3",
     "mongoose-auto-increment": "^5.0.1",
+    "n": "^9.2.0",
     "numeral": "^2.0.6",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
