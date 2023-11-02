@@ -1,16 +1,4 @@
 import axios from "../utils/axios";
-import { API } from "aws-amplify";
-import {
-  getInvoice,
-  invoicesByUser,
-  invoiceByDeliveryId,
-} from "../graphql/queries";
-import { createInvoice, updateInvoice } from "../graphql/mutations";
-import { Invoice } from "../models";
-import { DataStore, Predicates } from "@aws-amplify/datastore";
-import moment from "moment";
-import { slice } from "../slices/invoices";
-import { getFiscalYearTimestamps } from "../utils/get-fiscal-year";
 
 class InvoiceApi {
   async getInvoicesByAccount(params) {
@@ -167,82 +155,6 @@ class InvoiceApi {
             "Invoice not created, please try again or contact customer support.",
         };
       }
-    }
-  }
-
-  /// ALL APIS ABOVE THIS LINE ARE CONVERTED TO EXPRESS
-
-  async getInvoicesByUser(user, token) {
-    try {
-      let variables = {
-        user: user.id.toString(),
-        sortDirection: "DESC",
-      };
-
-      if (token) {
-        variables.nextToken = token;
-      }
-
-      //////////////////////// GraphQL API ////////////////////////
-
-      const response = await API.graphql({
-        query: invoicesByUser,
-        variables: variables,
-      });
-      const invoices = response.data.invoicesByUser.items;
-      const nextInvoiceToken = response.data.invoicesByUser.nextToken;
-      //////////////////////// GraphQL API ////////////////////////
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // const invoices = await DataStore.query(Invoice, (c) =>
-      //   c.user("eq", user.id)
-      // );
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // console.log(invoices);
-
-      // Dispatch - Reducer
-
-      // dispatch(slice.actions.getInvoices(invoices));
-
-      return { invoices, nextInvoiceToken };
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async getinvoiceByDeliveryId(id) {
-    try {
-      //////////////////////// GraphQL API ////////////////////////
-      const response = await API.graphql({
-        query: invoiceByDeliveryId,
-        variables: {
-          deliveryId: id.toString(),
-        },
-      });
-
-      const invoice = response.data.invoiceByDeliveryId.items[0];
-      //////////////////////// GraphQL API ////////////////////////
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // const invoices = await DataStore.query(Invoice, (c) =>
-      //   c.user("eq", user.id)
-      // );
-
-      //////////////////////// DataStore API ////////////////////////
-
-      // console.log(invoice);
-
-      // Dispatch - Reducer
-
-      // dispatch(slice.actions.getInvoices(invoices));
-
-      return invoice;
-    } catch (error) {
-      console.log(error);
     }
   }
 }
