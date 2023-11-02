@@ -185,12 +185,11 @@ export const orderTable = (account) => {
         values: (params) => getPartiesByAccount(params, account),
         keyCreator: (params) => {
           const v = JSON.parse(params.value);
-          console.log(v);
           return v._id;
         },
         valueFormatter: (params) => {
           const v = JSON.parse(params.value);
-          return `${v.name} - ${v.mobile} - ${v.city.structured_formatting.main_text}`;
+          return `${v.name}`;
         },
       },
       valueGetter: (params) => {

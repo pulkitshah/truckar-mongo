@@ -85,9 +85,11 @@ export const getOrderUnit = (order) => {
 
 const OrderPreview = (props) => {
   const { lgUp, onEdit, order, gridApi } = props;
-  const { account } = useAuth();
+  const { user, account } = useAuth();
   const align = lgUp ? "horizontal" : "vertical";
   const dispatch = useDispatch();
+
+  console.log(user);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -155,7 +157,7 @@ const OrderPreview = (props) => {
           </Button>
           <Button
             onClick={() => {
-              sendOrderConfirmationMessageToOwner(order, account);
+              sendOrderConfirmationMessageToOwner(order, user);
             }}
             size="small"
             sx={{ pt: 3 }}
@@ -256,7 +258,7 @@ const OrderPreview = (props) => {
               <Button
                 disabled={true}
                 onClick={() => {
-                  sendOrderConfirmationMessageToOwner(order, account);
+                  sendOrderConfirmationMessageToOwner(order, user);
                 }}
                 size="small"
                 sx={{ pt: 3 }}

@@ -18,6 +18,7 @@ let options = {
 
 export const sendOrderConfirmationMessageToOwner = async (order, user) => {
   console.log(order);
+  console.log(user);
   let template;
 
   if (order.transporterId) {
@@ -39,8 +40,8 @@ export const sendOrderConfirmationMessageToOwner = async (order, user) => {
                 order.orderNo,
                 `${order.customer.name} (${order.customer.mobile})`,
                 getRouteFromOrder(order.deliveries),
-                JSON.parse(order.saleType).value === "quantity"
-                  ? `Rs ${order.saleRate} / ${JSON.parse(order.saleType).unit}`
+                order.saleType.value === "quantity"
+                  ? `Rs ${order.saleRate} / ${order.saleType.unit}`
                   : `Rs ${order.saleRate} (Fixed)`,
                 order.vehicleNumber,
                 order.driver
@@ -75,14 +76,12 @@ export const sendOrderConfirmationMessageToOwner = async (order, user) => {
                 order.orderNo,
                 `${order.customer.name} (${order.customer.mobile})`,
                 getRouteFromOrder(order.deliveries),
-                JSON.parse(order.saleType).value === "quantity"
-                  ? `Rs ${order.saleRate} / ${JSON.parse(order.saleType).unit}`
+                order.saleType.value === "quantity"
+                  ? `Rs ${order.saleRate} / ${order.saleType.unit}`
                   : `Rs ${order.saleRate} (Fixed)`,
                 `${order.transporter.name} (${order.transporter.mobile})`,
                 order.purchaseType === "quantity"
-                  ? `Rs ${order.purchaseRate} / ${
-                      JSON.parse(order.saleType).unit
-                    }`
+                  ? `Rs ${order.purchaseRate} / ${order.saleType.unit}`
                   : `Rs ${order.purchaseRate} (Fixed)`,
                 order.vehicleNumber,
                 order.driver
