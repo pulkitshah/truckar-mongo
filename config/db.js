@@ -7,7 +7,7 @@ const connectDB = async () => {
   try {
     await mongoose.connect(
       process.env.NODE_ENV !== "production"
-        ? process.env.mongoURI_LOCAL.toString()
+        ? process.env.mongoURI_PROD.toString()
         : // : process.env.mongoURI_DEV.toString(),
           process.env.mongoURI_PROD.toString(),
       {
