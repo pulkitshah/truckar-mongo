@@ -3,7 +3,10 @@ const mongoose = require("mongoose");
 invoiceSchema = new mongoose.Schema({
   invoiceFormat: { type: String },
   invoiceNo: {
-    type: Number,
+    type: String,
+  },
+  invoiceType: {
+    type: String,
   },
   invoiceDate: {
     type: Date,
@@ -38,7 +41,7 @@ invoiceSchema = new mongoose.Schema({
     },
   ],
   taxes: {
-    type: Object,
+    type: Array,
   },
   account: {
     type: mongoose.Schema.Types.ObjectId,

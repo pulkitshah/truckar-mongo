@@ -7,6 +7,7 @@ const createFilterAggPipeline = require("../../utils/getAggregationPipeline");
 const getFiscalYearTimestamps = require("../../utils/getFiscalYear");
 
 const router = express.Router();
+const importdata = require("../../data/invoices");
 
 let lookups = [
   {
@@ -236,6 +237,20 @@ let lookups = [
   },
 ];
 
+// @route   POST api/order/insertmany
+// @desc    Create many Vehicles
+// @access  Private
+
+router.post("/insertmany", auth, async (req, res) => {
+  try {
+    addresses = await Invoice.insertMany(importdata);
+    res.json(addresses);
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server Error");
+  }
+});
+
 // @route   POST api/invoice
 // @desc    Create Invoice
 // @access  Private
@@ -258,8 +273,8 @@ router.post(
       console.log(invoiceFields);
 
       invoiceFields.deliveries = invoiceFields.deliveries.map((delivery) => ({
-        order: delivery._id,
-        delivery: delivery.delivery._id,
+        order: delivery.order,
+        delivery: delivery.delivery,
         particular: delivery.particular,
         invoiceCharges: delivery.invoiceCharges,
       }));

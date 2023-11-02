@@ -139,40 +139,48 @@ const InvoicePreview = (props) => {
           Customer Details
         </Typography>
 
-        <PropertyListItem align={align} disableGutters label="Customer">
-          <Typography color="primary" variant="body2">
-            {invoice.customer.name}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {invoice.customer.mobile}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {invoice.customer.city.description}
-          </Typography>
-        </PropertyListItem>
+        {invoice.customer && (
+          <PropertyListItem align={align} disableGutters label="Customer">
+            <Typography color="primary" variant="body2">
+              {invoice.customer.name}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {invoice.customer.mobile}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {invoice.customer.city.description}
+            </Typography>
+          </PropertyListItem>
+        )}
 
-        <PropertyListItem align={align} disableGutters label="Billing Address">
-          <Typography color="primary" variant="body2">
-            {invoice.billingAddress.name}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {invoice.billingAddress.billingAddressLine1}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {invoice.billingAddress.billingAddressLine2}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {invoice.billingAddress.city.description}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {invoice.billingAddress.pan &&
-              `PAN - ${invoice.billingAddress.pan}`}
-          </Typography>
-          <Typography color="textSecondary" variant="body2">
-            {invoice.billingAddress.gstin &&
-              `GSTIN - ${invoice.billingAddress.gstin}`}
-          </Typography>
-        </PropertyListItem>
+        {invoice.billingAddress && (
+          <PropertyListItem
+            align={align}
+            disableGutters
+            label="Billing Address"
+          >
+            <Typography color="primary" variant="body2">
+              {invoice.billingAddress.name}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {invoice.billingAddress.billingAddressLine1}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {invoice.billingAddress.billingAddressLine2}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {invoice.billingAddress.city.description}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {invoice.billingAddress.pan &&
+                `PAN - ${invoice.billingAddress.pan}`}
+            </Typography>
+            <Typography color="textSecondary" variant="body2">
+              {invoice.billingAddress.gstin &&
+                `GSTIN - ${invoice.billingAddress.gstin}`}
+            </Typography>
+          </PropertyListItem>
+        )}
       </PropertyList>
       <Divider sx={{ my: 3 }} />
 

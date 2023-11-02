@@ -220,8 +220,8 @@ const InvoicePDF = ({ invoice, logo }) => {
   let subtotalAmount = 0;
   let advance = 0;
   let totalTaxPercentage =
-    invoice.taxes && JSON.parse(invoice.taxes)
-      ? JSON.parse(invoice.taxes).reduce((a, b) => {
+    invoice.taxes && invoice.taxes
+      ? invoice.taxes.reduce((a, b) => {
           return a + (parseFloat(b.value) || 0);
         }, 0)
       : 0;
@@ -305,7 +305,7 @@ const InvoicePDF = ({ invoice, logo }) => {
                 <Text style={styles.body1}>
                   {invoice.billingAddress &&
                     invoice.billingAddress.city &&
-                    JSON.parse(invoice.billingAddress.city).description}
+                    invoice.billingAddress.city.description}
                 </Text>
                 <Text style={styles.body1}>
                   {" "}
@@ -459,10 +459,7 @@ const InvoicePDF = ({ invoice, logo }) => {
                       ]}
                     >
                       <Text style={[styles.tableCellText]}>
-                        {
-                          JSON.parse(delivery.loading).structured_formatting
-                            .main_text
-                        }
+                        {delivery.loading.structured_formatting.main_text}
                       </Text>
                     </View>
 
@@ -498,10 +495,7 @@ const InvoicePDF = ({ invoice, logo }) => {
                       ]}
                     >
                       <Text billingAddress style={[styles.tableCellText]}>
-                        {
-                          JSON.parse(delivery.unloading).structured_formatting
-                            .main_text
-                        }
+                        {delivery.unloading.structured_formatting.main_text}
                       </Text>
                     </View>
                     <View
@@ -514,15 +508,13 @@ const InvoicePDF = ({ invoice, logo }) => {
                       <Text billingAddress style={[styles.tableCellText]}>
                         {delivery.particular}
                       </Text>
-                      {JSON.parse(delivery.invoiceCharges).map(
-                        (invoiceCharge, i) => {
-                          return (
-                            <Text key={i} style={[styles.tableCellText]}>
-                              {invoiceCharge.particular}
-                            </Text>
-                          );
-                        }
-                      )}
+                      {delivery.invoiceCharges.map((invoiceCharge, i) => {
+                        return (
+                          <Text key={i} style={[styles.tableCellText]}>
+                            {invoiceCharge.particular}
+                          </Text>
+                        );
+                      })}
                     </View>
                     <View
                       style={[
@@ -536,11 +528,9 @@ const InvoicePDF = ({ invoice, logo }) => {
                           {delivery.lr && delivery.lr.chargedWeight
                             ? delivery.lr.chargedWeight
                             : delivery.billQuantity
-                            ? `${delivery.billQuantity} ${
-                                JSON.parse(delivery.order.saleType).unit
-                              } `
+                            ? `${delivery.billQuantity} ${delivery.order.saleType.unit} `
                             : `${delivery.order.minimumSaleGuarantee || 0} ${
-                                JSON.parse(delivery.order.saleType).unit
+                                delivery.order.saleType.unit
                               }`}
                         </Text>
                       </React.Fragment>
@@ -558,18 +548,15 @@ const InvoicePDF = ({ invoice, logo }) => {
                           calculateAmountForDelivery(delivery, "sale")
                         )}
                       </Text>
-                      {JSON.parse(delivery.invoiceCharges).map(
-                        (invoiceCharge, i) => {
-                          subtotalAmount =
-                            subtotalAmount + invoiceCharge.amount;
+                      {delivery.invoiceCharges.map((invoiceCharge, i) => {
+                        subtotalAmount = subtotalAmount + invoiceCharge.amount;
 
-                          return (
-                            <Text key={i} style={[styles.tableCellText]}>
-                              Rs. {formatNumber(invoiceCharge.amount)}
-                            </Text>
-                          );
-                        }
-                      )}
+                        return (
+                          <Text key={i} style={[styles.tableCellText]}>
+                            Rs. {formatNumber(invoiceCharge.amount)}
+                          </Text>
+                        );
+                      })}
                     </View>
 
                     <View
@@ -594,7 +581,7 @@ const InvoicePDF = ({ invoice, logo }) => {
               }
               return null;
             })}
-            {invoice.taxes && JSON.parse(invoice.taxes).length > 0 && (
+            {invoice.taxes && invoice.taxes.length > 0 && (
               <View style={[styles.tableRow]}>
                 <View style={[styles.amountInWordsCell, styles.rightBorder]}>
                   <Text style={[styles.amountInWordsCellText]}>
@@ -646,7 +633,7 @@ const InvoicePDF = ({ invoice, logo }) => {
               </View>
             )}
             {invoice.taxes &&
-              JSON.parse(invoice.taxes).map((tax) => {
+              invoice.taxes.map((tax) => {
                 return (
                   <View style={[styles.tableRow]}>
                     <View
@@ -688,7 +675,7 @@ const InvoicePDF = ({ invoice, logo }) => {
             <View style={[styles.tableRow]}>
               <View style={[styles.amountInWordsCell, styles.rightBorder]}>
                 <Text style={[styles.amountInWordsCellText]}>
-                  {!(invoice.taxes && JSON.parse(invoice.taxes).length > 0) &&
+                  {!(invoice.taxes && invoice.taxes.length > 0) &&
                     `Amount in Words: ${numWords(
                       Math.round(
                         subtotalAmount * (1 + totalTaxPercentage / 100)
@@ -729,14 +716,14 @@ const InvoicePDF = ({ invoice, logo }) => {
               <View
                 style={[
                   styles.advanceCell,
-                  !(invoice.taxes && JSON.parse(invoice.taxes).length > 0) &&
+                  !(invoice.taxes && invoice.taxes.length > 0) &&
                     styles.rightBorder,
-                  !(invoice.taxes && JSON.parse(invoice.taxes).length > 0) &&
+                  !(invoice.taxes && invoice.taxes.length > 0) &&
                     styles.bottomBorder,
                 ]}
               >
                 <Text style={[styles.tableCellText]}>
-                  {!(invoice.taxes && JSON.parse(invoice.taxes).length > 0) &&
+                  {!(invoice.taxes && invoice.taxes.length > 0) &&
                     "Rs " + formatNumber(advance)}
                 </Text>
               </View>
