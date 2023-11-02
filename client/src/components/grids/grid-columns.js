@@ -516,12 +516,14 @@ export const deliveriesTable = (account) => {
       width: 120,
       editable: true,
       valueGetter: (params) => {
-        if (params.data.delivery.billQuantity) {
-          return `Rs. ${params.data.delivery.billQuantity} / ${getOrderUnit(
-            params.data
-          )}`;
-        } else {
-          return "-";
+        if (params.data) {
+          if (params.data.delivery.billQuantity) {
+            return `Rs. ${params.data.delivery.billQuantity} / ${getOrderUnit(
+              params.data
+            )}`;
+          } else {
+            return "-";
+          }
         }
       },
       // valueFormatter: (params) => {

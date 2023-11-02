@@ -49,12 +49,14 @@ const handlers = {
     };
   },
   LOGIN: (state, action) => {
-    const { user } = action.payload;
+    const { user, accounts, account } = action.payload;
 
     return {
       ...state,
       isAuthenticated: true,
       user,
+      accounts,
+      account,
     };
   },
   LOGOUT: (state) => ({
@@ -69,6 +71,8 @@ const handlers = {
       ...state,
       isAuthenticated: true,
       user,
+      accounts,
+      account,
     };
   },
 };
@@ -147,10 +151,16 @@ export const AuthProvider = (props) => {
       setSession(response.data.accessToken);
 
       const user = response.data.user;
+      const response2 = await accountApi.getAccountsByUser(user);
+      const accounts = response2.data;
+      console.log(accounts);
+
       dispatch({
         type: "LOGIN",
         payload: {
           user,
+          accounts,
+          account: accounts[0],
         },
       });
     }
